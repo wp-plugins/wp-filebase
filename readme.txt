@@ -15,18 +15,18 @@ Additionally there are options to limit traffic and download speed.
 
 Some more features:
 
-* Arrange files in categories and sub-categories
-* Automatically creates thumbnails of images (JPEG, PNG, GIF, BMP)
-* Powerful template engine (variables, IF-Blocks)
-* Associate files to posts and automatically attach them to the content
-* Customisable file list widget
-* Hotlinking protection
-* Daily and monthly traffic limits
-* Download speed limiter for registered users and anonymous
-* Range download (allows user to pause downloads and continue them later)
-* Works with permalink structure
-* Download counter which ignores multiple downloads from the same client
-* Many file properties like author, version, supported languages, platforms, license ...
+*   Arrange files in categories and sub-categories
+*   Automatically creates thumbnails of images (JPEG, PNG, GIF, BMP)
+*   Powerful template engine (variables, IF-Blocks)
+*   Associate files to posts and automatically attach them to the content
+*   Customisable file list widget
+*   Hotlinking protection
+*   Daily and monthly traffic limits
+*   Download speed limiter for registered users and anonymous
+*   Range download (allows user to pause downloads and continue them later)
+*   Works with permalink structure
+*   Download counter which ignores multiple downloads from the same client
+*   Many file properties like author, version, supported languages, platforms, license ...
 
 == Installation ==
 1. Upload the `wp-filebase` folder with all it's files to `wp-content/plugins/`
