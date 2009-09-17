@@ -1,10 +1,10 @@
 === WP-Filebase ===
 Contributors: fabifott
 Donate link: http://fabi.me/
-Tags: filebase, filemanager, file, files, upload, download, downloads, downloadmanager, traffic, widget, filelist, list, trhumb, thumbnail
+Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, traffic, widget, filelist, list, thumb, thumbnail, attachment, attachments, category, categories, media, template
 Requires at least: 2.0.2
 Tested up to: 2.8.4
-Stable tag: 0.1.0.0
+Stable tag: 0.1.0.1
 
 Adds a powerful download manager supporting file categories, thumbnails, traffic/bit rate limits and more to your WordPress blog.
 
@@ -31,3 +31,11 @@ Some more features:
 == Installation ==
 1. Upload the `wp-filebase` folder with all it's files to `wp-content/plugins/`
 2. Create the directory `/wp-content/uploads/filebase` and make it writeable (FTP command: `CHMOD 777 wp-content/uploads/filebase`)
+3. Activate the Plugin and customize the settings under `Settings->WP-Filebase`
+
+== Changelog ==
+
+= 0.1.0.1 =
+* Added download permissions, each file can have a minimum user level
+* New Editor Tag `[filebase:attachments]` which lists all files associated with the current article
+* Fixed missing `file_requirements` template field. You should reset your WP-Filebase settings if you want to use this.
