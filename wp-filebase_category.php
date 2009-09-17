@@ -8,7 +8,7 @@ class WPFilebaseCategory extends WPFilebaseItem {
 	var $cat_folder;
 	var $cat_parent;
 	var $cat_files;
-	//var $cat_permission;
+	var $cat_required_level;
 	
 	static private $_cats = array();
 	

@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: WP-Filebase
-Plugin URI: http://fabi.me/wp-filebase
+Plugin URI: http://fabi.me/scripts-codes/wp-filebase-file-download-manager-wordpress/
 Description: A powerful download manager supporting file categories, thumbnails, traffic/bit rate limits and more.
 Author: Fabian Schlieper
 Version: 0.1.0.0
@@ -58,6 +58,7 @@ function wpfilebase_activate() {
 	
 	wpfilebase_add_options();
 	wpfilebase_create_tables();
+	wpfilebase_protect_upload_path();
 }
 
 /*

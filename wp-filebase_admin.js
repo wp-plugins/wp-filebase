@@ -32,3 +32,36 @@ function wpfilebaseAddTplField(select, input)
 	
 	select.selectedIndex = 0;
 }
+
+function checkboxShowHide(checkbox, name)
+{
+	var chk = checkbox.checked;
+	var input = checkbox.form.elements[name];
+	if(input)
+		elementShowHide(input, chk);
+	
+	// show/hide labels
+	var lbs = checkbox.form.getElementsByTagName('label');
+	for(var l = 0; l < lbs.length; ++l)
+	{
+		if(lbs[l].htmlFor == name)
+			elementShowHide(lbs[l], chk);
+	}
+}
+
+function elementShowHide(el, show)
+{
+	var newCs = '';
+	var cs = el.className.split(' ');
+	// remove hidden class
+	for (var i = 0; i < cs.length; ++i)
+	{
+		if(cs[i] != 'hidden')
+		newCs += cs[i] + ' ';
+	}
+	if(!show)
+		newCs += 'hidden';
+	else
+		newCs = newCs.substring(0, newCs.length - 1)
+	el.className = newCs;
+}

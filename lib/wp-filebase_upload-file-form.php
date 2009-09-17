@@ -25,6 +25,7 @@ foreach($parent_cats as $pc)
 		$parent_cat_list .= wpfilebase_parent_cat_seletion_tree($pc, $file);	
 }
 
+$file_members_only = ($file->file_required_level > 0);
 
 ?>
 
@@ -51,8 +52,7 @@ foreach($parent_cats as $pc)
 			if(!empty($file->file_thumbnail)) {
 				?>
 				<br /><img src="<?php echo $file->get_icon_url(); ?>" /><br />
-				<b><?php echo $file->file_thumbnail; ?></b><br />
-				<label for="file_delete_thumb"><input type="checkbox" value="1" name="file_delete_thumb" id="file_delete_thumb" /> <?php _e('Delete'); ?></label>
+				<b><?php echo $file->file_thumbnail; ?></b> <label for="file_delete_thumb"><input type="checkbox" value="1" name="file_delete_thumb" id="file_delete_thumb" /> <?php _e('Delete'); ?></label>
 			<?php } ?>
 			</td>
 		</tr>
@@ -120,8 +120,10 @@ foreach($parent_cats as $pc)
 			<th scope="row" valign="top"><label for="file_offline"><?php _e('Offline') ?></label></th>
 			<td><input type="checkbox" name="file_offline" value="1" <?php checked('1', $file->file_offline); ?>/></td>
 			
-			<th scope="row" valign="top"><label for=""></label></th>
+			<th scope="row" valign="top"><label for="file_members_only"><?php _e('For members only') ?></label></th>
 			<td>
+				<input type="checkbox" name="file_members_only" value="1" <?php checked(true, $file_members_only) ?> onclick="checkboxShowHide(this, 'file_required_level')" />
+				<label for="file_required_level"<?php if(!$file_members_only) { echo ' class="hidden"'; } ?>><?php printf(__('Minimum user level: (see %s)'), '<a href="http://codex.wordpress.org/Roles_and_Capabilities#Role_to_User_Level_Conversion" target="_blank">Role to User Level Conversion</a>') ?> <input type="text" name="file_required_level" class="small-text<?php if(!$file_members_only) { echo ' hidden'; } ?>" id="file_required_level" value="<?php echo max(0, intval($file->file_required_level) - 1); ?>" /></label>
 			</td>
 		</tr>
 	</table>

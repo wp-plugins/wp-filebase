@@ -105,7 +105,8 @@ function wpfilebase_get_post_attachments($check_attached = false)
 		foreach($results as $file_row)
 		{
 			$file = new WPFilebaseFile($file_row);
-			$content .= $file->parse_template();
+			if($file->current_user_can_access())
+				$content .= $file->parse_template();
 		}
 		
 		$attached = true;
@@ -121,6 +122,10 @@ function wpfilebase_filelist($cat=0)
 	$extra_sql = '';
 	if($cat > 0)
 	{
+		// check permission
+		if(!WPFilebaseCategory::get_category($cat)->current_user_can_access())
+			return '';
+			
 		$extra_sql .= 'WHERE file_category = ' . (int)$cat . ' ';
 	}
 	
@@ -128,7 +133,10 @@ function wpfilebase_filelist($cat=0)
 	
 	$files = &WPFilebaseFile::get_files($extra_sql);
 	foreach($files as &$file)
-		$content .= $file->parse_template();
+	{
+		if($file->current_user_can_access())
+			$content .= $file->parse_template();
+	}
 	
 	return $content;
 }

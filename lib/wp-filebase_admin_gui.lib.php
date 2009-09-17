@@ -354,6 +354,9 @@ function wpfilebase_admin_manage()
 			?>
 			<div class="wrap">
 				<h2>Filebase</h2>
+				<?php if(!is_writable(wpfilebase_upload_dir())) { ?>
+				<div class="error default-password-nag"><p><?php printf(__('The upload directory <code>%s</code> is <b>not writable</b>!<br />Please make it writable by executin the follwing FTP command: <code>%s</code>'), wpfilebase_upload_dir(), 'chmod 777 ' . substr(wpfilebase_upload_dir(), strlen(ABSPATH))) ?></p></div>
+				<?php } ?>
 				<p>
 				<?php if ( current_user_can('upload_files') ) : ?><a href="<?php echo $clean_uri; ?>&amp;action=manage_files" class="button"><?php _e('Manage files'); ?></a><?php endif; ?>
 				<?php if ( current_user_can('manage_categories') ) : ?><a href="<?php echo $clean_uri; ?>&amp;action=manage_cats" class="button"><?php _e('Manage categories'); ?></a><?php endif; ?>	
@@ -467,7 +470,9 @@ function wpfilebase_admin_options()
 			$options[$opt_tag] = stripslashes(trim($_POST[$opt_tag]));
 		}
 		
-		update_option(WPFB_OPT_NAME, $options);		
+		update_option(WPFB_OPT_NAME, $options);
+		
+		wpfilebase_protect_upload_path();
 		
 		if(count($errors) == 0)
 			$messages[] = __('Options updated.');

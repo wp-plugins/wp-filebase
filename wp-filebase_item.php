@@ -148,6 +148,12 @@ class WPFilebaseItem {
 
 		return $this->is_ancestor_of($p);
 	}
+	
+	public function current_user_can_access()
+	{
+		$level = intval($this->is_file ? $this->file_required_level : $this->cat_required_level) - 1;
+		return ($level < 0 || current_user_can('level_'.$level));
+	}
 }
 
 ?>

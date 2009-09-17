@@ -2,7 +2,8 @@
 
 global $wpdb;
 
-if ( !empty($file_category) && !empty($file_category->cat_id) ) {
+$update_cat = !empty($file_category) && !empty($file_category->cat_id);
+if ( $update_cat ) {
 	$heading = $submit_text = __('Edit Category');
 	$form = '<form name="editcat" id="editcat" method="post" action="?page=' . $_GET['page'] . '&amp;action=manage_cats&amp;pagenum=' . $_GET['pagenum'] . '" class="validate">';
 	$action = 'updatecat';
@@ -25,6 +26,7 @@ foreach($parent_cats as $pc)
 		$parent_cat_list .= wpfilebase_parent_cat_seletion_tree($pc, $file_category);	
 }
 
+$cat_members_only = ($file_category->cat_required_level > 0);
 
 ?>
 
@@ -56,6 +58,19 @@ foreach($parent_cats as $pc)
 			<th scope="row" valign="top"><label for="cat_description"><?php _e('Description') ?></label></th>
 			<td><textarea name="cat_description" id="cat_description" rows="5" cols="50" style="width: 97%;"><?php echo wp_specialchars($file_category->cat_description); ?></textarea></td>
 		</tr>
+		<tr>
+			<th scope="row" valign="top"><label for="cat_members_only"><?php _e('For members only') ?></label></th>
+			<td>
+				<input type="checkbox" name="cat_members_only" value="1" <?php checked(true, $cat_members_only) ?> onclick="checkboxShowHide(this, 'cat_required_level')" />
+				<label for="cat_required_level"<?php if(!$cat_members_only) { echo ' class="hidden"'; } ?>><?php printf(__('Minimum user level: (see %s)'), '<a href="http://codex.wordpress.org/Roles_and_Capabilities#Role_to_User_Level_Conversion" target="_blank">Role to User Level Conversion</a>') ?> <input type="text" name="cat_required_level" class="small-text<?php if(!$cat_members_only) { echo ' hidden'; } ?>" id="cat_required_level" value="<?php echo max(0, intval($file_category->cat_required_level) - 1); ?>" /></label>
+			</td>
+		</tr>
+		<?php if($update_cat) { ?>
+		<tr>
+			<th scope="row" valign="top"><label for="cat_child_apply_perm"><?php _e('Apply permission to all child files') ?></label></th>
+			<td><input type="checkbox" name="cat_child_apply_perm" value="1" /></td>
+		</tr>
+		<?php } ?>
 	</table>
 <p class="submit"><input type="submit" class="button" name="submit" value="<?php echo $submit_text ?>" /></p>
 </form>

@@ -15,8 +15,8 @@ class WPFilebaseFile extends WPFilebaseItem {
 	var $file_platform;
 	var $file_requirement;
 	var $file_license;
-	//var $file_permission; // TODO
-	var $file_offline; // TODO
+	var $file_required_level;
+	var $file_offline;
 	var $file_direct_linking;
 	var $file_category;
 	var $file_update_of; // TODO
@@ -133,7 +133,9 @@ class WPFilebaseFile extends WPFilebaseItem {
 	public function get_icon_url()
 	{	
 		if(!empty($this->file_thumbnail))
-			return get_option('siteurl') . str_replace(ABSPATH, '/', $this->get_thumbnail_path());
+		{
+			return WPFB_PLUGIN_URI . 'wp-filebase_thumb.php?fid=' . $this->file_id;
+		}
 				
 		$type = $this->get_type();
 		$ext = substr($this->get_extension(), 1);
@@ -375,7 +377,10 @@ class WPFilebaseFile extends WPFilebaseItem {
 		
 		$data['file_languages'] = wpfilebase_get_tag_names('languages', $this->file_language);
 		$data['file_platforms'] = wpfilebase_get_tag_names('platforms', $this->file_platform);
+		$data['file_requirements'] = wpfilebase_get_tag_names('requirements', $this->file_requirement);
 		$data['file_license'] = wpfilebase_get_tag_names('licenses', $this->file_license);
+		
+		$data['file_required_level'] = ($this->file_required_level - 1);
 		
 		$data['file_date'] = mysql2date(get_option('date_format'), $data['file_date']);
 		$data['file_last_dl_time'] = mysql2date(get_option('date_format'), $data['file_last_dl_time']);
@@ -393,23 +398,34 @@ class WPFilebaseFile extends WPFilebaseItem {
 	{
 		global $wpdb, $user_ID;
 		
+		// check user level
+		if(!$this->current_user_can_access())
+			wp_die(__('Cheatin&#8217; uh?'));
+		
+		// check offline
 		if($this->file_offline)
 			wp_die(wpfilebase_get_opt('file_offline_msg'));
-			
-		get_currentuserinfo();
-		$logged_in = (!empty($user_ID));
 		
 		$downloader_ip = preg_replace( '/[^0-9a-fA-F:., ]/', '', $_SERVER['REMOTE_ADDR']);
 		
+		// check traffic
 		wpfilebase_inclib('file');
 		if(!wpfilebase_check_traffic($this->file_size))
 		{
 			header('HTTP/1.x 503 Service Unavailable');
 			wp_die(wpfilebase_get_opt('traffic_exceeded_msg'));
 		}
+
+		get_currentuserinfo();
+		$logged_in = (!empty($user_ID));
+		$is_admin = current_user_can('level_8'); 
 		
-		if(empty($this->file_last_dl_ip) || $this->file_last_dl_ip != $downloader_ip)
-			$wpdb->query("UPDATE " . $wpdb->wpfilebase_files . " SET file_hits = file_hits + 1, file_last_dl_ip = '" . $downloader_ip . "', file_last_dl_time = '" . current_time('mysql') . "' WHERE file_id = " . (int)$this->file_id);
+		// count download
+		if(!$is_admin || !wpfilebase_get_opt('ignore_admin_dls'))
+		{
+			if(empty($this->file_last_dl_ip) || $this->file_last_dl_ip != $downloader_ip)
+				$wpdb->query("UPDATE " . $wpdb->wpfilebase_files . " SET file_hits = file_hits + 1, file_last_dl_ip = '" . $downloader_ip . "', file_last_dl_time = '" . current_time('mysql') . "' WHERE file_id = " . (int)$this->file_id);
+		}
 		
 		wpfilebase_send_file($this->get_path(), wpfilebase_get_opt('bitrate_' . ($logged_in?'registered':'unregistered')));
 		

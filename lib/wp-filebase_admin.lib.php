@@ -38,7 +38,6 @@ function wpfilebase_options()
 	'licenses'					=> array('default' => "*Freeware|free\nShareware|share\nGNU General Public License|gpl\nGNU Lesser General Public License|lgpl\nGNU Affero General Public License|agpl", 'title' => __('Licenses'), 'type' => 'textarea', 'desc' => &$multiple_entries_desc),
 	'requirements'				=> array('default' => ".NET Framework 2.0|.net2\n.NET Framework 3.0|.net3\n.NET Framework 3.5|.net35", 'title' => __('Requirements'), 'type' => 'textarea', 'desc' => &$multiple_entries_desc),
 	
-	//TODO
 	'ignore_admin_dls'			=> array('default' => false, 'title' => __('Ignore downloads by admins'), 'type' => 'checkbox'),
 	
 	'download_base'				=> array('default' => 'download', 'title' => __('Download URL base'), 'type' => 'text', 'desc' => __('The download url base. (Only used when Permalinks are enabled.)')),
@@ -60,6 +59,7 @@ function wpfilebase_options()
 			<!-- IF %file_languages% --><tr><th>%'Languages'%:</th><td>%file_languages%</td></tr><!-- ENDIF -->
 			<!-- IF %file_author% --><tr><th>%'Author'%:</th><td>%file_author%</td></tr><!-- ENDIF -->
 			<!-- IF %file_platforms% --><tr><th>%'Platforms'%:</th><td>%file_platforms%</td></tr><!-- ENDIF -->
+			<!-- IF %file_requirements% --><tr><th>%'Requirements'%:</th><td>%file_requirements%</td></tr><!-- ENDIF -->
 			<!-- IF %file_category% --><tr><th>%'Category:'%</th><td>%file_category%</td></tr><!-- ENDIF -->
 			<!-- IF %file_license% --><tr><th>%'License'%:</th><td>%file_license%</td></tr><!-- ENDIF -->
 			<tr><th>%'Date'%:</th><td>%file_date%</td></tr>
@@ -95,7 +95,7 @@ function wpfilebase_template_fields_desc()
 	'file_platforms'		=> 'Supported platforms (operating systems)',
 	'file_requirements'		=> 'Requirements to use this file',
 	'file_license'			=> 'License',
-	//'file_permission'		=>
+	'file_required_level'	=> 'The minimum user level to download this file (-1 = guest, 0 = Subscriber ...)',
 	'file_offline'			=> '1 if file is offline, otherwise 0',
 	'file_direct_linking'	=> '1 if direct linking is allowed, otherwise 0',
 	'file_category'			=> 'The category name',
@@ -156,6 +156,22 @@ function wpfilebase_insert_category($catarr)
 	$cat->cat_name = trim($cat_name);
 	$cat->cat_description = trim($cat_description);
 	$cat->cat_folder = trim($cat_folder);
+	
+	// permission
+	$cat_members_only = !empty($cat_members_only);
+	$cat->cat_required_level = $cat_members_only ? (min(max(intval($cat_required_level), 0), 10) + 1) : 0;
+	$cat_child_apply_perm = $update && !empty($cat_child_apply_perm);
+	if($cat_child_apply_perm)
+	{
+		//WPFilebaseCategory::get_categories();
+		// apply permissions to all child files
+		$files = $cat->get_files();
+		foreach($files as &$file)
+		{
+			$file->file_required_level = $cat->cat_required_level;
+			$file->db_save();
+		}
+	}
 	
 	if (empty($cat->cat_name))
 		return array( 'error' => __('You did not enter a category name.') );
@@ -279,8 +295,12 @@ function wpfilebase_insert_file($filearr)
 		$file_requirement = implode('|', $file_requirements);
 		
 	$file_offline = empty($file_offline) ? 0 : 1;
+	
+	// permission
+	$file_members_only = !empty($file_members_only);
+	$file_required_level = $file_members_only ? (min(max(intval($file_required_level), 0), 10) + 1) : 0;
 		
-	$var_names = array('version', 'author', 'date', 'post_id', 'direct_linking', 'description', 'hits', 'language', 'platform', 'requirement', 'license', 'offline');
+	$var_names = array('version', 'author', 'date', 'post_id', 'direct_linking', 'description', 'hits', 'language', 'platform', 'requirement', 'license', 'offline', 'required_level');
 	for($i = 0; $i < count($var_names); $i++)
 	{
 		$vn = 'file_' . $var_names[$i];
@@ -481,6 +501,20 @@ function wpfilebase_admin_table_sort_link($order)
 	$uri = remove_query_arg(array('order', 'desc'), $_SERVER['REQUEST_URI']);
 	$uri .= '&order=' . $order . '&desc=' . ($desc ? '1' : '0');
 	return $uri;
+}
+
+function wpfilebase_protect_upload_path()
+{
+	$htaccess = wpfilebase_upload_dir() . '/.htaccess';
+	
+	if( is_writable(wpfilebase_upload_dir()) && ($fp = @fopen($htaccess, 'w')) )
+	{
+		@fwrite($fp, "Order deny,allow\n");
+		@fwrite($fp, "Deny from all\n");
+		@fclose($fp);		
+		return true;
+	}	
+	return false;
 }
 
 function wpfilebase_uninstall()

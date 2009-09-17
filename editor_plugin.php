@@ -158,10 +158,14 @@ if(!empty($_REQUEST['action']) && $_REQUEST['action'] == 'get_sub_items')
 		
 		if(currentContainer == 'insfilelist')
 		{
-			content += 'filelist';
-			var cat = getSelectedRadio('cat').value;
-			if(cat != null && cat.length > 0 && cat != 'all')
-				content += ':cat' + cat;
+			var cat = getSelectedRadio('cat').value;			
+			if(cat == 'attachments') {
+				content += 'attachments';
+			} else {
+				content += 'filelist';
+				if(cat != null && cat.length > 0 && cat != 'all')
+					content += ':cat' + cat;
+			}
 			content += ']';
 		} else {
 			content += 'file';
@@ -207,6 +211,7 @@ if(!empty($_REQUEST['action']) && $_REQUEST['action'] == 'get_sub_items')
 		
 		<div id="insfilelist" style="display: none;">
 			<label><input type="radio" name="cat" value="all" /><i><?php _e('All Categories'); ?></i></label><br />
+			<label><input type="radio" name="cat" value="attachments" /><i><?php _e('Attachments'); ?></i></label><br />
 			<?php
 				$cats = WPFilebaseCategory::get_categories();
 				foreach($cats as $cat)
