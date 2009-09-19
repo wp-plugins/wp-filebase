@@ -9,9 +9,10 @@ Stable tag: 0.1.0.1
 Adds a powerful download manager supporting file categories, thumbnails, traffic/bit rate limits and more to your WordPress blog.
 
 == Description ==
+
 WP-Filebase is a powerful download manager supporting file categories, thumbnails and more.
 Uploaded files can be associated with a post or page so the download URL, thumbnail and other file information are appended automatically to the content.
-Additionally there are options to limit traffic and download speed.
+Additionally the downloadmanager offers options to limit traffic and download speed.
 
 Some more features:
 
@@ -28,10 +29,18 @@ Some more features:
 *   Download counter which ignores multiple downloads from the same client
 *   Many file properties like author, version, supported languages, platforms, license ...
 
+You can see a [live demo on my Website](http://fabi.me/ "WP-Filebase demo")
+
 == Installation ==
+
 1. Upload the `wp-filebase` folder with all it's files to `wp-content/plugins/`
 2. Create the directory `/wp-content/uploads/filebase` and make it writeable (FTP command: `CHMOD 777 wp-content/uploads/filebase`)
 3. Activate the Plugin and customize the settings under `Settings->WP-Filebase`
+
+== Screenshots ==
+
+1. Example of three auto-attached files
+2. The WP-Filebase Widget
 
 == Changelog ==
 
@@ -39,3 +48,6 @@ Some more features:
 * Added download permissions, each file can have a minimum user level
 * New Editor Tag `[filebase:attachments]` which lists all files associated with the current article
 * Fixed missing `file_requirements` template field. You should reset your WP-Filebase settings if you want to use this.
+
+= 0.1.0.0 =
+* First version
