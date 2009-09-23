@@ -281,6 +281,13 @@ function wpfilebase_get_file_content_type($name)
 
 function wpfilebase_send_file($file_path, $bitrate = 0)
 {
+	// remove some headers
+	if(function_exists('header_remove')) {
+		header_remove();
+	}
+	header("Expires: ");
+	header("X-Pingback: ");
+
 	if(!@file_exists($file_path) || !is_file($file_path))
 	{
 		header('HTTP/1.x 404 Not Found');
@@ -290,8 +297,17 @@ function wpfilebase_send_file($file_path, $bitrate = 0)
 	$size = filesize($file_path);
 	$time = filemtime($file_path);
 	
+	if(!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']))
+	{
+		if(@strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= $time)
+		{
+			header("HTTP/1.x 304 Not Modified");
+			exit;
+		}
+	}
+	
 	if(!($fh = @fopen($file_path, 'rb')))
-		wp_die('Could not open file!');
+		wp_die(__('Could not read file!'));
 		
 	$begin = 0;
 	$end = $size;

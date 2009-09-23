@@ -132,8 +132,8 @@ function wpfilebase_get_traffic()
 function wpfilebase_add_traffic($bytes)
 {
 	$traffic = wpfilebase_get_traffic();
-	$traffic['month'] = intval($traffic['month']) + $bytes;
-	$traffic['today'] = intval($traffic['today']) + $bytes;	
+	$traffic['month'] = $traffic['month'] + $bytes;
+	$traffic['today'] = $traffic['today'] + $bytes;	
 	$traffic['time'] = time();
 	wpfilebase_update_opt('traffic_stats', $traffic);
 }
