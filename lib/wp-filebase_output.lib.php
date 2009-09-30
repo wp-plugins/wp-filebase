@@ -117,6 +117,7 @@ function wpfilebase_get_post_attachments($check_attached = false)
 
 function wpfilebase_filelist($cat=0)
 {
+	global $wpdb;
 	$cat = (int)$cat;
 	$content = '';
 	$extra_sql = '';
@@ -129,7 +130,12 @@ function wpfilebase_filelist($cat=0)
 		$extra_sql .= 'WHERE file_category = ' . (int)$cat . ' ';
 	}
 	
-	$extra_sql .= 'ORDER BY file_display_name ASC';
+	$sortby = wpfilebase_get_opt('filelist_sorting');
+	if(!$sortby || $sortby == '')
+		$sortby = 'file_display_name';
+	$sortby = $wpdb->escape($sortby);
+	$sortdir = wpfilebase_get_opt('filelist_sorting_dir') ? 'DESC' : 'ASC';	
+	$extra_sql .= "ORDER BY `$sortby` $sortdir";
 	
 	$files = &WPFilebaseFile::get_files($extra_sql);
 	foreach($files as &$file)

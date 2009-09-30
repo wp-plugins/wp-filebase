@@ -10,73 +10,73 @@ function wpfilebase_options()
 	$traffic_desc = &__('Limits the maximum data traffic. 0 = unlimited');
 	
 	return array (
+	
 	'upload_path'				=> array('default' => get_option('upload_path') . '/filebase', 'title' => __('Upload Path'), 'type' => 'text', 'class' => 'code', 'size' => 65),
 
 	'thumbnail_size'			=> array('default' => 120, 'title' => __('Thumbnail size'), 'type' => 'number', 'class' => 'num', 'size' => 8),
-	'allow_srv_script_upload'	=> array('default' => false, 'title' => __('Allow script upload'), 'type' => 'checkbox', 'desc' => __('If you enable this, scripts like PHP or CGI can be uploaded. <b>WARNING:</b> Enabling script uploads is a <b>security risk</b>!')),
-	//'archive_lister'			=> array('default' => false, 'title' => __('Archive lister'), 'type' => 'checkbox', 'desc' => __('Uploaded files are scanned for archives')),
-	//'enable_ratings'			=> array('default' => false, 'title' => __('Ratings'), 'type' => 'checkbox', 'desc' => ''),
-	'allowed_referers' 			=> array('default' => '', 'title' => __('Allowed referers'), 'type' => 'textarea', 'desc' => 'Sites with matching URLs can link to files directly.<br />'.$multiple_line_desc),
-	'accept_empty_referers'		=> array('default' => true, 'title' => __('Accept empty referers'), 'type' => 'checkbox', 'desc' => 'If enabled, direct-link-protected files can be downloaded when the referer is empty (i.e. user entered file url in address bar or browser does not send referers)'),
 	
+	'auto_attach_files' 	=> array('default' => true,'title' => __('Show attached files'), 'type' => 'checkbox', 'desc' => __('If enabled, all associated files are listed below an article')),
+	'filelist_sorting'		=> array('default' => 'file_display_name', 'title' => __('Default sorting'), 'type' => 'select', 'desc' => __('The file property lists are sorted by'), 'options' => wpfilebase_sorting_options()),
+	'filelist_sorting_dir'	=> array('default' => 0, 'title' => __('Sorting direction'), 'type' => 'select', 'desc' => __('The sorting direction of file lists'), 'options' => array(0 => __('Ascending'), 1 => __('Descending'))),
+	
+	'template_file'			=> array('default' =>
+<<<TPLFILE
+<div class="wpfilebase-attachment">
+ <div class="wpfilebase-fileicon"><a href="%file_url%" title="Download %file_display_name%" onclick="javascript:pageTracker._trackPageview('filedownloads/%file_path%');"><img align="middle" src="%file_icon_url%" /></a></div>
+ <div class="wpfilebase-rightcol">
+  <div class="wpfilebase-filetitle">
+   <a href="%file_url%" title="Download %file_display_name%" onclick="javascript:pageTracker._trackPageview('filedownloads/%file_path%');">%file_display_name%</a>
+   %file_name%
+   <!-- IF %file_version% -->%'Version:'% %file_version%
+   <!-- ENDIF --><!-- IF %file_post_id% AND get_the_ID() != %file_post_id% --><a href="%file_post_url%" class="wpfilebase-postlink">%'View post'%</a><!-- ENDIF -->
+  </div>
+  <div class="wpfilebase-filedetails" id="wpfilebase-filedetails%uid%" style="display: none;">
+  %file_description%
+  <table border="0" width="220">
+   <!-- IF %file_languages% --><tr><th>%'Languages'%:</th><td>%file_languages%</td></tr><!-- ENDIF -->
+   <!-- IF %file_author% --><tr><th>%'Author'%:</th><td>%file_author%</td></tr><!-- ENDIF -->
+   <!-- IF %file_platforms% --><tr><th>%'Platforms'%:</th><td>%file_platforms%</td></tr><!-- ENDIF -->
+   <!-- IF %file_requirements% --><tr><th>%'Requirements'%:</th><td>%file_requirements%</td></tr><!-- ENDIF -->
+   <!-- IF %file_category% --><tr><th>%'Category:'%</th><td>%file_category%</td></tr><!-- ENDIF -->
+   <!-- IF %file_license% --><tr><th>%'License'%:</th><td>%file_license%</td></tr><!-- ENDIF -->
+   <tr><th>%'Date'%:</th><td>%file_date%</td></tr>
+   <tr><th>%'MD5 Hash'%:</th><td><small>%file_hash%</small></td></tr>
+  </table>
+  </div>
+ </div>
+ <div class="wpfilebase-fileinfo">
+  %file_size%
+  %file_hits% %'Downloads'%
+  <a href="#" onclick="return wpfilebase_filedetails(%uid%);">%'Details'%...</a>
+ </div>
+ <div style="clear: both;"></div>
+</div>
+TPLFILE
+, 'title' => __('Attachment Template'), 'type' => 'textarea', 'desc' => (wpfilebase_template_fields_select('template_file') . '<br />' . __('The template for attachments')), 'class' => 'code'),
+
+	'languages'				=> array('default' => "English|en\nDeutsch|de", 'title' => __('Languages'), 'type' => 'textarea', 'desc' => &$multiple_entries_desc),
+	'platforms'				=> array('default' => "Windows 95|win95\n*Windows 98|win98\n*Windows 2000|win2k\n*Windows XP|winxp\n*Windows Vista|vista\n*Windows 7|win7\nLinux|linux\nMac OS X|mac", 'title' => __('Platforms'), 'type' => 'textarea', 'desc' => &$multiple_entries_desc),	
+	'licenses'				=> array('default' => "*Freeware|free\nShareware|share\nGNU General Public License|gpl\nGNU Lesser General Public License|lgpl\nGNU Affero General Public License|agpl", 'title' => __('Licenses'), 'type' => 'textarea', 'desc' => &$multiple_entries_desc),
+	'requirements'			=> array('default' => ".NET Framework 2.0|.net2\n.NET Framework 3.0|.net3\n.NET Framework 3.5|.net35", 'title' => __('Requirements'), 'type' => 'textarea', 'desc' => &$multiple_entries_desc),
+	
+	'allowed_referers' 		=> array('default' => '', 'title' => __('Allowed referers'), 'type' => 'textarea', 'desc' => 'Sites with matching URLs can link to files directly.<br />'.$multiple_line_desc),
+	'accept_empty_referers'	=> array('default' => true, 'title' => __('Accept empty referers'), 'type' => 'checkbox', 'desc' => 'If enabled, direct-link-protected files can be downloaded when the referer is empty (i.e. user entered file url in address bar or browser does not send referers)'),
 	
 	'bitrate_unregistered'	=> array('default' => 0, 'title' => __('Bit rate limit for guests'), 'type' => 'number', 'unit' => 'KiB/Sec', 'desc' => &$bitrate_desc),
-	'bitrate_registered'	=> array('default' => 0, 'title' => __('Bit rate limit for registered users'), 'type' => 'number', 'unit' => 'KiB/Sec', 'desc' => &$bitrate_desc),
-	
+	'bitrate_registered'	=> array('default' => 0, 'title' => __('Bit rate limit for registered users'), 'type' => 'number', 'unit' => 'KiB/Sec', 'desc' => &$bitrate_desc),	
 	'traffic_day'			=> array('default' => 0, 'title' => __('Daily traffic limit'), 'type' => 'number', 'unit' => 'MiB', 'desc' => &$traffic_desc),
 	'traffic_month'			=> array('default' => 0, 'title' => __('Monthly traffic limit'), 'type' => 'number', 'unit' => 'GiB', 'desc' => &$traffic_desc),
 	'traffic_exceeded_msg'	=> array('default' => __('Traffic limit exceeded! Please try again later.'), 'title' => __('Traffic exceeded message'), 'type' => 'text', 'size' => 65),
 	'file_offline_msg'		=> array('default' => __('This file is currently offline.'), 'title' => __('File offline message'), 'type' => 'text', 'size' => 65),
 	
+	'download_base'			=> array('default' => 'download', 'title' => __('Download URL base'), 'type' => 'text', 'desc' => __('The download url base. (Only used when Permalinks are enabled.)')),
+	'ignore_admin_dls'		=> array('default' => false, 'title' => __('Ignore downloads by admins'), 'type' => 'checkbox'),
+	
+	'allow_srv_script_upload'	=> array('default' => false, 'title' => __('Allow script upload'), 'type' => 'checkbox', 'desc' => __('If you enable this, scripts like PHP or CGI can be uploaded. <b>WARNING:</b> Enabling script uploads is a <b>security risk</b>!')),
+
 	//'max_dls_per_ip'			=> array('default' => 10, 'title' => __('Maximum downloads'), 'type' => 'number', 'unit' => 'per file, per IP Address', 'desc' => 'Maximum number of downloads of a file allowed for an IP Address. 0 = unlimited'),
-
-	
-	'auto_attach_files' 		=> array('default' => true,'title' => __('Show attached files'), 'type' => 'checkbox', 'desc' => __('If enabled, all associated files are listed below an article')),
-	
-	'languages'					=> array('default' => "English|en\nDeutsch|de", 'title' => __('Languages'), 'type' => 'textarea', 'desc' => &$multiple_entries_desc),
-	'platforms'					=> array('default' => "Windows 95|win95\n*Windows 98|win98\n*Windows 2000|win2k\n*Windows XP|winxp\n*Windows Vista|vista\n*Windows 7|win7\nLinux|linux\nMac OS X|mac", 'title' => __('Platforms'), 'type' => 'textarea', 'desc' => &$multiple_entries_desc),	
-	'licenses'					=> array('default' => "*Freeware|free\nShareware|share\nGNU General Public License|gpl\nGNU Lesser General Public License|lgpl\nGNU Affero General Public License|agpl", 'title' => __('Licenses'), 'type' => 'textarea', 'desc' => &$multiple_entries_desc),
-	'requirements'				=> array('default' => ".NET Framework 2.0|.net2\n.NET Framework 3.0|.net3\n.NET Framework 3.5|.net35", 'title' => __('Requirements'), 'type' => 'textarea', 'desc' => &$multiple_entries_desc),
-	
-	'ignore_admin_dls'			=> array('default' => false, 'title' => __('Ignore downloads by admins'), 'type' => 'checkbox'),
-	
-	'download_base'				=> array('default' => 'download', 'title' => __('Download URL base'), 'type' => 'text', 'desc' => __('The download url base. (Only used when Permalinks are enabled.)')),
-	
-	'template_file'				=> array('default' =>
-<<<TPLFILE
-<div class="wpfilebase-attachment">
-	<div class="wpfilebase-fileicon"><a href="%file_url%" onclick="javascript:pageTracker._trackPageview('filedownloads/%file_path%');"><img align="middle" src="%file_icon_url%" /></a></div>
-	<div class="wpfilebase-rightcol">
-		<div class="wpfilebase-filetitle">
-			<a href="%file_url%" onclick="javascript:pageTracker._trackPageview('filedownloads/%file_path%');">%file_display_name%</a>
-			%file_name%
-			<!-- IF %file_version% -->%'Version:'% %file_version%
-			<!-- ENDIF --><!-- IF %file_post_id% AND get_the_ID() != %file_post_id% --><a href="%file_post_url%" class="wpfilebase-postlink">%'View post'%</a><!-- ENDIF -->
-		</div>
-		<div class="wpfilebase-filedetails" id="wpfilebase-filedetails%uid%" style="display: none;">
-		%file_description%
-		<table border="0" width="220">
-			<!-- IF %file_languages% --><tr><th>%'Languages'%:</th><td>%file_languages%</td></tr><!-- ENDIF -->
-			<!-- IF %file_author% --><tr><th>%'Author'%:</th><td>%file_author%</td></tr><!-- ENDIF -->
-			<!-- IF %file_platforms% --><tr><th>%'Platforms'%:</th><td>%file_platforms%</td></tr><!-- ENDIF -->
-			<!-- IF %file_requirements% --><tr><th>%'Requirements'%:</th><td>%file_requirements%</td></tr><!-- ENDIF -->
-			<!-- IF %file_category% --><tr><th>%'Category:'%</th><td>%file_category%</td></tr><!-- ENDIF -->
-			<!-- IF %file_license% --><tr><th>%'License'%:</th><td>%file_license%</td></tr><!-- ENDIF -->
-			<tr><th>%'Date'%:</th><td>%file_date%</td></tr>
-			<tr><th>%'MD5 Hash'%:</th><td><small>%file_hash%</small></td></tr>
-		</table>
-		</div>
-	</div>
-	<div class="wpfilebase-fileinfo">
-		%file_size%
-		%file_hits% %'Downloads'%
-		<a href="#" onclick="return wpfilebase_filedetails(%uid%);">%'Details'%...</a>
-	</div>
-	<div style="clear: both;"></div>
-</div>
-TPLFILE
-, 'title' => __('Attachment Template'), 'type' => 'textarea', 'desc' => (wpfilebase_template_fields_select('template_file') . '<br />' . __('The template for attachments'))),
-
+	//'archive_lister'			=> array('default' => false, 'title' => __('Archive lister'), 'type' => 'checkbox', 'desc' => __('Uploaded files are scanned for archives')),
+	//'enable_ratings'			=> array('default' => false, 'title' => __('Ratings'), 'type' => 'checkbox', 'desc' => ''),
 	);
 }
 
@@ -114,6 +114,28 @@ function wpfilebase_template_fields_desc()
 	'file_path'				=> 'Category path and file name (e.g cat1/cat2/file.ext)',
 	
 	'uid'					=> 'A unique ID number to indetify elements within a template',
+	);
+}
+
+function wpfilebase_sorting_options()
+{
+	return array(	
+	'file_name'				=> 'Name of the file',
+	'file_size'				=> 'Formatted file size',
+	'file_date'				=> 'Formatted file date',
+	'file_display_name'		=> 'Title',
+	'file_description'		=> 'Short description',
+	'file_version'			=> 'File version',
+	'file_author'			=> 'Author',
+	'file_license'			=> 'License',
+	'file_required_level'	=> 'The minimum user level to download this file (-1 = guest, 0 = Subscriber ...)',
+	'file_offline'			=> 'Offline > Online',
+	'file_direct_linking'	=> 'Direct linking > redirect to post',
+	'file_category'			=> 'Category',
+	'file_post_id'			=> 'ID of the post/page this file belongs to',
+	'file_added_by'			=> 'User ID of the uploader',
+	'file_hits'				=> 'How many times this file has been downloaded.',
+	'file_last_dl_time'		=> 'Time of the last download',
 	);
 }
 

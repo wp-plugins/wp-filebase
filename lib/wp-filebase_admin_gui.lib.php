@@ -506,6 +506,10 @@ function wpfilebase_admin_options()
 
 <form method="post" action="<?php echo $action_uri; ?>" name="wpfilebase-options">
 	<?php wp_nonce_field('update-options'); ?>
+	<p class="submit">
+	<input type="submit" name="submit" value="<?php _e('Save Changes') ?>" />
+	<input type="submit" id="deletepost" name="reset" value="<?php _e('Reset options') ?>" onclick="return confirm('<?php _e('Are you sure?'); ?>')" />
+	</p>
 	<table class="form-table">	
 	<?php
 	$page_option_list = '';
@@ -514,8 +518,12 @@ function wpfilebase_admin_options()
 	{	
 		$opt_val = $options[$opt_tag];
 		echo "\n".'<tr valign="top">'."\n".'<th scope="row">' . $field_data['title']. '</th>'."\n".'<td>';
+		if(!empty($field_data['class']))
+			$style_class = ' class="'.$field_data['class'].'"';
+		else
+			$style_class = '';
 		switch($field_data['type'])
-		{			
+		{
 			case 'text':
 			case 'number':
 			case 'checkbox':
@@ -527,13 +535,19 @@ function wpfilebase_admin_options()
 					echo ' value="' . intval($opt_val) . '" size="5"';
 				else
 					echo ' value="' . attribute_escape($opt_val) . '" size="' . $field_data['size'] . '"';
-				echo ' />';
+				echo $style_class . ' />';
 				break;
 				
 			case 'textarea':
 				$tpl_edit = (strpos($opt_tag, 'template_') !== false);
-				echo '<textarea name="' . $opt_tag . '" id="' . $opt_tag . '" ' . ($tpl_edit ? 'rows="15" cols="80" wrap="off"' : 'rows="5" cols="50"') . '>' . wp_specialchars($opt_val) . '</textarea>';
-				break;				
+				echo '<textarea name="' . $opt_tag . '" id="' . $opt_tag . '" ' . ($tpl_edit ? 'rows="20" cols="80" wrap="off" style="width: 100%; font-size: 8px;"' : 'rows="5" cols="50"') . $style_class . '>' . wp_specialchars($opt_val) . '</textarea>';
+				break;
+			case 'select':
+				echo '<select name="' . $opt_tag . '" id="' . $opt_tag . '">';
+				foreach($field_data['options'] as $opt_v => $opt_n)
+					echo '<option value="' . attribute_escape($opt_v) . '"' . (($opt_v == $opt_val) ? ' selected="selected" ' : '') . $style_class . '>' . (!is_numeric($opt_v) ? (wp_specialchars($opt_v) . ': ') : '') . wp_specialchars($opt_n) . '</option>';
+				echo '</select>';
+				break;
 		}
 		
 		if(!empty($field_data['unit']))

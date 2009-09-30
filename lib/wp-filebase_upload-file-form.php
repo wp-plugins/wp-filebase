@@ -106,7 +106,7 @@ $file_members_only = ($file->file_required_level > 0);
 			
 			<th scope="row" valign="top"><label for="file_direct_linking"><?php _e('Direct linking') ?></label></th>
 			<td>
-				<fieldset><legend class="screen-reader-text"><span><?php _e('Direct linking') ?></span></legend>
+				<fieldset><legend class="hidden"><?php _e('Direct linking') ?></legend>
 					<label title="<?php _e('Yes') ?>"><input type="radio" name="file_direct_linking" value="1" <?php checked('1', $file->file_direct_linking); ?>/> <?php _e('Allow direct linking') ?></label><br />
 					<label title="<?php _e('No') ?>"><input type="radio" name="file_direct_linking" value="0" <?php checked('0', $file->file_direct_linking); ?>/> <?php _e('Redirect to post') ?></label>
 				</fieldset>
