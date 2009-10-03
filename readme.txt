@@ -52,6 +52,7 @@ You can see a [live demo on my Website](http://fabi.me/ "WP-Filebase demo")
 * Optimized code to decrease memory usage
 * Fixed editor button?
 * Removed the keyword `private` in class property declarations to make the plugin compatible with PHP 4
+* Selection fields in the file upload form are removed if there are no entries
 
 = 0.1.0.3 =
 * Added file list sorting options

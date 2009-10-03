@@ -112,6 +112,16 @@ if(is_admin()) {
 	wpfilebase_inclib('admin_lite');
 }
 
+function wpfilebase_activate() {
+	wpfilebase_inclib('setup');
+	wpfilebase_inclib('admin');	
+	
+	wpfilebase_add_options();
+	wpfilebase_create_tables();
+	wpfilebase_protect_upload_path();
+}
+register_activation_hook(__FILE__, 'wpfilebase_activate');
+
 
 
 

@@ -1,16 +1,5 @@
 <?php
 
-function wpfilebase_activate() {
-	wpfilebase_inclib('setup');
-	wpfilebase_inclib('admin');	
-	
-	wpfilebase_add_options();
-	wpfilebase_create_tables();
-	wpfilebase_protect_upload_path();
-}
-register_activation_hook(__FILE__, 'wpfilebase_activate');
-
-
 function wpfilebase_admin_header()
 {
 	wpfilebase_head();	

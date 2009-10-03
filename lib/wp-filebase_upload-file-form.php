@@ -94,15 +94,20 @@ $file_members_only = ($file->file_required_level > 0);
 			<td><input type="text" name="file_hits" class="small-text" id="file_hits" value="<?php echo (int)$file->file_hits; ?>" /></td>
 		</tr>
 		<tr class="form-field">
+			<?php if(wpfilebase_get_opt('platforms') { ?>
 			<th scope="row" valign="top"><label for="file_platforms[]"><?php _e('Platforms') ?></label></th>
 			<td><select name="file_platforms[]" size="40" multiple="multiple" id="file_platforms[]" style="height: 80px;"><?php echo wpfilebase_make_options_list('platforms', $file ? $file->file_platform : null, true) ?></select></td>
-
+			<?php } else { ?><th></th><td></td><?php }
+			if(wpfilebase_get_opt('requirements') { ?>
 			<th scope="row" valign="top"><label for="file_requirements[]"><?php _e('Requirements') ?></label></th>
 			<td><select name="file_requirements[]" size="40" multiple="multiple" id="file_requirements[]" style="height: 80px;"><?php echo wpfilebase_make_options_list('requirements', $file ? $file->file_requirement : null, true) ?></select></td>
+			<?php } else { ?><th></th><td></td><?php } ?>
 		</tr>
 		<tr>
+		<?php if(wpfilebase_get_opt('languages') { ?>
 			<th scope="row" valign="top"><label for="file_languages[]"><?php _e('Languages') ?></label></th>
 			<td  class="form-field"><select name="file_languages[]" size="40" multiple="multiple" id="file_languages[]" style="height: 80px;"><?php echo wpfilebase_make_options_list('languages', $file ? $file->file_language : null, true) ?></select></td>
+			<?php } else { ?><th></th><td></td><?php } ?>
 			
 			<th scope="row" valign="top"><label for="file_direct_linking"><?php _e('Direct linking') ?></label></th>
 			<td>
