@@ -1,5 +1,7 @@
 <?php
 
+require_once(WPFB_PLUGIN_ROOT . 'wp-filebase_item.php');
+
 class WPFilebaseCategory extends WPFilebaseItem {
 
 	var $cat_id;
@@ -10,7 +12,7 @@ class WPFilebaseCategory extends WPFilebaseItem {
 	var $cat_files;
 	var $cat_required_level;
 	
-	static private $_cats = array();
+	static /*private PHP 4.x comp */ $_cats = array();
 	
 
 	public static function get_categories($extra_sql = 'ORDER BY cat_name')

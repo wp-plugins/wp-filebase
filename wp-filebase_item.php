@@ -1,12 +1,15 @@
 <?php
 
+require_once(WPFB_PLUGIN_ROOT . 'wp-filebase_file.php');
+require_once(WPFB_PLUGIN_ROOT . 'wp-filebase_category.php');
+
 class WPFilebaseItem {
 
 	var $is_file;
 	var $is_category;
 	
-	private $last_parent_id = 0;
-	private $last_parent = null;
+	var /*private PHP 4.x comp */ $last_parent_id = 0;
+	var /*private PHP 4.x comp */ $last_parent = null;
 	
 	function WPFilebaseItem($db_row)
 	{

@@ -5,10 +5,13 @@ require('../../../wp-config.php');
 // anti hack
 if(!current_user_can('edit_posts'))
 	exit;
-	
+
+wpfilebase_inclib('common');
+include_once(WPFB_PLUGIN_ROOT . 'wp-filebase_item.php');
+
 $path = dirname(__FILE__);
 
-function file_list($category = 0)
+function wpfilebase_editor_file_list($category = 0)
 {
 	$content = '';
 	
@@ -31,7 +34,7 @@ function file_list($category = 0)
 
 if(!empty($_REQUEST['action']) && $_REQUEST['action'] == 'get_sub_items')
 {
-	echo file_list(intval($_REQUEST['cat']));
+	echo wpfilebase_editor_file_list(intval($_REQUEST['cat']));
 	exit;
 }
 
@@ -207,7 +210,7 @@ if(!empty($_REQUEST['action']) && $_REQUEST['action'] == 'get_sub_items')
 	<div style="height: 290px; overflow: auto;">
 		<h2 id="containertitle"></h2>
 		
-		<div id="filelist" style="display: none;"><?php echo file_list(); ?></div>
+		<div id="filelist" style="display: none;"><?php echo wpfilebase_editor_file_list(); ?></div>
 		
 		<div id="insfilelist" style="display: none;">
 			<label><input type="radio" name="cat" value="all" /><i><?php _e('All Categories'); ?></i></label><br />

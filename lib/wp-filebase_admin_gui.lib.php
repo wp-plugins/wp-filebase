@@ -390,7 +390,7 @@ function wpfilebase_admin_manage()
 				</tr>
 				</table>
 				
-				<?php include('wp-filebase_upload-file-form.php'); ?>
+				<?php include(WPFB_PLUGIN_ROOT . 'lib/wp-filebase_upload-file-form.php'); ?>
 				
 				<h2><?php _e('Copyright'); ?></h2>
 				<p>
@@ -451,6 +451,7 @@ function wpfilebase_admin_options()
 		$attach_template = &stripslashes(&$_POST['template_file']);
 		if(!empty($attach_template))
 		{
+			wpfilebase_inclib('template');
 			$start_time = microtime(true);
 			$attach_template = wpfilebase_parse_template($attach_template);
 			$result = wpfilebase_check_template($attach_template);

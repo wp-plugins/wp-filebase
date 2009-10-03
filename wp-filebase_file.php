@@ -1,5 +1,7 @@
 <?php
 
+require_once(WPFB_PLUGIN_ROOT . 'wp-filebase_item.php');
+
 class WPFilebaseFile extends WPFilebaseItem {
 
 	var $file_id;
@@ -28,7 +30,7 @@ class WPFilebaseFile extends WPFilebaseItem {
 	var $file_last_dl_ip;
 	var $file_last_dl_time;
 	
-	static private $_files = array();
+	static /*private PHP 4.x comp */ $_files = array();
 	
 		
 	public static function get_files($extra_sql = '')
@@ -357,6 +359,7 @@ class WPFilebaseFile extends WPFilebaseItem {
 				if(!empty($tpl))
 				{
 					echo '<!-- parsing template ... -->';
+					wpfilebase_inclib('template');
 					$template = wpfilebase_parse_template($tpl);
 					wpfilebase_update_opt('template_file_parsed', $template); 
 				}
@@ -398,6 +401,8 @@ class WPFilebaseFile extends WPFilebaseItem {
 	{
 		global $wpdb, $user_ID;
 		
+		wpfilebase_inclib('download');
+		
 		// check user level
 		if(!$this->current_user_can_access())
 			wp_die(__('Cheatin&#8217; uh?'));
@@ -406,10 +411,18 @@ class WPFilebaseFile extends WPFilebaseItem {
 		if($this->file_offline)
 			wp_die(wpfilebase_get_opt('file_offline_msg'));
 		
+		// check referrer
+		if(!$this->file_direct_linking) {			
+			// if referer check failed, redirect to the file post
+			if(!wpfilebase_referer_check()) {
+				wp_redirect(wpfilebase_get_post_url($this->file_post_id));
+				exit;
+			}
+		}	
+		
 		$downloader_ip = preg_replace( '/[^0-9a-fA-F:., ]/', '', $_SERVER['REMOTE_ADDR']);
 		
 		// check traffic
-		wpfilebase_inclib('file');
 		if(!wpfilebase_check_traffic($this->file_size))
 		{
 			header('HTTP/1.x 503 Service Unavailable');
@@ -432,6 +445,7 @@ class WPFilebaseFile extends WPFilebaseItem {
 		exit;
 	}
 	
+	/*TODO?
 	public function update_subfiles()
 	{
 		global $wpdb;
@@ -448,6 +462,7 @@ class WPFilebaseFile extends WPFilebaseItem {
 				$wpdb->insert( $wpdb->wpfilebase_subfiles, array('subfile_parent_file' => (int)$this->file_id, 'subfile_name' => $sb['name'], 'subfile_size' => (int)$sb['size']));
 		}
 	}
+	*/
 }
 
 ?>

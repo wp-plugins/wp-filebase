@@ -1,5 +1,7 @@
 <?php
 
+require_once(WPFB_PLUGIN_ROOT . 'wp-filebase_item.php');
+wpfilebase_inclib('output');
 wpfilebase_inclib('admin_gui');
 
 function wpfilebase_options()
@@ -150,12 +152,6 @@ function wpfilebase_template_fields_select($input, $short=false)
 	return $out;
 }
 
-
-function wpfilebase_admin_header()
-{
-	wpfilebase_head();	
-	echo '<script type="text/javascript" src="' . WPFB_PLUGIN_URI . 'wp-filebase_admin.js"></script>';
-}
 
 function wpfilebase_insert_category($catarr)
 {
@@ -430,27 +426,6 @@ function wpfilebase_sync()
 	return $result;
 }
 
-function wpfilebase_mce_init()
-{
-	if(current_user_can('edit_posts') && get_user_option('rich_editing') == 'true')
-	{	
-		add_filter('mce_external_plugins', 'wpfilebase_mce_plugins');
-		add_filter('mce_buttons', 'wpfilebase_mce_buttons');
-		//add_filter('mce_css', 'wpfilebase_mce_css');	  
-	}
-}
-
-function wpfilebase_mce_plugins($plugins)
-{
-	$plugins['wpfilebase'] = WPFB_PLUGIN_URI . 'mce/editor_plugin.js';
-	return $plugins;
-}
-
-function wpfilebase_mce_buttons($buttons) {
-	array_push($buttons, 'separator', 'wpfilebase');
-	return $buttons;
-}
-
 function wpfilebase_wpcache_reject_uri($add_uri, $remove_uri='')
 {
 	// changes the settings of wp cache
@@ -517,6 +492,34 @@ function wpfilebase_make_options_list($opt_name, $selected = null, $add_empty_op
 	return $list;
 }
 
+function wpfilebase_parent_cat_seletion_tree($parent_cat, $edit_item = null, $deepth = 0)
+{
+	if ( !is_object($parent_cat) ) 
+		$parent_cat = &WPFilebaseCategory::get_category($parent_cat);
+	
+	if(empty($edit_item))
+		$edit_item_id = -1;
+	else
+		$edit_item_id = $edit_item->get_id();
+	
+	// dont list the cat item or its childs
+	if(is_object($edit_item) && $edit_item->is_category && $parent_cat->cat_id == $edit_item_id)
+		return '';
+	
+	$selected = (is_object($edit_item) && $edit_item->get_parent_id() == $parent_cat->cat_id);
+	
+	$parent_cat_list .= '<option value="' . $parent_cat->cat_id . '"' . (  $selected ? ' selected="selected"' : '' ) . '>' . str_repeat('&nbsp;&nbsp; ', $deepth) . attribute_escape($parent_cat->cat_name) . '</option>';
+	
+	if(isset($parent_cat->cat_childs))
+	{
+		foreach($parent_cat->cat_childs as $child_cat_id) {
+			$parent_cat_list .= wpfilebase_parent_cat_seletion_tree( $child_cat_id, $edit_item, $deepth + 1);
+		}
+	}
+	
+	return $parent_cat_list;
+}
+
 function wpfilebase_admin_table_sort_link($order)
 {
 	$desc = (!empty($_GET['order']) && $order == $_GET['order'] && empty($_GET['desc']));
@@ -539,11 +542,25 @@ function wpfilebase_protect_upload_path()
 	return false;
 }
 
+function wpfilebase_extension_is_allowed($ext)
+{
+	static $srv_script_exts = array('php', 'php3', 'php4', 'php5', 'phtml', 'cgi', 'pl', 'asp', 'py', 'aspx');	
+	
+	$ext = trim($ext, '.');
+	return (wpfilebase_get_opt('allow_srv_script_upload') || !in_array($ext, $srv_script_exts));
+}
+
 function wpfilebase_uninstall()
 {
 	wpfilebase_inclib('setup');
 	wpfilebase_remove_options();
 	wpfilebase_drop_tables();
+}
+
+function wpfilebase_progress_bar($progress, $label)
+{
+	$progress = round(100 * $progress);
+	echo "<div class='wpfilebase-progress'><div class='progress'><div class='bar' style='width: $progress%'></div></div><div class='label'><strong>$progress %</strong> ($label)</div></div>";
 }
 
 ?>
