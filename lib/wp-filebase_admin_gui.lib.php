@@ -2,11 +2,22 @@
 
 function wpfilebase_admin_manage()
 {
-	global $wpdb;
+	global $wpdb, $user_ID;
 	
 	$action = ( !empty($_POST['action']) ? $_POST['action'] : ( !empty($_GET['action']) ? $_GET['action'] : '' ) );
 
-	$clean_uri = remove_query_arg(array('message', 'action', 's', 'file_id', 'cat_id'), $_SERVER['REQUEST_URI']);
+	$clean_uri = remove_query_arg(array('message', 'action', 's', 'file_id', 'cat_id'));
+	
+	// switch simple/extended form
+	if(isset($_GET['exform']))
+	{
+		$exform = (!empty($_GET['exform']) && $_GET['exform'] == 1);
+		update_user_option($user_ID, WPFB_OPT_NAME . '_exform', $exform); 
+	} else {
+		$exform = (bool)get_user_option(WPFB_OPT_NAME . '_exform');
+	}
+	
+	wpfilebase_version_update_check();
 		
 	switch($action)
 	{
@@ -132,7 +143,7 @@ function wpfilebase_admin_manage()
 	
 	<?php if ( current_user_can('manage_categories') ) : ?>
 		<p><?php _e('<strong>Note:</strong><br />Deleting a category does not delete the files in that category. Instead, files that were assigned to the deleted category are set to the parent category.') ?></p><?php
-		include('wp-filebase_edit-filecat-form.php'); 
+		wpfilebase_admin_form('cat');
 		endif;
 	?>	
 </div> <!-- wrap -->
@@ -143,17 +154,30 @@ function wpfilebase_admin_manage()
 			$file_id = (int)$_POST['file_id'];
 			$update = true;			
 		case 'addfile':
-			extract($_POST);
-			$jj = ($jj > 31 ) ? 31 : $jj;
-			$hh = ($hh > 23 ) ? $hh -24 : $hh;
-			$mn = ($mn > 59 ) ? $mn -60 : $mn;
-			$ss = ($ss > 59 ) ? $ss -60 : $ss;
-			$_POST['file_date'] = "$aa-$mm-$jj $hh:$mn:$ss";
-			
+		
 			if(empty($update))
 				$update = false;
 			if ( !current_user_can('upload_files') )
-				wp_die(__('Cheatin&#8217; uh?'));
+				wp_die(__('Cheatin&#8217; uh?'));				
+		
+			foreach ( array('aa', 'mm', 'jj', 'hh', 'mn') as $timeunit ) {
+				if ( !empty($_POST['hidden_' . $timeunit] ) && $_POST['hidden_' . $timeunit] != $_POST[$timeunit] ) {
+					$edit_date = true;
+					break;
+				}
+			}
+			
+			if($edit_date) {
+				extract($_POST);
+				$jj = ($jj > 31 ) ? 31 : $jj;
+				$hh = ($hh > 23 ) ? $hh -24 : $hh;
+				$mn = ($mn > 59 ) ? $mn -60 : $mn;
+				$ss = ($ss > 59 ) ? $ss -60 : $ss;
+				$_POST['file_date'] =  sprintf( "%04d-%02d-%02d %02d:%02d:%02d", $aa, $mm, $jj, $hh, $mn, $ss );
+			} elseif(!$update) {
+				// if new and not date take current time
+				$_POST['file_date'] =  current_time('mysql');
+			}
 			
 			$result = wpfilebase_insert_file(array_merge($_POST, $_FILES));
 			if(isset($result['error']) && $result['error']) {
@@ -298,7 +322,7 @@ function wpfilebase_admin_manage()
 <?php
 
 	unset($file);
-	include('wp-filebase_upload-file-form.php');
+	wpfilebase_admin_form('file', !$exform);
 	
 	break; // manage_files
 		
@@ -307,7 +331,7 @@ function wpfilebase_admin_manage()
 				wp_die(__('Cheatin&#8217; uh?'));
 			$file_id = intval($_GET['file_id']);
 			$file = &WPFilebaseFile::get_file($file_id);
-			include('wp-filebase_upload-file-form.php');
+			wpfilebase_admin_form('file', false, &$file);
 			break;			
 			
 		case 'editcat':
@@ -315,8 +339,8 @@ function wpfilebase_admin_manage()
 				wp_die(__('Cheatin&#8217; uh?'));
 				
 			$cat_id = (int)$_GET['cat_id'];
-			$file_category = WPFilebaseCategory::get_category($cat_id);
-			include('wp-filebase_edit-filecat-form.php');
+			$file_category = &WPFilebaseCategory::get_category($cat_id);
+			wpfilebase_admin_form('cat', false, &$file_category);
 			break;
 			
 			
@@ -354,10 +378,21 @@ function wpfilebase_admin_manage()
 			?>
 			<div class="wrap">
 				<h2>Filebase</h2>
-				<?php if(!is_writable(wpfilebase_upload_dir())) { ?>
-				<div class="error default-password-nag"><p><?php printf(__('The upload directory <code>%s</code> is <b>not writable</b>!<br />Please make it writable by executin the follwing FTP command: <code>%s</code>'), wpfilebase_upload_dir(), 'chmod 777 ' . substr(wpfilebase_upload_dir(), strlen(ABSPATH))) ?></p></div>
-				<?php } ?>
-				<p>
+				<?php
+					$upload_dir = wpfilebase_upload_dir();
+					$abspath_len = strlen(ABSPATH);
+					$chmod_cmd = "CHMOD 777 ".substr($upload_dir, $abspath_len);
+					if(!is_dir($upload_dir))
+					{
+						$result = wpfilebase_mkdir($upload_dir);
+						if($result['error'])
+							$error_msg = sprintf(__('The upload directory <code>%s</code> does not exists. It could not be created automatically because the directory <code>%s</code> is not writable. Please create <code>%s</code> and make it writable for PHP by execution the following FTP command: <code>%s</code>'), substr($upload_dir, $abspath_len), substr($result['parent'], $abspath_len), substr($upload_dir, $abspath_len), $chmod_cmd);
+					} elseif(!is_writable($upload_dir)) {
+						$error_msg = sprintf(__('The upload directory <code>%s</code> is not writable. Please make it writable for PHP by executing the follwing FTP command: <code>%s</code>'), substr($upload_dir, $abspath_len), $chmod_cmd);
+					}
+					
+					if(!empty($error_msg)) { ?><div class="error default-password-nag"><p><?php echo $error_msg ?></p></div><?php } ?>
+				
 				<?php if ( current_user_can('upload_files') ) : ?><a href="<?php echo $clean_uri; ?>&amp;action=manage_files" class="button"><?php _e('Manage files'); ?></a><?php endif; ?>
 				<?php if ( current_user_can('manage_categories') ) : ?><a href="<?php echo $clean_uri; ?>&amp;action=manage_cats" class="button"><?php _e('Manage categories'); ?></a><?php endif; ?>	
 				<a href="<?php echo $clean_uri; ?>&amp;action=sync" class="button"><?php _e('Sync Filebase'); ?></a>
@@ -390,7 +425,7 @@ function wpfilebase_admin_manage()
 				</tr>
 				</table>
 				
-				<?php include(WPFB_PLUGIN_ROOT . 'lib/wp-filebase_upload-file-form.php'); ?>
+				<?php wpfilebase_admin_form('file', !$exform) ?>
 				
 				<h2><?php _e('Copyright'); ?></h2>
 				<p>
@@ -406,10 +441,11 @@ function wpfilebase_admin_manage()
 function wpfilebase_admin_options()
 {
 	global $wpdb;
-	
-	
+		
 	if(!current_user_can('manage_options'))
 		wp_die(__('Cheatin&#8217; uh?'));
+		
+	wpfilebase_version_update_check();
 	
 	$action = ( !empty($_POST['action']) ? $_POST['action'] : ( !empty($_GET['action']) ? $_GET['action'] : '' ) );
 	$messages = array();
@@ -477,10 +513,6 @@ function wpfilebase_admin_options()
 		
 		if(count($errors) == 0)
 			$messages[] = __('Options updated.');
-		
-		/*
-		$clean_uri = remove_query_arg(array('message', 'action', 's', 'file_id', 'cat_id'), $_SERVER['REQUEST_URI']);		
-		wp_redirect($clean_uri . '&action=manage_cats&message=' . urlencode($msg)); */
 	}
 	
 	$action_uri = $_SERVER['PHP_SELF'] . '?page=' . $_GET['page'] . '&amp;updated=true';
@@ -540,8 +572,8 @@ function wpfilebase_admin_options()
 				break;
 				
 			case 'textarea':
-				$tpl_edit = (strpos($opt_tag, 'template_') !== false);
-				echo '<textarea name="' . $opt_tag . '" id="' . $opt_tag . '" ' . ($tpl_edit ? 'rows="20" cols="80" wrap="off" style="width: 100%; font-size: 8px;"' : 'rows="5" cols="50"') . $style_class . '>' . wp_specialchars($opt_val) . '</textarea>';
+				$code_edit = (strpos($opt_tag, 'template_') !== false || strpos($field_data['class'], 'code') !== false);
+				echo '<textarea name="' . $opt_tag . '" id="' . $opt_tag . '" ' . ($code_edit ? 'rows="20" cols="80" wrap="off" style="width: 100%; font-size: 8px;"' : 'rows="5" cols="50"') . $style_class . '>' . wp_specialchars($opt_val) . '</textarea>';
 				break;
 			case 'select':
 				echo '<select name="' . $opt_tag . '" id="' . $opt_tag . '">';

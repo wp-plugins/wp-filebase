@@ -12,10 +12,10 @@ class WPFilebaseCategory extends WPFilebaseItem {
 	var $cat_files;
 	var $cat_required_level;
 	
-	static /*private PHP 4.x comp */ $_cats = array();
+	static /*private (PHP 4 compatibility) */ $_cats = array();
 	
 
-	public static function get_categories($extra_sql = 'ORDER BY cat_name')
+	/*public (PHP 4 compatibility) */ static function get_categories($extra_sql = 'ORDER BY cat_name')
 	{
 		global $wpdb;
 		
@@ -54,7 +54,7 @@ class WPFilebaseCategory extends WPFilebaseItem {
 		return $cats;
 	}
 	
-	public static function get_category($id)
+	/*public (PHP 4 compatibility) */ static function get_category($id)
 	{		
 		$id = (int)intval($id);
 		
@@ -66,7 +66,7 @@ class WPFilebaseCategory extends WPFilebaseItem {
 		return $cats[$id];
 	}
 	
-	public static function get_category_by_folder($folder)
+	/*public (PHP 4 compatibility) */ static function get_category_by_folder($folder)
 	{
 		global $wpdb;
 		$cats = &self::get_categories("WHERE cat_folder = '" . $wpdb->escape($folder) . "'");
@@ -75,7 +75,7 @@ class WPFilebaseCategory extends WPFilebaseItem {
 		return reset(&$cats);
 	}
 
-	public function add_file($file)
+	/*public (PHP 4 compatibility) */ function add_file($file)
 	{	
 		if($this->is_ancestor_of($file))
 		{
@@ -88,7 +88,7 @@ class WPFilebaseCategory extends WPFilebaseItem {
 			$parent->add_file($file);
 	}
 
-	public function remove_file($file)
+	/*public (PHP 4 compatibility) */ function remove_file($file)
 	{
 		if($this->is_ancestor_of($file))
 		{
@@ -101,7 +101,7 @@ class WPFilebaseCategory extends WPFilebaseItem {
 			$parent->remove_file($file);
 	}
 	
-	public static function sync_categories()
+	/*public (PHP 4 compatibility) */ static function sync_categories()
 	{
 		$updated_cats = array();
 		
@@ -123,7 +123,7 @@ class WPFilebaseCategory extends WPFilebaseItem {
 		return $updated_cats;
 	}
 	
-	public function get_files($recursive=false)
+	/*public (PHP 4 compatibility) */ function get_files($recursive=false)
 	{
 		$files = &WPFilebaseFile::get_files('WHERE file_category = ' . (int)$this->get_id() . ' ORDER BY file_id');
 		
@@ -140,7 +140,7 @@ class WPFilebaseCategory extends WPFilebaseItem {
 		return $files;
 	}
 	
-	public function change_category($cat)
+	/*public (PHP 4 compatibility) */ function change_category($cat)
 	{
 		if(!is_object($cat))
 			$cat = self::get_category($cat);
@@ -169,7 +169,7 @@ class WPFilebaseCategory extends WPFilebaseItem {
 		if (!wp_mkdir_p($this->get_path()))
 			return array( 'error' => sprintf( __( 'Unable to create directory %s. Is its parent directory writable by the server?' ), $dir ) );
 		// chmod
-		@chmod ($this->get_path(), WPFB_PERM_DIR);
+		@chmod ($this->get_path(), octdec(WPFB_PERM_DIR));
 
 		if($old_path != $this->get_path())
 		{
@@ -191,7 +191,7 @@ class WPFilebaseCategory extends WPFilebaseItem {
 		return array('error' => false);
 	}
 	
-	public function delete()
+	/*public (PHP 4 compatibility) */ function delete()
 	{	
 		global $wpdb;
 		

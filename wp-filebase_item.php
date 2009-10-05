@@ -8,8 +8,8 @@ class WPFilebaseItem {
 	var $is_file;
 	var $is_category;
 	
-	var /*private PHP 4.x comp */ $last_parent_id = 0;
-	var /*private PHP 4.x comp */ $last_parent = null;
+	var /*private (PHP 4 compatibility) */ $last_parent_id = 0;
+	var /*private (PHP 4 compatibility) */ $last_parent = null;
 	
 	function WPFilebaseItem($db_row)
 	{
@@ -59,7 +59,7 @@ class WPFilebaseItem {
 		return -1;
 	}
 	
-	public function get_parent()
+	/*public (PHP 4 compatibility) */ function get_parent()
 	{
 		$pid = ($this->is_file ? $this->file_category : $this->cat_parent);
 		
@@ -104,7 +104,7 @@ class WPFilebaseItem {
 		return $path;
 	}
 	
-	public function db_save()
+	/*public (PHP 4 compatibility) */ function db_save()
 	{
 		global $wpdb;
 		
@@ -140,7 +140,7 @@ class WPFilebaseItem {
 		return array( 'error' => false, $id_var => $this->$id_var);
 	}
 	
-	public function is_ancestor_of($item)
+	/*public (PHP 4 compatibility) */ function is_ancestor_of($item)
 	{			
 		$p = &$item->get_parent();
 		if ($p == null)
@@ -152,7 +152,7 @@ class WPFilebaseItem {
 		return $this->is_ancestor_of($p);
 	}
 	
-	public function current_user_can_access()
+	/*public (PHP 4 compatibility) */ function current_user_can_access()
 	{
 		$level = intval($this->is_file ? $this->file_required_level : $this->cat_required_level) - 1;
 		return ($level < 0 || current_user_can('level_'.$level));

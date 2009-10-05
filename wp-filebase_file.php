@@ -30,10 +30,10 @@ class WPFilebaseFile extends WPFilebaseItem {
 	var $file_last_dl_ip;
 	var $file_last_dl_time;
 	
-	static /*private PHP 4.x comp */ $_files = array();
+	static /*private (PHP 4 compatibility) */ $_files = array();
 	
 		
-	public static function get_files($extra_sql = '')
+	/*public (PHP 4 compatibility) */ static function get_files($extra_sql = '')
 	{
 		global $wpdb;
 		
@@ -59,7 +59,7 @@ class WPFilebaseFile extends WPFilebaseItem {
 		return $files;
 	}
 	
-	public static function get_file($id)
+	/*public (PHP 4 compatibility) */ static function get_file($id)
 	{
 		$id = (int)intval($id);
 		
@@ -71,7 +71,7 @@ class WPFilebaseFile extends WPFilebaseItem {
 		return $files[$id];
 	}
 	
-	public static function get_file_by_path($path)
+	/*public (PHP 4 compatibility) */ static function get_file_by_path($path)
 	{
 		global $wpdb;
 		
@@ -107,15 +107,21 @@ class WPFilebaseFile extends WPFilebaseItem {
 		else
 			return reset(&$files);
 	}
+	
+	/*public (PHP 4 compatibility) */ static function get_num_files()
+	{
+		global $wpdb;
+		return $wpdb->get_var("SELECT COUNT(file_id) FROM $wpdb->wpfilebase_files WHERE 1"); 
+	}
 
 	
 	// gets the extension of the file (including .)
-	public function get_extension()
+	/*public (PHP 4 compatibility) */ function get_extension()
 	{
 		return strtolower(strrchr($this->file_name, '.'));
 	}
 	
-	public function get_type()
+	/*public (PHP 4 compatibility) */ function get_type()
 	{
 		$ext = substr($this->get_extension(), 1);
 		if( ($type = wp_ext2type($ext)) )
@@ -124,7 +130,7 @@ class WPFilebaseFile extends WPFilebaseItem {
 		return $ext;
 	}	
 	
-	public function get_thumbnail_path()
+	/*public (PHP 4 compatibility) */ function get_thumbnail_path()
 	{
 		if(empty($this->file_thumbnail))
 			return null;
@@ -132,7 +138,7 @@ class WPFilebaseFile extends WPFilebaseItem {
 		return  dirname($this->get_path()) . '/' . $this->file_thumbnail;
 	}
 	
-	public function get_icon_url()
+	/*public (PHP 4 compatibility) */ function get_icon_url()
 	{	
 		if(!empty($this->file_thumbnail))
 		{
@@ -170,7 +176,7 @@ class WPFilebaseFile extends WPFilebaseItem {
 		return $url . 'blank.gif';
 	}
 	
-	public function create_thumbnail($src_image='')
+	/*public (PHP 4 compatibility) */ function create_thumbnail($src_image='')
 	{
 		if(empty($src_image))
 			$src_image = $this->get_path();
@@ -228,11 +234,11 @@ class WPFilebaseFile extends WPFilebaseItem {
 			if(!@rename($thumb, $this->get_thumbnail_path()))
 				$this->file_thumbnail = null;
 			else
-				@chmod($this->get_thumbnail_path(), WPFB_PERM_FILE);
+				@chmod($this->get_thumbnail_path(), octdec(WPFB_PERM_FILE));
 		}
 	}
 
-	public function get_url()
+	/*public (PHP 4 compatibility) */ function get_url()
 	{	
 		$url = get_option('siteurl') . '/';
 		
@@ -245,7 +251,7 @@ class WPFilebaseFile extends WPFilebaseItem {
 		return $url;
 	}
 	
-	public function get_post_url()
+	/*public (PHP 4 compatibility) */ function get_post_url()
 	{
 		if(empty($this->file_post_id))
 			return null;
@@ -253,17 +259,17 @@ class WPFilebaseFile extends WPFilebaseItem {
 		return wpfilebase_get_post_url($this->file_post_id);
 	}
 	
-	public function get_formatted_size()
+	/*public (PHP 4 compatibility) */ function get_formatted_size()
 	{
 		return wpfilebase_format_filesize($this->file_size);
 	}
 	
-	public function get_formatted_date()
+	/*public (PHP 4 compatibility) */ function get_formatted_date()
 	{
 		return mysql2date(get_option('date_format'), $this->file_date);
 	}
 	
-	public function delete()
+	/*public (PHP 4 compatibility) */ function delete()
 	{
 		$this->delete_thumbnail();
 		
@@ -278,7 +284,7 @@ class WPFilebaseFile extends WPFilebaseItem {
 	}
 	
 	
-	public function delete_thumbnail()
+	/*public (PHP 4 compatibility) */ function delete_thumbnail()
 	{
 		$thumb = $this->get_thumbnail_path();
 		if(!empty($thumb) && file_exists($thumb))
@@ -287,7 +293,7 @@ class WPFilebaseFile extends WPFilebaseItem {
 	}
 	
 
-	public function remove()
+	/*public (PHP 4 compatibility) */ function remove()
 	{	
 		global $wpdb;
 
@@ -304,7 +310,7 @@ class WPFilebaseFile extends WPFilebaseItem {
 
 
 
-	public function change_category($new_cat_id)
+	/*public (PHP 4 compatibility) */ function change_category($new_cat_id)
 	{
 		if(is_object($new_cat_id))
 			$new_cat_id = $new_cat_id->get_id();
@@ -333,22 +339,23 @@ class WPFilebaseFile extends WPFilebaseItem {
 		// move file
 		if(!@rename($old_file_path, $this->get_path()))
 			return array( 'error' =>'Unable to move file!');
-		@chmod($this->get_path(), WPFB_PERM_FILE);
+		@chmod($this->get_path(), octdec(WPFB_PERM_FILE));
 		
 		// move thumb
 		if(!empty($old_thumb_path) && @file_exists($old_thumb_path))
 		{
 			if(!@rename($old_thumb_path, $this->get_thumbnail_path()))
 				return array( 'error' =>'Unable to move thumbnail!');
-			@chmod($this->get_thumbnail_path(), WPFB_PERM_FILE);
+			@chmod($this->get_thumbnail_path(), octdec(WPFB_PERM_FILE));
 		}
 		
 		return array( 'error' => false);
 	}
 	
-	public function parse_template($template='')
+	/*public (PHP 4 compatibility) */ function parse_template($template='')
 	{
 		static $tpl_uid = 0;
+		static $js_printed = false;
 		
 		if(empty($template))
 		{
@@ -394,10 +401,28 @@ class WPFilebaseFile extends WPFilebaseItem {
 		
 		$template = @eval('return (' . $template . ');');
 		
+		if(!$js_printed)
+		{
+			$js = wpfilebase_get_opt('dlclick_js');
+			if(!empty($js))
+			{
+				// TODO: put this in a JS file
+				$template .= <<<JS
+<script type="text/javascript">
+function wpfilebase_dlclick(file_id, file_url) {try{
+{$js}
+}catch(err){}}
+</script>
+JS;
+
+			}
+			$js_printed = true;
+		}
+		
 		return $template;
 	}
 	
-	public function download()
+	/*public (PHP 4 compatibility) */ function download()
 	{
 		global $wpdb, $user_ID;
 		

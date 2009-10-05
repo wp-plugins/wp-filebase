@@ -13,9 +13,9 @@ function wpfilebase_options()
 	
 	return array (
 	
-	'upload_path'				=> array('default' => get_option('upload_path') . '/filebase', 'title' => __('Upload Path'), 'type' => 'text', 'class' => 'code', 'size' => 65),
+	'upload_path'			=> array('default' => get_option('upload_path') . '/filebase', 'title' => __('Upload Path'), 'type' => 'text', 'class' => 'code', 'size' => 65),
 
-	'thumbnail_size'			=> array('default' => 120, 'title' => __('Thumbnail size'), 'type' => 'number', 'class' => 'num', 'size' => 8),
+	'thumbnail_size'		=> array('default' => 120, 'title' => __('Thumbnail size'), 'type' => 'number', 'class' => 'num', 'size' => 8),
 	
 	'auto_attach_files' 	=> array('default' => true,'title' => __('Show attached files'), 'type' => 'checkbox', 'desc' => __('If enabled, all associated files are listed below an article')),
 	'filelist_sorting'		=> array('default' => 'file_display_name', 'title' => __('Default sorting'), 'type' => 'select', 'desc' => __('The file property lists are sorted by'), 'options' => wpfilebase_sorting_options()),
@@ -24,10 +24,10 @@ function wpfilebase_options()
 	'template_file'			=> array('default' =>
 <<<TPLFILE
 <div class="wpfilebase-attachment">
- <div class="wpfilebase-fileicon"><a href="%file_url%" title="Download %file_display_name%" onclick="javascript:pageTracker._trackPageview('filedownloads/%file_path%');"><img align="middle" src="%file_icon_url%" /></a></div>
+ <div class="wpfilebase-fileicon"><a href="%file_url%" title="Download %file_display_name%"><img align="middle" src="%file_icon_url%" /></a></div>
  <div class="wpfilebase-rightcol">
   <div class="wpfilebase-filetitle">
-   <a href="%file_url%" title="Download %file_display_name%" onclick="javascript:pageTracker._trackPageview('filedownloads/%file_path%');">%file_display_name%</a>
+   <a href="%file_url%" title="Download %file_display_name%">%file_display_name%</a>
    %file_name%
    <!-- IF %file_version% -->%'Version:'% %file_version%
    <!-- ENDIF --><!-- IF %file_post_id% AND get_the_ID() != %file_post_id% --><a href="%file_post_url%" class="wpfilebase-postlink">%'View post'%</a><!-- ENDIF -->
@@ -72,9 +72,19 @@ TPLFILE
 	'file_offline_msg'		=> array('default' => __('This file is currently offline.'), 'title' => __('File offline message'), 'type' => 'text', 'size' => 65),
 	
 	'download_base'			=> array('default' => 'download', 'title' => __('Download URL base'), 'type' => 'text', 'desc' => __('The download url base. (Only used when Permalinks are enabled.)')),
-	'ignore_admin_dls'		=> array('default' => false, 'title' => __('Ignore downloads by admins'), 'type' => 'checkbox'),
+	'ignore_admin_dls'		=> array('default' => true, 'title' => __('Ignore downloads by admins'), 'type' => 'checkbox'),
 	
 	'allow_srv_script_upload'	=> array('default' => false, 'title' => __('Allow script upload'), 'type' => 'checkbox', 'desc' => __('If you enable this, scripts like PHP or CGI can be uploaded. <b>WARNING:</b> Enabling script uploads is a <b>security risk</b>!')),
+	
+	'dlclick_js'			=> array('default' =>
+<<<JS
+if(typeof pageTracker == 'object') {
+	pageTracker._trackPageview(file_url); // new google analytics tracker
+} else if(typeof urchinTracker == 'function') {	
+	urchinTracker(file_url); // old google analytics tracker
+}
+JS
+, 'title' => __('Download JavaScript'), 'type' => 'textarea', 'desc' => __('Here you can enter JavaScript Code which is executed when a user clicks on file download link. The following variables can be used: <i>file_id</i>: the ID of the file, <i>file_url</i>: the clicked download url'), 'class' => 'code'),
 
 	//'max_dls_per_ip'			=> array('default' => 10, 'title' => __('Maximum downloads'), 'type' => 'number', 'unit' => 'per file, per IP Address', 'desc' => 'Maximum number of downloads of a file allowed for an IP Address. 0 = unlimited'),
 	//'archive_lister'			=> array('default' => false, 'title' => __('Archive lister'), 'type' => 'checkbox', 'desc' => __('Uploaded files are scanned for archives')),
@@ -285,7 +295,7 @@ function wpfilebase_insert_file($filearr)
 			return array( 'error' => sprintf( __( 'Unable to move file %s! Is the upload directory writeable?' ), $file->file_name ) );
 
 		// set permissions
-		@chmod ($file->get_path(), WPFB_PERM_FILE);
+		@chmod ($file->get_path(), octdec(WPFB_PERM_FILE));
 		
 		// get file info
 		$file->file_size = (int)filesize($file->get_path());
@@ -301,8 +311,14 @@ function wpfilebase_insert_file($filearr)
 
 	// set display name
 	$file->file_display_name = $file_display_name;
-	if (empty($file->file_display_name))
-		$file->file_display_name = $file->file_name;
+	if (empty($file->file_display_name)) {
+		$ft = $file->file_name;
+		$ft = substr($ft, 0, strrpos($ft, '.'));
+		$ft = str_replace(array('.', '_'), ' ', $ft);
+		//$ft{0} = strtoupper($ft{0});
+		$ft = ucwords($ft);
+		$file->file_display_name = $ft;
+	}
 	
 	$file_language = $file_platform = $file_requirement = '';
 	if(!empty($file_languages))
@@ -317,6 +333,12 @@ function wpfilebase_insert_file($filearr)
 	// permission
 	$file_members_only = !empty($file_members_only);
 	$file_required_level = $file_members_only ? (min(max(intval($file_required_level), 0), 10) + 1) : 0;
+	
+	if(!isset($file_direct_linking))
+	{
+		// allow direct linking by default
+		$file_direct_linking = 1;
+	}
 		
 	$var_names = array('version', 'author', 'date', 'post_id', 'direct_linking', 'description', 'hits', 'language', 'platform', 'requirement', 'license', 'offline', 'required_level');
 	for($i = 0; $i < count($var_names); $i++)
@@ -412,16 +434,22 @@ function wpfilebase_sync()
 	
 	for($i = 0; $i < count($uploaded_files); $i++)
 	{
-		if(!in_array($uploaded_files[$i], $file_paths) && is_file($uploaded_files[$i]) && is_readable($uploaded_files[$i]))
-			$result['not_added'][] = $uploaded_files[$i];
+		$fn = $uploaded_files[$i];
+		$fbn = basename($fn);
+		if($fbn{0} == '.')
+			continue;
+		if(!in_array($fn, $file_paths) && is_file($fn) && is_readable($fn))
+			$result['not_added'][] = substr($fn, strlen($upload_dir));
 	}
 	
 	// chmod
+	@chmod ($upload_dir, octdec(WPFB_PERM_FILE));
 	for($i = 0; $i < count($file_paths); $i++)
 	{		
-		@chmod ($file_paths[$i], WPFB_PERM_FILE);
+		@chmod ($file_paths[$i], octdec(WPFB_PERM_FILE));
 	}
 		
+	wpfilebase_protect_upload_path();
 	
 	return $result;
 }
@@ -531,13 +559,13 @@ function wpfilebase_admin_table_sort_link($order)
 function wpfilebase_protect_upload_path()
 {
 	$htaccess = wpfilebase_upload_dir() . '/.htaccess';
-	
+	@unlink($htaccess);
 	if( is_writable(wpfilebase_upload_dir()) && ($fp = @fopen($htaccess, 'w')) )
 	{
 		@fwrite($fp, "Order deny,allow\n");
 		@fwrite($fp, "Deny from all\n");
-		@fclose($fp);		
-		return true;
+		@fclose($fp);
+		return @chmod($htaccess, octdec(WPFB_PERM_FILE));
 	}	
 	return false;
 }
@@ -546,7 +574,7 @@ function wpfilebase_extension_is_allowed($ext)
 {
 	static $srv_script_exts = array('php', 'php3', 'php4', 'php5', 'phtml', 'cgi', 'pl', 'asp', 'py', 'aspx');	
 	
-	$ext = trim($ext, '.');
+	$ext = strtolower(trim($ext, '.'));
 	return (wpfilebase_get_opt('allow_srv_script_upload') || !in_array($ext, $srv_script_exts));
 }
 
@@ -561,6 +589,35 @@ function wpfilebase_progress_bar($progress, $label)
 {
 	$progress = round(100 * $progress);
 	echo "<div class='wpfilebase-progress'><div class='progress'><div class='bar' style='width: $progress%'></div></div><div class='label'><strong>$progress %</strong> ($label)</div></div>";
+}
+
+function wpfilebase_admin_form($name, $simple=false, &$item=null)
+{
+	if($simple)
+		$name .= '_simple';
+	include(WPFB_PLUGIN_ROOT . 'lib/wp-filebase_form_' . $name . '.php');
+}
+
+function wpfilebase_mkdir($dir)
+{
+	$parent = trim(dirname($dir), '.');
+	if($parent != '' && !is_dir($parent)) {
+		$result = wpfilebase_mkdir($parent);
+		if($result['error'])
+			return $result;
+	}
+	return array('error' => !(@mkdir($dir, octdec(WPFB_PERM_DIR)) && @chmod($dir, octdec(WPFB_PERM_DIR))), 'dir' => $dir, 'parent' => $parent);
+}
+
+function wpfilebase_version_update_check()
+{
+	$ver = wpfilebase_get_opt('version');
+	if($ver != WPFB_VERSION)
+	{
+		wpfilebase_activate();
+		echo '<!-- WPFilebase: version changed -->';
+		wpfilebase_update_opt('version', WPFB_VERSION);
+	}
 }
 
 ?>

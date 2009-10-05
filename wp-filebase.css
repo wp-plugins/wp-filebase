@@ -10,6 +10,7 @@
 	background-position: top right;
 	vertical-align: middle;
 	width: 400px;
+	line-height: normal;
 	-moz-border-radius: 3px;
 	-khtml-border-radius: 3px;
 	-webkit-border-radius: 3px;
@@ -31,6 +32,7 @@
 	float: left;
 	font-size: 10px;
 	margin-top: 0px;
+	margin-bottom: 4px;
 	text-align: left;
 	width: auto;
 }

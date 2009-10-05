@@ -3,6 +3,11 @@
 function wpfilebase_parse_template($tpl)
 {
 	echo '<!-- [WPFilebase]: parsing template ... -->';
+	
+	//add dl js
+	// remove existing onclicks
+	$tpl = preg_replace(array('/<a\s+([^>]*)onclick=".+?"\s+([^>]*)href="%file_url%"/i', '/<a\s+([^>]*)href="%file_url%"\s+([^>]*)onclick=".+?"/i'), '<a href="%file_url%" $1$2', $tpl);
+	$tpl = preg_replace('/<a ([^>]*)href="%file_url%"/i', '<a $1href="%file_url%" onclick="wpfilebase_dlclick(%file_id%, \'%file_url%\')"', $tpl);
 
 	//escape
 	$tpl = str_replace("'", "\\'", $tpl);

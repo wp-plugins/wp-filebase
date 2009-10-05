@@ -17,6 +17,7 @@ function wpfilebase_add_options()
 	);
 	
 	$opts['templates'] = array();
+	$opts['version'] = WPFB_VERSION;
 	
 	add_option(WPFB_OPT_NAME, $opts);
 }
@@ -109,5 +110,14 @@ function wpfilebase_drop_tables()
 	{
 		$wpdb->query("DROP TABLE IF EXISTS `" . $tbl . "`");
 	}
+}
+
+function wpfilebase_reset_tpls()
+{
+	wpfilebase_update_opt('template_file_parsed', '');
+	
+	$widget = wpfilebase_get_opt('widget');	
+	$widget['filelist_template_parsed'] = '';	
+	wpfilebase_update_opt('widget', $widget);
 }
 ?>

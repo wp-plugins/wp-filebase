@@ -1,10 +1,10 @@
 === WP-Filebase ===
 Contributors: fabifott
-Donate link: http://fabi.me/
+Donate link: http://fabi.me/donate/
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, traffic, widget, filelist, list, thumb, thumbnail, attachment, attachments, category, categories, media, template
 Requires at least: 2.2.0
 Tested up to: 2.8.4
-Stable tag: 0.1.0.3
+Stable tag: 0.1.1.0
 
 Adds a powerful download manager supporting file categories, thumbnails, traffic/bit rate limits and more to your WordPress blog.
 
@@ -48,11 +48,17 @@ You can see a [live demo on my Website](http://fabi.me/ "WP-Filebase demo")
 
 == Changelog ==
 
-= 0.1.0.4 =
-* Optimized code to decrease memory usage
-* Fixed editor button?
-* Removed the keyword `private` in class property declarations to make the plugin compatible with PHP 4
+= 0.1.1.0 =
+* Added simple upload form with less options which is shown by default
+* Fixed editor button
+* Changed editor tag box
 * Selection fields in the file upload form are removed if there are no entries
+* You can now enter custom JavaScript Code which is executed when a download link is clicked (e.g. to track downloads with Google Analytics)
+* If no display name is entered it will be generated from the filename
+* Removed the keyword `private` in class property declarations to make the plugin compatible with PHP 4
+* Serveral small bug fixes
+* CSS fixes
+* Optimized code to decrease memory usage
 
 = 0.1.0.3 =
 * Added file list sorting options

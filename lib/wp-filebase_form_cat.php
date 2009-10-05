@@ -1,6 +1,6 @@
 <?php
 
-global $wpdb;
+$file_category = &$item;
 
 $update_cat = !empty($file_category) && !empty($file_category->cat_id);
 if ( $update_cat ) {

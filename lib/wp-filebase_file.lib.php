@@ -18,9 +18,9 @@ function wpfilebase_move_dir($from, $to)
 		if ( 'f' == $fileinfo['type'] ) {
 			if ( ! $wp_filesystem->move($from . $filename, $to . $filename, true) )
 				return false;
-			$wp_filesystem->chmod($to . $filename, WPFB_PERM_FILE);
+			$wp_filesystem->chmod($to . $filename, octdec(WPFB_PERM_FILE));
 		} elseif ( 'd' == $fileinfo['type'] ) {
-			if ( !$wp_filesystem->mkdir($to . $filename, WPFB_PERM_DIR) )
+			if ( !$wp_filesystem->mkdir($to . $filename, octdec(WPFB_PERM_DIR)) )
 				return false;
 			if(!wpfilebase_move_dir($from . $filename, $to . $filename))
 				return false;

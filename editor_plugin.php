@@ -21,14 +21,23 @@ function wpfilebase_editor_file_list($category = 0)
 	
 	// sub cats
 	$cats = ($category != 0) ? WPFilebaseCategory::get_categories($category) : WPFilebaseCategory::get_categories();
-	foreach($cats as &$cat)
-		$content .= '<a href="javascript:;" onclick="getSubItems(' . $cat->cat_id . ');" class="catlink">' . wp_specialchars($cat->cat_name) . '</a><br />';
+	if(count($cats) > 0)
+	{
+		$content .= '<h3>' . __('Categories') . '</h3>';
+		foreach($cats as &$cat)
+			$content .= '<a href="javascript:;" onclick="getSubItems(' . $cat->cat_id . ');" class="catlink">' . wp_specialchars($cat->cat_name) . '</a><br />';
+	}
 
 	// files
+	$num_total_files = WPFilebaseFile::get_num_files();
 	$files = ($category != 0) ? WPFilebaseCategory::get_category($category)->get_files() : WPFilebaseFile::get_files("WHERE file_category = 0");
+
+	$content .= '<h3>' . __('Files') . '</h3>';
 	foreach($files as &$file)
 		$content .= '<label><input type="radio" name="file" value="' . $file->file_id . '" title="' . attribute_escape($file->file_display_name) . '" />' . wp_specialchars($file->file_display_name) . '</label><br />';
-	
+	if(count($files) == 0 && $num_total_files == 0)
+		$content .= '<i>' . sprintf(__('You did not upload a file. <a href="%s" target="_parent">Click here to add one.</a>'), get_option('siteurl') . '/wp-admin/tools.php?page=wpfilebase&amp;action=manage_files#addfile') . '</i>';
+		
 	return $content;
 }
 
@@ -40,27 +49,28 @@ if(!empty($_REQUEST['action']) && $_REQUEST['action'] == 'get_sub_items')
 
 
 ?>
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"  dir="ltr" lang="en-US">
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<title><?php echo WPFB_PLUGIN_NAME; ?></title>
+	<?php wp_enqueue_script('tinymce-popup', '/wp-includes/js/tinymce/tiny_mce_popup.js'); ?>
+	<?php wp_enqueue_script('jquery'); ?>
+	<?php wp_head(); ?>
 	<style type="text/css">
 	<!--
-		body{
-			margin: 0;
-			padding: 0;
-			border: 0;
-			font-family: arial, tahoma, verdana;
-			font-size: 12px;
-		}
 		h2{
 			margin: 0 0 5px 0;
 			font-size: 12px;
 			padding: 0 0 4px 0;
 			border-bottom: 1px #BAC3CA solid;
 		}
+		
+		h3{
+			font-size: 10px;
+			margin-left: -4px;
+		}
+		
 		a{
 			color: #00457A;
 		}
@@ -68,15 +78,15 @@ if(!empty($_REQUEST['action']) && $_REQUEST['action'] == 'get_sub_items')
 		#menu {
 			text-align: center;
 		}
+		
+		#filelist, #insfilelist {
+			margin: 5px;
+		}
 	-->
 	</style>
-	<?php wp_enqueue_script('tinymce-popup', '/wp-includes/js/tinymce/tiny_mce_popup.js'); ?>
-	<?php wp_enqueue_script('jquery'); ?>
-	<?php wp_head(); ?> 
-	<script type="text/javascript">		
-	
-
+	<script type="text/javascript">	
 	var currentContainer = '';
+	var panelVisible = false;
 	
 	function showContainer(btn)
 	{
@@ -95,6 +105,11 @@ if(!empty($_REQUEST['action']) && $_REQUEST['action'] == 'get_sub_items')
 		document.getElementById('containertitle').innerHTML = btn.value;
 		
 		currentContainer = btn.name;
+		
+		if(!panelVisible) {
+			document.getElementById('mceActionPanel').style.display = 'block';
+			panelVisible = true;
+		}
 	}
 	
 	
@@ -217,13 +232,20 @@ if(!empty($_REQUEST['action']) && $_REQUEST['action'] == 'get_sub_items')
 			<label><input type="radio" name="cat" value="attachments" /><i><?php _e('Attachments'); ?></i></label><br />
 			<?php
 				$cats = WPFilebaseCategory::get_categories();
-				foreach($cats as $cat)
-					echo '<label><input type="radio" name="cat" value="' . $cat->cat_id . '" title="' . attribute_escape($cat->cat_name) . '" />' . wp_specialchars($cat->cat_name) . '</label><br />';
+				if(count($cats) > 0)
+				{
+					foreach($cats as $cat)
+						echo '<label><input type="radio" name="cat" value="' . $cat->cat_id . '" title="' . attribute_escape($cat->cat_name) . '" />' . wp_specialchars($cat->cat_name) . '</label><br />';
+				} else {
+					echo '<i>';
+					printf(__('You did not create a category. <a href="%s" target="_parent">Click here to create one.</a>'), get_option('siteurl') . '/wp-admin/tools.php?page=wpfilebase&amp;action=manage_cats#addcat');
+					echo '</i>';
+				}
 			?>
 		</div>
 	</div>
 	
-	<div class="mceActionPanel">
+	<div id="mceActionPanel" class="mceActionPanel" style="display: none;">
 		<div style="float: left">
 			<input type="button" id="cancel" name="cancel" value="{#cancel}" onclick="tinyMCEPopup.close();" />
 		</div>
