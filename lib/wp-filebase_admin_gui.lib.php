@@ -1,5 +1,8 @@
 <?php
 
+wpfilebase_inclib('admin');
+wpfilebase_inclib('output');
+
 function wpfilebase_admin_manage()
 {
 	global $wpdb, $user_ID;
@@ -45,7 +48,8 @@ function wpfilebase_admin_manage()
 			if(!empty($_POST['deleteit']))
 			{
 				foreach ( (array) $_POST['delete'] as $cat_id ) {
-					WPFilebaseCategory::get_category($cat_id)->delete();
+					if(is_object($cat = WPFilebaseCategory::get_category($cat_id)))
+						$cat->delete();
 				}
 			}
 ?>
@@ -74,10 +78,10 @@ function wpfilebase_admin_manage()
 	<form id="posts-filter" action="" method="post">
 		<div class="tablenav">
 			<?php
-			$pagenum = absint( $_GET['pagenum'] );
+			$pagenum = isset($_GET['pagenum']) ? absint($_GET['pagenum']) : 0;
 			if ( empty($pagenum) )
 				$pagenum = 1;
-			if( !$catsperpage || $catsperpage < 0 )
+			if( !isset($catsperpage) || $catsperpage < 0 )
 				$catsperpage = 20;
 				
 			$pagestart = ($pagenum - 1) * $catsperpage;
@@ -167,7 +171,7 @@ function wpfilebase_admin_manage()
 				}
 			}
 			
-			if($edit_date) {
+			if(!empty($edit_date)) {
 				extract($_POST);
 				$jj = ($jj > 31 ) ? 31 : $jj;
 				$hh = ($hh > 23 ) ? $hh -24 : $hh;
@@ -193,8 +197,9 @@ function wpfilebase_admin_manage()
 				
 			if(!empty($_POST['deleteit']))
 			{
-				foreach ( (array)$_POST['delete'] as $file_id ) {
-					WPFilebaseFile::get_file($file_id)->remove();
+				foreach ( (array)$_POST['delete'] as $file_id ) {					
+					if(is_object($file = WPFilebaseFile::get_file($file_id)))
+						$file->remove();
 				}
 			}
 ?>
@@ -223,10 +228,10 @@ function wpfilebase_admin_manage()
 	<form id="posts-filter" action="" method="post">
 		<div class="tablenav">
 			<?php
-			$pagenum = absint( $_GET['pagenum'] );
+			$pagenum = isset($_GET['pagenum']) ? absint($_GET['pagenum']) : 0;
 			if ( empty($pagenum) )
 				$pagenum = 1;
-			if( !$filesperpage || $filesperpage < 0 )
+			if( !isset($filesperpage) || $filesperpage < 0 )
 				$filesperpage = 20;
 				
 			$pagestart = ($pagenum - 1) * $filesperpage;
@@ -322,7 +327,7 @@ function wpfilebase_admin_manage()
 <?php
 
 	unset($file);
-	wpfilebase_admin_form('file', !$exform);
+	wpfilebase_admin_form('file', null, $exform);
 	
 	break; // manage_files
 		
@@ -331,7 +336,7 @@ function wpfilebase_admin_manage()
 				wp_die(__('Cheatin&#8217; uh?'));
 			$file_id = intval($_GET['file_id']);
 			$file = &WPFilebaseFile::get_file($file_id);
-			wpfilebase_admin_form('file', false, &$file);
+			wpfilebase_admin_form('file', &$file);
 			break;			
 			
 		case 'editcat':
@@ -340,13 +345,13 @@ function wpfilebase_admin_manage()
 				
 			$cat_id = (int)$_GET['cat_id'];
 			$file_category = &WPFilebaseCategory::get_category($cat_id);
-			wpfilebase_admin_form('cat', false, &$file_category);
+			wpfilebase_admin_form('cat', &$file_category);
 			break;
 			
 			
 		case 'sync':
 			$result = wpfilebase_sync();
-			
+			$num_changed = 0;
 			foreach($result as $tag => $group)
 			{
 				if(empty($group) || !is_array($group) || count($group) == 0)
@@ -361,11 +366,20 @@ function wpfilebase_admin_manage()
 					foreach($group as $file)
 						echo '<li>' . $file . '</li>';
 				} else {
-					foreach($group as $item)
+					foreach($group as $item) {
 						echo '<li>' . $item->get_name() . '</li>';
+						$num_changed++;
+					}
 				}
 				echo '</ul>';
 			}
+			
+			echo '<p>';
+			if(($num_changed == 0))
+				_e('Nothing changed!');
+			else
+				printf(__('Changed %d items.'), $num_changed);
+			echo '</p>';
 			
 			echo '<p>' . __('Filebase successfully synced.') . '</p>';
 			echo '<p><a href="' . $clean_uri . '" class="button">' . __('Go back') . '</a></p>';			
@@ -425,11 +439,11 @@ function wpfilebase_admin_manage()
 				</tr>
 				</table>
 				
-				<?php wpfilebase_admin_form('file', !$exform) ?>
+				<?php wpfilebase_admin_form('file', null, $exform) ?>
 				
 				<h2><?php _e('Copyright'); ?></h2>
 				<p>
-				<?php echo WPFB_PLUGIN_NAME ?> Copyright &copy; 2009 by Fabian Schlieper<br/>
+				<?php echo WPFB_PLUGIN_NAME . ' ' . WPFB_VERSION ?> Copyright &copy; 2009 by Fabian Schlieper<br/>
 				Includes code of the thumbnail generator <a href="http://phpthumb.sourceforge.net">phpThumb()</a> by James Heinrich
 				</p>
 			</div> <!-- wrap -->
@@ -452,7 +466,7 @@ function wpfilebase_admin_options()
 	$errors = array();
 	
 	$options = get_option(WPFB_OPT_NAME);
-	$option_fields = & wpfilebase_options();
+	$option_fields = &wpfilebase_options();
 	
 	if(isset($_POST['reset']))
 	{
@@ -484,8 +498,8 @@ function wpfilebase_admin_options()
 		if(!empty($_POST['allow_srv_script_upload']))
 			$messages[] = __('WARNING: Script upload enabled!');
 		
-		$attach_template = &stripslashes(&$_POST['template_file']);
-		if(!empty($attach_template))
+		$attach_template = stripslashes($_POST['template_file']);
+		if(!empty($attach_template) && (empty($options['template_file_parsed']) || $attach_template != $options['template_file']))
 		{
 			wpfilebase_inclib('template');
 			$start_time = microtime(true);
@@ -494,7 +508,7 @@ function wpfilebase_admin_options()
 			$time_span = (microtime(true) - $start_time);
 			
 			if(!$result['error']) {
-				$options['template_file_parsed'] = &$attach_template;
+				$options['template_file_parsed'] = $attach_template;
 				$messages[] = __('Template successfully parsed.' /* in %f ms.'*/);
 			} else {
 				$errors[] = sprintf(__('Could not parse template: error (%s) in line %s.'), $result['msg'], $result['line']);
@@ -504,7 +518,8 @@ function wpfilebase_admin_options()
 		// save options
 		foreach($option_fields as $opt_tag => $opt_data)
 		{
-			$options[$opt_tag] = stripslashes(trim($_POST[$opt_tag]));
+			if(isset($_POST[$opt_tag]))
+				$options[$opt_tag] = stripslashes(trim($_POST[$opt_tag]));
 		}
 		
 		update_option(WPFB_OPT_NAME, $options);
@@ -566,14 +581,17 @@ function wpfilebase_admin_options()
 					echo ' value="1" ' . checked('1', $opt_val);
 				elseif($field_data['type'] == 'number')
 					echo ' value="' . intval($opt_val) . '" size="5"';
-				else
-					echo ' value="' . attribute_escape($opt_val) . '" size="' . $field_data['size'] . '"';
+				else {
+					echo ' value="' . attribute_escape($opt_val) . '"';
+					if(isset($field_data['size']))
+						echo ' size="' . (int)$field_data['size'] . '"';
+				}
 				echo $style_class . ' />';
 				break;
 				
 			case 'textarea':
-				$code_edit = (strpos($opt_tag, 'template_') !== false || strpos($field_data['class'], 'code') !== false);
-				echo '<textarea name="' . $opt_tag . '" id="' . $opt_tag . '" ' . ($code_edit ? 'rows="20" cols="80" wrap="off" style="width: 100%; font-size: 8px;"' : 'rows="5" cols="50"') . $style_class . '>' . wp_specialchars($opt_val) . '</textarea>';
+				$code_edit = (strpos($opt_tag, 'template_') !== false || (isset($field_data['class']) && strpos($field_data['class'], 'code') !== false));
+				echo '<textarea name="' . $opt_tag . '" id="' . $opt_tag . '" ' . ($code_edit ? 'rows="20" cols="80" wrap="off" style="width: 100%; font-size: 9px;"' : 'rows="5" cols="50"') . $style_class . '>' . wp_specialchars($opt_val) . '</textarea>';
 				break;
 			case 'select':
 				echo '<select name="' . $opt_tag . '" id="' . $opt_tag . '">';

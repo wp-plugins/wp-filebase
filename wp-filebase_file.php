@@ -2,6 +2,9 @@
 
 require_once(WPFB_PLUGIN_ROOT . 'wp-filebase_item.php');
 
+global $wpfb_file_cache;
+$wpfb_file_cache = array(); // (PHP 4 compatibility)
+
 class WPFilebaseFile extends WPFilebaseItem {
 
 	var $file_id;
@@ -30,15 +33,15 @@ class WPFilebaseFile extends WPFilebaseItem {
 	var $file_last_dl_ip;
 	var $file_last_dl_time;
 	
-	static /*private (PHP 4 compatibility) */ $_files = array();
+	/* static private $_files = array(); (PHP 4 compatibility) */
 	
 		
-	/*public (PHP 4 compatibility) */ static function get_files($extra_sql = '')
+	/*public static (PHP 4 compatibility) */ function get_files($extra_sql = '')
 	{
-		global $wpdb;
+		global $wpdb, $wpfb_file_cache;
 		
-		if(!is_array(self::$_files))
-			self::$_files = array();
+		if(!is_array($wpfb_file_cache))
+			$wpfb_file_cache = array();
 		
 		$files = array();
 		
@@ -48,30 +51,32 @@ class WPFilebaseFile extends WPFilebaseItem {
 		{
 			foreach($results as $file_row)
 			{
-				$file = &new WPFilebaseFile($file_row);
+				$file = new WPFilebaseFile($file_row);
 				$id = (int)$file->file_id;
 				
-				$files[$id] = & $file;
-				self::$_files[$id] = & $file;
+				$files[$id] = $file;
+				$wpfb_file_cache[$id] = $file;
 			}
 		}
 		
 		return $files;
 	}
 	
-	/*public (PHP 4 compatibility) */ static function get_file($id)
+	/*public static (PHP 4 compatibility) */ function get_file($id)
 	{
+		global $wpfb_file_cache;
+		
 		$id = (int)intval($id);
 		
-		if(isset(self::$_files[$id]))
-			return self::$_files[$id];
+		if(isset($wpfb_file_cache[$id]))
+			return $wpfb_file_cache[$id];
 			
 		$files = &WPFilebaseFile::get_files("WHERE file_id = $id");
 		
 		return $files[$id];
 	}
 	
-	/*public (PHP 4 compatibility) */ static function get_file_by_path($path)
+	/*public static (PHP 4 compatibility) */ function get_file_by_path($path)
 	{
 		global $wpdb;
 		
@@ -100,7 +105,7 @@ class WPFilebaseFile extends WPFilebaseItem {
 			$cat_id = (int)$cat->cat_id;
 		}
 		
-		$files = &self::get_files("WHERE file_name = '" . $wpdb->escape($file_name) . "' AND file_category = " . (int)$cat_id);
+		$files = &WPFilebaseFile::get_files("WHERE file_name = '" . $wpdb->escape($file_name) . "' AND file_category = " . (int)$cat_id);
 		
 		if(empty($files))
 			return null;
@@ -108,7 +113,7 @@ class WPFilebaseFile extends WPFilebaseItem {
 			return reset(&$files);
 	}
 	
-	/*public (PHP 4 compatibility) */ static function get_num_files()
+	/*public static (PHP 4 compatibility) */ function get_num_files()
 	{
 		global $wpdb;
 		return $wpdb->get_var("SELECT COUNT(file_id) FROM $wpdb->wpfilebase_files WHERE 1"); 
@@ -297,8 +302,8 @@ class WPFilebaseFile extends WPFilebaseItem {
 	{	
 		global $wpdb;
 
-		if($this->file_category > 0)
-			$this->get_parent()->remove_file($this);
+		if($this->file_category > 0 && ($parent = $this->get_parent()) != null)
+			$parent->remove_file($this);
 		
 		// remove file entry
 		$wpdb->query("DELETE FROM " . $wpdb->wpfilebase_files . " WHERE file_id = " . (int)$this->file_id);
@@ -321,13 +326,15 @@ class WPFilebaseFile extends WPFilebaseItem {
 		$old_thumb_path = $this->get_thumbnail_path();
 		
 		// remove from current cat
-		if($this->get_parent())
-			$this->get_parent()->remove_file($this);
+		$parent = $this->get_parent();
+		if($parent)
+			$parent->remove_file($this);
 		
 		// add to current cat
-		$this->file_category = (int)$new_cat_id;	
-		if($this->get_parent())
-			$this->get_parent()->add_file($this);
+		$this->file_category = (int)$new_cat_id;
+		$parent = $this->get_parent();		
+		if($parent)
+			$parent->add_file($this);
 			
 		// create the directory if it doesnt exist
 		if(!is_dir(dirname($this->get_path())))
@@ -383,7 +390,8 @@ class WPFilebaseFile extends WPFilebaseItem {
 		$data['file_icon_url'] = $this->get_icon_url();
 		$data['file_size'] = $this->get_formatted_size();
 		$data['file_path'] = substr($this->get_path(), strlen(wpfilebase_upload_dir()) + 1);
-		$data['file_category'] = $this->get_parent()->cat_name;
+		$parent = $this->get_parent();
+		$data['file_category'] = $parent->cat_name;
 		
 		$data['file_languages'] = wpfilebase_get_tag_names('languages', $this->file_language);
 		$data['file_platforms'] = wpfilebase_get_tag_names('platforms', $this->file_platform);
@@ -461,7 +469,8 @@ JS;
 		// count download
 		if(!$is_admin || !wpfilebase_get_opt('ignore_admin_dls'))
 		{
-			if(empty($this->file_last_dl_ip) || $this->file_last_dl_ip != $downloader_ip)
+			$last_dl_time = mysql2date('U', $file->last_dl_time , false);
+			if(empty($this->file_last_dl_ip) || $this->file_last_dl_ip != $downloader_ip || ((time() - $last_dl_time) > 86400))
 				$wpdb->query("UPDATE " . $wpdb->wpfilebase_files . " SET file_hits = file_hits + 1, file_last_dl_ip = '" . $downloader_ip . "', file_last_dl_time = '" . current_time('mysql') . "' WHERE file_id = " . (int)$this->file_id);
 		}
 		

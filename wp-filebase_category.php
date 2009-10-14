@@ -1,6 +1,8 @@
 <?php
-
 require_once(WPFB_PLUGIN_ROOT . 'wp-filebase_item.php');
+
+global $wpfb_cat_cache;
+$wpfb_cat_cache = array(); // (PHP 4 compatibility)
 
 class WPFilebaseCategory extends WPFilebaseItem {
 
@@ -12,15 +14,14 @@ class WPFilebaseCategory extends WPFilebaseItem {
 	var $cat_files;
 	var $cat_required_level;
 	
-	static /*private (PHP 4 compatibility) */ $_cats = array();
-	
+	/* static private (PHP 4 compatibility) $_cats = array();*/	
 
-	/*public (PHP 4 compatibility) */ static function get_categories($extra_sql = 'ORDER BY cat_name')
+	/*public static (PHP 4 compatibility) */ function get_categories($extra_sql = 'ORDER BY cat_name')
 	{
-		global $wpdb;
+		global $wpdb, $wpfb_cat_cache;
 		
-		if(!is_array(self::$_cats))
-			self::$_cats = array();
+		if(!is_array($wpfb_cat_cache))
+			$wpfb_cat_cache = array();
 		
 		$cats = array();
 		
@@ -33,43 +34,47 @@ class WPFilebaseCategory extends WPFilebaseItem {
 				$cat = &new WPFilebaseCategory($cat_row);
 				$id = (int)$cat->cat_id;
 				
-				$cats[$id] = & $cat;
-				self::$_cats[$id] = & $cat;
+				$cats[$id] = $cat;
+				$wpfb_cat_cache[$id] = $cat;
 			}
 		}
 		
 
 		// child cats
-		foreach($cats as &$cat)
+		foreach($cats as /* & (PHP 4 compatibility) */ $cat)
 		{				
-			$pid = (int)$cat->cat_parent;
-			if($pid > 0 && is_object($cats[$pid]))
+			$p_id = (int)$cat->cat_parent;
+			if($p_id > 0 && isset($wpfb_cat_cache[$p_id]))
 			{
-				if(!isset($cats[$pid]->cat_childs) || !is_array($cats[$pid]->cat_childs))
-					$cats[$pid]->cat_childs = array();
-				$cats[$pid]->cat_childs[] = (int)$cat->cat_id;
+				$p_cat = &$wpfb_cat_cache[$p_id];
+				if(!isset($p_cat->cat_childs) || !is_array($p_cat->cat_childs))
+					$p_cat->cat_childs = array();
+				$id = (int)$cat->cat_id;
+				$p_cat->cat_childs[$id] = $id; // TODO? optimize?
 			}					
 		}
 		
 		return $cats;
 	}
 	
-	/*public (PHP 4 compatibility) */ static function get_category($id)
-	{		
+	/*public static (PHP 4 compatibility) */ function get_category($id)
+	{
+		global $wpfb_cat_cache;
+		
 		$id = (int)intval($id);
 		
-		if(isset(self::$_cats[$id]))
-			return self::$_cats[$id];
+		if(isset($wpfb_cat_cache[$id]))
+			return $wpfb_cat_cache[$id];
 			
-		$cats = &self::get_categories("WHERE cat_id = $id");
+		$cats = &WPFilebaseCategory::get_categories("WHERE cat_id = $id");
 		
-		return $cats[$id];
+		return isset($cats[$id]) ? $cats[$id] : null;
 	}
 	
-	/*public (PHP 4 compatibility) */ static function get_category_by_folder($folder)
+	/*public static (PHP 4 compatibility) */ function get_category_by_folder($folder)
 	{
 		global $wpdb;
-		$cats = &self::get_categories("WHERE cat_folder = '" . $wpdb->escape($folder) . "'");
+		$cats = &WPFilebaseCategory::get_categories("WHERE cat_folder = '" . $wpdb->escape($folder) . "'");
 		if(empty($cats))
 			return null;
 		return reset(&$cats);
@@ -101,13 +106,13 @@ class WPFilebaseCategory extends WPFilebaseItem {
 			$parent->remove_file($file);
 	}
 	
-	/*public (PHP 4 compatibility) */ static function sync_categories()
+	/*public static (PHP 4 compatibility) */ function sync_categories()
 	{
 		$updated_cats = array();
 		
 		// sync file count
-		$cats = &self::get_categories();
-		foreach($cats as &$cat)
+		$cats = &WPFilebaseCategory::get_categories();
+		foreach($cats as /* & PHP 4 compability */ $cat)
 		{
 			$catfiles = &$cat->get_files(true);
 			$count = (int)count($catfiles);
@@ -129,7 +134,7 @@ class WPFilebaseCategory extends WPFilebaseItem {
 		
 		if($recursive && !empty($this->cat_childs)) {
 			foreach($this->cat_childs as $ccid) {
-				$ccat = & self::get_category($ccid);
+				$ccat = & WPFilebaseCategory::get_category($ccid);
 				if($ccat) {
 					$cfiles = &$ccat->get_files(true);
 					$files += $cfiles;
@@ -140,10 +145,15 @@ class WPFilebaseCategory extends WPFilebaseItem {
 		return $files;
 	}
 	
+	/*public (PHP 4 compatibility) */ function get_child_categories()
+	{
+		return WPFilebaseCategory::get_categories("WHERE cat_parent = " . (int)$this->cat_id);
+	}
+	
 	/*public (PHP 4 compatibility) */ function change_category($cat)
 	{
-		if(!is_object($cat))
-			$cat = self::get_category($cat);
+		if(!is_object($cat) && $cat > 0)
+			$cat = WPFilebaseCategory::get_category($cat);
 		
 		if(empty($cat))
 		{
@@ -156,10 +166,11 @@ class WPFilebaseCategory extends WPFilebaseItem {
 		$all_files = & $this->get_files(true);
 		
 		// update the parent cat(s)
-		if($this->get_parent())
+		$parent = $this->get_parent();
+		if($parent)
 		{			
-			foreach($all_files as &$file)
-				$this->get_parent()->remove_file($file);
+			foreach($all_files as /* & PHP 4 compability */ $file)
+				$parent->remove_file($file);
 		}
 		
 		$old_path = $this->get_path();
@@ -180,10 +191,11 @@ class WPFilebaseCategory extends WPFilebaseItem {
 		}
 			
 		// update the parent cat(s)
-		if($this->get_parent())
+		$parent = $this->get_parent();
+		if($parent)
 		{
-			foreach($all_files as &$file)
-				$this->get_parent()->add_file($file);
+			foreach($all_files as /* & PHP 4 compability */ $file)
+				$parent->add_file($file);
 		}
 		
 		$this->db_save();
@@ -203,7 +215,7 @@ class WPFilebaseCategory extends WPFilebaseItem {
 		
 		$parent_id = (int)$this->get_parent_id();
 		
-		$new_path = ($this->get_parent() ? $this->get_parent()->get_path() : wpfilebase_upload_dir());
+		$new_path = (is_object($parent = $this->get_parent()) ? $parent->get_path() : wpfilebase_upload_dir());
 		
 		// move everything
 		wpfilebase_inclib('file');

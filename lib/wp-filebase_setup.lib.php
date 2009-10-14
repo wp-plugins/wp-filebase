@@ -1,25 +1,46 @@
 <?php
-	
+
 function wpfilebase_add_options()
 {
-	$options = &wpfilebase_options();
-	$opts = array();
-	foreach($options as $opt_name => $opt_data)
-		$opts[$opt_name] = $opt_data['default'];
-		
-	$opts['widget'] = array(
+	$default_opts = &wpfilebase_options();		
+	$existing_opts = wpfilebase_get_opt();
+	$new_opts = array();
+	
+	foreach($default_opts as $opt_name => $opt_data)
+	{
+		$new_opts[$opt_name] = $opt_data['default'];
+	}		
+
+	$new_opts['widget'] = array(
 		'filelist_title' => 'Top Downloads',
 		'filelist_order_by' => 'file_hits',
 		'filelist_asc' => false,
 		'filelist_limit' => 10,
 		'filelist_template' => '<a href="%file_post_url%">%file_display_name%</a> (%file_hits% hits)',
-		'filelist_template_parsed' => '',
+		'filelist_template_parsed' => ''
 	);
+
 	
-	$opts['templates'] = array();
-	$opts['version'] = WPFB_VERSION;
+	$new_opts['templates'] = array();
+	$new_opts['version'] = WPFB_VERSION;
 	
-	add_option(WPFB_OPT_NAME, $opts);
+	
+	if($existing_opts === false)
+		add_option(WPFB_OPT_NAME, $new_opts);
+	else {
+		$changed = false;
+		foreach($new_opts as $opt_name => $opt_data)
+		{
+			// check if this option already exists, and if changed, take the existing value
+			if($opt_name != 'version' && isset($existing_opts[$opt_name]) && $existing_opts[$opt_name] != $opt_data)
+			{
+				$new_opts[$opt_name] = $existing_opts[$opt_name];
+				$changed = true;				
+			}
+		}
+		if($changed)
+			update_option(WPFB_OPT_NAME, $new_opts);
+	}
 }
 
 
@@ -30,7 +51,7 @@ function wpfilebase_remove_options()
 	// delete old options too
 	$options = &wpfilebase_options();
 	foreach($options as $opt_name => $opt_data)
-		delete_option('wpfilebase_' . $opt_name);
+		delete_option(WPFB_OPT_NAME . '_' . $opt_name);
 }
 
 function wpfilebase_reset_options()
@@ -38,7 +59,6 @@ function wpfilebase_reset_options()
 	wpfilebase_remove_options();
 	wpfilebase_add_options();
 }
-
 
 function wpfilebase_create_tables()
 {
@@ -60,7 +80,7 @@ function wpfilebase_create_tables()
   FULLTEXT KEY `FULLTEXT` (`cat_description`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1";
 				
-				
+	
 	$queries[] = "CREATE TABLE IF NOT EXISTS `" . $wpdb->prefix . "wpfb_files` (
   `file_id` bigint(20) unsigned NOT NULL auto_increment,
   `file_name` varchar(255) NOT NULL default '',
@@ -92,13 +112,9 @@ function wpfilebase_create_tables()
   FULLTEXT KEY `FULLTEXT` (`file_description`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1";
 
-	
-	foreach($queries as &$sql)
-	{
+	foreach($queries as $sql)
 		$wpdb->query($sql);
-	}
 }
-
 
 function wpfilebase_drop_tables()
 {
@@ -107,15 +123,12 @@ function wpfilebase_drop_tables()
 	$tables = array($wpdb->wpfilebase_files, $wpdb->wpfilebase_cats);	
 	
 	foreach($tables as $tbl)
-	{
 		$wpdb->query("DROP TABLE IF EXISTS `" . $tbl . "`");
-	}
 }
 
 function wpfilebase_reset_tpls()
 {
-	wpfilebase_update_opt('template_file_parsed', '');
-	
+	wpfilebase_update_opt('template_file_parsed', '');	
 	$widget = wpfilebase_get_opt('widget');	
 	$widget['filelist_template_parsed'] = '';	
 	wpfilebase_update_opt('widget', $widget);

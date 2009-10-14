@@ -11,16 +11,18 @@ include_once(WPFB_PLUGIN_ROOT . 'wp-filebase_item.php');
 
 $path = dirname(__FILE__);
 
-function wpfilebase_editor_file_list($category = 0)
+function wpfilebase_editor_file_list($cat_id = 0)
 {
 	$content = '';
 	
+	$cat = ($cat_id != 0) ? WPFilebaseCategory::get_category($cat_id) : null;
+	
 	// back link
-	if($category != 0)
+	if($cat)
 		$content .= '<a href="javascript:;" onclick="getSubItems(' . $cat->cat_parent . ');" class="catlink">&lt;- ' . __('Go back') . '</a><br />';
 	
 	// sub cats
-	$cats = ($category != 0) ? WPFilebaseCategory::get_categories($category) : WPFilebaseCategory::get_categories();
+	$cats = $cat ? $cat->get_child_categories() : WPFilebaseCategory::get_categories();
 	if(count($cats) > 0)
 	{
 		$content .= '<h3>' . __('Categories') . '</h3>';
@@ -30,7 +32,7 @@ function wpfilebase_editor_file_list($category = 0)
 
 	// files
 	$num_total_files = WPFilebaseFile::get_num_files();
-	$files = ($category != 0) ? WPFilebaseCategory::get_category($category)->get_files() : WPFilebaseFile::get_files("WHERE file_category = 0");
+	$files = $cat ? $cat->get_files() : WPFilebaseFile::get_files("WHERE file_category = 0");
 
 	$content .= '<h3>' . __('Files') . '</h3>';
 	foreach($files as &$file)

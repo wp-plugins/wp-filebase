@@ -21,6 +21,9 @@ function wpfilebase_parse_template($tpl)
 	$tpl = preg_replace('/([^\w])%\\\\\'(.+?)\\\\\'%([^\w])/', '$1\' . __(\'$2\') . \'$3', $tpl);	
 	$tpl = preg_replace('/%(\S+?)%/', "' . (\\$$1) . '", $tpl);
 	
+	// remove html comments
+	$tpl = preg_replace('/<\!\-\-[\s\S]+?\-\->/', '', $tpl);
+	
 	// cleanup
 	$tpl = str_replace(". ''", "", $tpl);
 	

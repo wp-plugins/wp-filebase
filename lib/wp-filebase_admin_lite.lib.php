@@ -4,6 +4,7 @@ function wpfilebase_admin_header()
 {
 	wpfilebase_head();	
 	echo '<script type="text/javascript" src="' . WPFB_PLUGIN_URI . 'wp-filebase_admin.js"></script>';
+	wpfilebase_version_update_check();
 }
 add_action('admin_head', 'wpfilebase_admin_header', 10);
 
@@ -38,13 +39,13 @@ add_action('init', 'wpfilebase_mce_addbuttons');
 
 function _wpfilebase_admin_options()
 {
-	wpfilebase_inclib('admin');
+	wpfilebase_inclib('admin_gui');
 	wpfilebase_admin_options();
 }
 
 function _wpfilebase_admin_manage()
 {
-	wpfilebase_inclib('admin');
+	wpfilebase_inclib('admin_gui');
 	wpfilebase_admin_manage();
 }
 
@@ -54,5 +55,15 @@ function _wpfilebase_widget_filelist_control()
 	return wpfilebase_widget_filelist_control();
 }
 wp_register_widget_control(WPFB_PLUGIN_NAME, WPFB_PLUGIN_NAME, '_wpfilebase_widget_filelist_control');
+
+function wpfilebase_version_update_check()
+{
+	$ver = wpfilebase_get_opt('version');
+	if($ver != WPFB_VERSION)
+	{
+		wpfilebase_activate();
+		echo '<!-- WPFilebase: version changed -->';
+	}
+}
 
 ?>

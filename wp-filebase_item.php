@@ -94,12 +94,13 @@ class WPFilebaseItem {
 	
 	function get_path()
 	{			
-		$path = '/' . (($this->is_file) ? ($this->file_name) : (trim($this->cat_folder, '/')));
-
-		if($this->get_parent() != null)
-			$path = $this->get_parent()->get_path() . $path;
+		$path = '/' . ($this->is_file ? $this->file_name : trim($this->cat_folder, '/'));
+		
+		$parent = $this->get_parent();
+		if($parent != null)
+			$path = $parent->get_path() . $path;
 		else
-			$path = wpfilebase_upload_dir() . $path;
+			$path = wpfilebase_upload_dir() . $path; 
 			
 		return $path;
 	}

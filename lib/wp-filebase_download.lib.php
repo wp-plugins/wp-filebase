@@ -200,14 +200,48 @@ function wpfilebase_get_file_content_type($name)
 	}
 }
 
+function wpfilebase_download_header($file_path, $file_type)
+{
+	if(wpfilebase_get_opt('force_download'))
+		return true;
+	
+	$file_name = basename($file_path);
+	$request_file_name = basename(urldecode(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)));
+	if($file_name == $request_file_name)
+		return false;
+		
+	// types that can be viewed in the browser
+	static $media = array('audio', 'image', 'text', 'video', 'application/pdf', 'application/x-shockwave-flash');	
+	foreach($media as $m)
+	{
+		$p = strpos($file_type, $m);
+		if($p !== false && $p == 0)
+			return false;
+	}	
+	return true;
+}
+
+function wpfilebase_range_header($file_path, $file_type)
+{
+	static $no_range_types = array('application/pdf', 'application/x-shockwave-flash');
+	foreach($no_range_types as $t)
+	{
+		$p = strpos($file_type, $t);
+		if($p !== false && $p == 0)
+			return false;
+	}	
+	return true;
+}
+
 function wpfilebase_send_file($file_path, $bitrate = 0)
 {
 	// remove some headers
 	if(function_exists('header_remove')) {
 		header_remove();
+	} else {
+		header("Expires: ");
+		header("X-Pingback: ");
 	}
-	header("Expires: ");
-	header("X-Pingback: ");
 
 	if(!@file_exists($file_path) || !is_file($file_path))
 	{
@@ -217,6 +251,7 @@ function wpfilebase_send_file($file_path, $bitrate = 0)
 	
 	$size = filesize($file_path);
 	$time = filemtime($file_path);
+	$file_type = wpfilebase_get_file_content_type($file_path);
 	
 	if(!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']))
 	{
@@ -233,13 +268,15 @@ function wpfilebase_send_file($file_path, $bitrate = 0)
 	$begin = 0;
 	$end = $size;
 
-	if(!empty($_SERVER['HTTP_RANGE']) && strpos($_SERVER['HTTP_RANGE'], 'bytes=') !== false)
+	$http_range = isset($_SERVER['HTTP_RANGE']) ? $_SERVER['HTTP_RANGE'] : '';
+	if(!empty($http_range) && strpos($http_range, 'bytes=') !== false && strpos($http_range, ',') === false) // multi-range not supported (yet)!
 	{
-		$range = explode('-', trim(substr($_SERVER['HTTP_RANGE'], 6)));
+		$range = explode('-', trim(substr($http_range, 6)));
 		$begin = 0 + trim($range[0]);
 		if(!empty($range[1]))
 			$end = 0 + trim($range[1]);
-	}
+	} else
+		$http_range = '';
 	
 	if($begin > 0 || $end < $size)
 		header('HTTP/1.0 206 Partial Content');
@@ -253,15 +290,19 @@ function wpfilebase_send_file($file_path, $bitrate = 0)
 	header("Last-Modified: " . gmdate("D, d M Y H:i:s", $time) . " GMT"); 
 	header("Pragma: public");
 	header("Cache-Control: public");
-	header("Accept-Ranges: bytes");
+	
+	if(wpfilebase_range_header($file_path, $file_type))
+		header("Accept-Ranges: bytes");
 	
 	// content headers
-	header("Content-Description: File Transfer");
-	header("Content-Type: " . wpfilebase_get_file_content_type($file_path));
-	header("Content-Disposition: attachment; filename=\"" . basename($file_path) . "\"");
+	header("Content-Type: " . $file_type);
+	if(wpfilebase_download_header($file_path, $file_type)) {
+		header("Content-Disposition: attachment; filename=\"" . basename($file_path) . "\"");
+		header("Content-Description: File Transfer");
+	}
 	header("Content-Transfer-Encoding: binary");
 	header("Content-Length: " . $length);
-	if(isset($_SERVER['HTTP_RANGE']))
+	if(!empty($http_range))
 		header("Content-Range: bytes " . $begin . "-" . ($end-1) . "/" . $size);
 	
 	header("Connection: close");

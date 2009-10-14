@@ -4,7 +4,7 @@ Donate link: http://fabi.me/donate/
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, traffic, widget, filelist, list, thumb, thumbnail, attachment, attachments, category, categories, media, template
 Requires at least: 2.2.0
 Tested up to: 2.8.4
-Stable tag: 0.1.1.0
+Stable tag: 0.1.1.1
 
 Adds a powerful download manager supporting file categories, thumbnails, traffic/bit rate limits and more to your WordPress blog.
 
@@ -17,7 +17,7 @@ Additionally the downloadmanager offers options to limit traffic and download sp
 Some more features:
 
 *   Arrange files in categories and sub-categories
-*	Insert file lists in posts and pages (with Editor Button)
+*   Insert file lists in posts and pages (with Editor Button)
 *   Automatically creates thumbnails of images (JPEG, PNG, GIF, BMP)
 *   Powerful template engine (variables, IF-Blocks)
 *   Associate files to posts and automatically attach them to the content
@@ -31,6 +31,8 @@ Some more features:
 *   Many file properties like author, version, supported languages, platforms, license ...
 
 You can see a [live demo on my Website](http://fabi.me/ "WP-Filebase demo")
+
+**If you want to report a bug or have any problems with this Plugin please post your WordPress and PHP Version!**
 
 **Note:** If you only want to limit traffic or bandwidth of media files you should take a look at my [Traffic Limiter](http://wordpress.org/extend/plugins/traffic-limiter/ "Traffic Limiter").
 
@@ -47,6 +49,14 @@ You can see a [live demo on my Website](http://fabi.me/ "WP-Filebase demo")
 3. The Editor Button to insert tags for filelists and download urls
 
 == Changelog ==
+
+= 0.1.1.1 =
+* Now fully PHP 4 compatible (it is strongly recommended to update to PHP 5)
+* Fixed a HTTP header bug causing trouble with PDF files and Adobe Acrobat Reader
+* New option *Always force download*: if enabled files that can be viewed in the browser (images, videos...) can only be downloaded (no streaming)
+* Attachement lists are sorted now
+* The MD5 hash line in the file template is now commented out by default
+* Fixed `Fatal error: Cannot redeclare wpfilebase_inclib()`
 
 = 0.1.1.0 =
 * Added simple upload form with less options which is shown by default
