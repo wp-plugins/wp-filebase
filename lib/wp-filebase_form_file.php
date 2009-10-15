@@ -12,8 +12,8 @@ $file_members_only = ($file->file_required_level > 0);
 ?>
 <div class="wrap">
 <h2><?php echo $title ?></h2>
-<?php if(!$update) { ?><a href="<?php echo remove_query_arg('exform') ?>&exform=<?php echo ($exform ? '0' : '1') ?>" class="button"><?php _e($exform ? 'Simple Form' : 'Extended Form') ?></a><?php } ?>
-<?php echo '<form enctype="multipart/form-data" name="' . $action . '" id="' . $action . '" method="post" action="' . remove_query_arg('file_id') . '" class="validate">' ?>
+<?php if(!$update) { ?><a href="<?php echo remove_query_arg('exform') ?>&amp;exform=<?php echo ($exform ? '0' : '1') ?>" class="button"><?php _e($exform ? 'Simple Form' : 'Extended Form') ?></a><?php } ?>
+<?php echo '<form enctype="multipart/form-data" name="' . $action . '" id="' . $action . '" method="post" action="' . remove_query_arg(array('file_id', 'action')) . '&amp;action=manage_files" class="validate">' ?>
 <input type="hidden" name="action" value="<?php echo $action ?>" />
 <?php if($update) { ?><input type="hidden" name="file_id" value="<?php echo $file->file_id ?>" /><?php } ?>
 <?php wp_nonce_field($action . ($update ? $file->file_id : '')); ?>

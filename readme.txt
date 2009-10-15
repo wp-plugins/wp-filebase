@@ -4,7 +4,7 @@ Donate link: http://fabi.me/donate/
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, traffic, widget, filelist, list, thumb, thumbnail, attachment, attachments, category, categories, media, template
 Requires at least: 2.2.0
 Tested up to: 2.8.4
-Stable tag: 0.1.1.1
+Stable tag: 0.1.1.2
 
 Adds a powerful download manager supporting file categories, thumbnails, traffic/bit rate limits and more to your WordPress blog.
 
@@ -39,7 +39,7 @@ You can see a [live demo on my Website](http://fabi.me/ "WP-Filebase demo")
 == Installation ==
 
 1. Upload the `wp-filebase` folder with all it's files to `wp-content/plugins/`
-2. Create the directory `/wp-content/uploads/filebase` and make it writeable (FTP command: `CHMOD 777 wp-content/uploads/filebase`)
+2. Create the directory `/wp-content/uploads/filebase` and make it writable (FTP command: `CHMOD 777 wp-content/uploads/filebase`)
 3. Activate the Plugin and customize the settings under `Settings->WP-Filebase`
 
 == Screenshots ==
@@ -49,6 +49,9 @@ You can see a [live demo on my Website](http://fabi.me/ "WP-Filebase demo")
 3. The Editor Button to insert tags for filelists and download urls
 
 == Changelog ==
+
+= 0.1.1.2 =
+* Fixes - for PHP 4 only
 
 = 0.1.1.1 =
 * Now fully PHP 4 compatible (it is strongly recommended to update to PHP 5)

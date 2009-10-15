@@ -27,7 +27,8 @@ function wpfilebase_redirect()
 		require_once(WPFB_PLUGIN_ROOT . 'wp-filebase_item.php');
 		$file = $file = WPFilebaseFile::get_file((int)$_GET['wpfb_dl']);
 	} else {
-		$dl_url_path = parse_url(get_option('siteurl') . '/' . wpfilebase_get_opt('download_base') . '/', PHP_URL_PATH);
+		$dl_url = parse_url(get_option('siteurl') . '/' . wpfilebase_get_opt('download_base') . '/');
+		$dl_url_path = $dl_url['path'];
 		$pos = strpos($_SERVER['REQUEST_URI'], $dl_url_path);
 		if($pos !== false && $pos == 0) {
 			$filepath = trim(urldecode(substr($_SERVER['REQUEST_URI'], strlen($dl_url_path))), '/');
@@ -49,7 +50,7 @@ function wpfilebase_redirect()
 
 // add filters
 add_filter('wp_head',		'wpfilebase_head');
-function wpfilebase_head() { echo "\n".'<link rel="stylesheet" type="text/css" href="' . WPFB_PLUGIN_URI . '/wp-filebase.css" />' . "\n"; }
+function wpfilebase_head() { echo "\n".'<link rel="stylesheet" type="text/css" href="' . WPFB_PLUGIN_URI . 'wp-filebase.css" />' . "\n"; }
 
 add_filter('ext2type',		'wpfilebase_ext2type_filter');
 function wpfilebase_ext2type_filter($arr) {

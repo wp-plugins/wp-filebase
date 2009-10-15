@@ -9,7 +9,7 @@ function wpfilebase_admin_manage()
 	
 	$action = ( !empty($_POST['action']) ? $_POST['action'] : ( !empty($_GET['action']) ? $_GET['action'] : '' ) );
 
-	$clean_uri = remove_query_arg(array('message', 'action', 's', 'file_id', 'cat_id'));
+	$clean_uri = remove_query_arg(array('message', 'action', 'file_id', 'cat_id' /* , 's'*/)); // keep search keyword
 	
 	// switch simple/extended form
 	if(isset($_GET['exform']))

@@ -4,14 +4,20 @@ function wpfilebase_referer_check()
 	if(empty($_SERVER['HTTP_REFERER']))
 		return ((bool)wpfilebase_get_opt('accept_empty_referers'));
 		
-	$referer = parse_url($_SERVER['HTTP_REFERER'], PHP_URL_HOST);			
+	$referer = @parse_url($_SERVER['HTTP_REFERER']);		
+	$referer = $referer['host'];
 	
 	$allowed_referers = explode("\n", wpfilebase_get_opt('allowed_referers'));
 	$allowed_referers[] = get_option('siteurl');
 	
 	foreach($allowed_referers as $ar)
 	{
-		if( !empty($ar) && (@strpos($referer, $ar) !== false || @strpos($referer, parse_url($ar, PHP_URL_HOST)) !== false) )
+		if(empty($ar))
+			continue;
+		
+		$ar_host = @parse_url($ar);
+		$ar_host = $ar_host['host'];
+		if(@strpos($referer, $ar) !== false || @strpos($referer, $ar_host) !== false)
 			return true;
 	}
 	
@@ -206,7 +212,9 @@ function wpfilebase_download_header($file_path, $file_type)
 		return true;
 	
 	$file_name = basename($file_path);
-	$request_file_name = basename(urldecode(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)));
+	$request_path = parse_url($_SERVER['REQUEST_URI']);
+	$request_path = urldecode($request_path['path']);
+	$request_file_name = basename($request_path);
 	if($file_name == $request_file_name)
 		return false;
 		

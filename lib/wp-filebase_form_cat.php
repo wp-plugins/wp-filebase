@@ -6,11 +6,11 @@ $update = (!empty($file_category) && !empty($file_category->cat_id));
 
 $title = __($update ? 'Edit Category' : 'Add Category');
 if ( $update ) {	
-	$form = '<form name="editcat" id="editcat" method="post" action="' . remove_query_arg('cat_id') . '" class="validate">';
+	$form = '<form name="editcat" id="editcat" method="post" action="' . remove_query_arg(array('cat_id', 'action')) . '&ampaction=manage_cats" class="validate">';
 	$action = 'updatecat';
 	$nonce_action = 'update-filecat_' . $file_category->cat_id;		
 } else {
-	$form = '<form name="addcat" id="addcat" method="post" action="' . remove_query_arg('cat_id') . '" class="add:the-list: validate">';
+	$form = '<form name="addcat" id="addcat" method="post" action="' . remove_query_arg(array('cat_id', 'action')) . '&ampaction=manage_cats" class="add:the-list: validate">';
 	$action = 'addcat';
 	$nonce_action = 'add-filecat';
 	$file_category = null;
