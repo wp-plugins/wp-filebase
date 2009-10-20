@@ -1,12 +1,12 @@
 === WP-Filebase ===
 Contributors: fabifott
 Donate link: http://fabi.me/donate/
-Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, traffic, widget, filelist, list, thumb, thumbnail, attachment, attachments, category, categories, media, template
+Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, traffic, widget, filelist, list, thumb, thumbnail, attachment, attachments, category, categories, media, template, ftp, http
 Requires at least: 2.2.0
 Tested up to: 2.8.4
-Stable tag: 0.1.1.2
+Stable tag: 0.1.1.3
 
-Adds a powerful download manager supporting file categories, thumbnails, traffic/bit rate limits and more to your WordPress blog.
+Adds a powerful download manager supporting file categories, thumbnails, traffic/bandwidth limits and more to your WordPress blog.
 
 == Description ==
 
@@ -19,16 +19,19 @@ Some more features:
 *   Arrange files in categories and sub-categories
 *   Insert file lists in posts and pages (with Editor Button)
 *   Automatically creates thumbnails of images (JPEG, PNG, GIF, BMP)
+*   Upload files with your browser or FTP client
 *   Powerful template engine (variables, IF-Blocks)
 *   Associate files to posts and automatically attach them to the content
 *   Customisable file list widget
 *   Hotlinking protection
 *   Daily and monthly traffic limits
 *   Download speed limiter for registered users and anonymous
+*   Traffic limits
 *   Range download (allows user to pause downloads and continue them later)
 *   Works with permalink structure
 *   Download counter which ignores multiple downloads from the same client
-*   Many file properties like author, version, supported languages, platforms, license ...
+*   Many file properties like author, version, supported languages, platforms, license
+*   Custom JavaScript code which is executed when a download link is clicked (e.g. to track downloads with Google Analytics) ...
 
 You can see a [live demo on my Website](http://fabi.me/ "WP-Filebase demo")
 
@@ -49,6 +52,15 @@ You can see a [live demo on my Website](http://fabi.me/ "WP-Filebase demo")
 3. The Editor Button to insert tags for filelists and download urls
 
 == Changelog ==
+
+= 0.1.1.3 =
+* Added FTP upload support (use `Sync Filebase` to add uploaded files)
+* Code optimizations for less server load
+* File requirements can include URLs now
+* Fixed options checkbox bug
+* Fixed an issue with the editor button
+* Fixed form URL query issue
+* Some fixes for Windows platform support
 
 = 0.1.1.2 =
 * Fixes - for PHP 4 only

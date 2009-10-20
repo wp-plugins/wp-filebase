@@ -4,9 +4,9 @@ function wpfilebase_parse_template($tpl)
 {
 	echo '<!-- [WPFilebase]: parsing template ... -->';
 	
-	//add dl js
 	// remove existing onclicks
 	$tpl = preg_replace(array('/<a\s+([^>]*)onclick=".+?"\s+([^>]*)href="%file_url%"/i', '/<a\s+([^>]*)href="%file_url%"\s+([^>]*)onclick=".+?"/i'), '<a href="%file_url%" $1$2', $tpl);
+	//add dl js
 	$tpl = preg_replace('/<a ([^>]*)href="%file_url%"/i', '<a $1href="%file_url%" onclick="wpfilebase_dlclick(%file_id%, \'%file_url%\')"', $tpl);
 
 	//escape
@@ -18,8 +18,9 @@ function wpfilebase_parse_template($tpl)
 	"'\\' . ( (' . wpfilebase_parse_template_expression('$1') . ') ? (\\'' . wpfilebase_parse_template_ifblock('$2') . '\\') ) . \\''", $tpl);
 	
 	// parse translation texts
-	$tpl = preg_replace('/([^\w])%\\\\\'(.+?)\\\\\'%([^\w])/', '$1\' . __(\'$2\') . \'$3', $tpl);	
-	$tpl = preg_replace('/%(\S+?)%/', "' . (\\$$1) . '", $tpl);
+	$tpl = preg_replace('/([^\w])%\\\\\'(.+?)\\\\\'%([^\w])/', '$1\' . __(\'$2\') . \'$3', $tpl);
+	// parse variables
+	$tpl = preg_replace('/%([a-z0-9_]+?)%/i', '\' . $f->get_tpl_var(\'$1\') . \'', $tpl);
 	
 	// remove html comments
 	$tpl = preg_replace('/<\!\-\-[\s\S]+?\-\->/', '', $tpl);
@@ -36,7 +37,7 @@ function wpfilebase_parse_template($tpl)
 
 function wpfilebase_parse_template_expression($exp)
 {
-	$exp = preg_replace('/%(\S+?)%/', '(\$$1)', $exp);
+	$exp = preg_replace('/%([a-z0-9_]+?)%/i', '($f->get_tpl_var(\'$1\'))', $exp);
 	$exp = preg_replace('/([^\w])AND([^\w])/', '$1&&$2', $exp);
 	$exp = preg_replace('/([^\w])OR([^\w])/', '$1||$2', $exp);
 	$exp = preg_replace('/([^\w])NOT([^\w])/', '$1!$2', $exp);
@@ -62,7 +63,8 @@ function wpfilebase_parse_template_ifblock($block)
 function wpfilebase_check_template($tpl)
 {	
 	$result = array('error' => false, 'msg' => '', 'line' => '');
-		
+	
+	$f = new WPFilebaseFile();
 	$tpl = 'return (' . $tpl . ');';
 	
 	if(!@eval($tpl))

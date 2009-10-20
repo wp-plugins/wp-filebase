@@ -105,6 +105,11 @@ class WPFilebaseItem {
 		return $path;
 	}
 	
+	function get_rel_path()
+	{
+		return substr($this->get_path(), strlen(wpfilebase_upload_dir()) + 1);
+	}
+	
 	/*public (PHP 4 compatibility) */ function db_save()
 	{
 		global $wpdb;

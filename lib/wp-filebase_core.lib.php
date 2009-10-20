@@ -40,7 +40,7 @@ function wpfilebase_redirect()
 			return;
 	}
 	
-	if(!empty($file) && is_object($file)) {		
+	if(!empty($file) && is_object($file)) {
 		wpfilebase_inclib('common');	
 		$file->download();
 		exit;

@@ -351,7 +351,7 @@ function wpfilebase_admin_manage()
 			
 		case 'sync':
 			$result = wpfilebase_sync();
-			$num_changed = 0;
+			$num_changed = $num_added = $num_errors = 0;
 			foreach($result as $tag => $group)
 			{
 				if(empty($group) || !is_array($group) || count($group) == 0)
@@ -359,36 +359,42 @@ function wpfilebase_admin_manage()
 					
 				$t = str_replace('_', ' ', $tag);
 				$t{0} = strtoupper($t{0});
-					
-				echo '<h2>' . __($t) . '</h2><ul>';
 				
-				if($tag == 'not_added') {
-					foreach($group as $file)
-						echo '<li>' . $file . '</li>';
-				} else {
-					foreach($group as $item) {
-						echo '<li>' . $item->get_name() . '</li>';
-						$num_changed++;
-					}
-				}
+				if($tag == 'added')
+					$num_added += count($group);
+				elseif($tag == 'error')
+					$num_errors++;
+				else
+					$num_changed += count($group);
+				
+				echo '<h2>' . __($t) . '</h2><ul>';
+				foreach($group as $item)
+					echo '<li>' . (is_object($item) ? $item->get_rel_path() : $item) . '</li>';
 				echo '</ul>';
 			}
 			
 			echo '<p>';
-			if(($num_changed == 0))
+			if($num_changed == 0 && $num_added == 0)
 				_e('Nothing changed!');
-			else
+
+			if($num_changed > 0)
 				printf(__('Changed %d items.'), $num_changed);
+				
+			if($num_added > 0) {
+				echo '<br />';
+				printf(__('Added %d files.'), $num_added);
+			}
 			echo '</p>';
 			
-			echo '<p>' . __('Filebase successfully synced.') . '</p>';
+			if( $num_errors == 0)
+				echo '<p>' . __('Filebase successfully synced.') . '</p>';
 			echo '<p><a href="' . $clean_uri . '" class="button">' . __('Go back') . '</a></p>';			
 			
 		break; // sync
 		
 		
 		default:
-			$clean_uri = remove_query_arg(array('pagenum'), $clean_uri);
+			$clean_uri = remove_query_arg('pagenum', $clean_uri);
 			?>
 			<div class="wrap">
 				<h2>Filebase</h2>
@@ -443,7 +449,8 @@ function wpfilebase_admin_manage()
 				
 				<h2><?php _e('Copyright'); ?></h2>
 				<p>
-				<?php echo WPFB_PLUGIN_NAME . ' ' . WPFB_VERSION ?> Copyright &copy; 2009 by Fabian Schlieper<br/>
+				<?php echo WPFB_PLUGIN_NAME . ' ' . WPFB_VERSION ?> Copyright &copy; 2009 by Fabian Schlieper <a href="http://fabi.me/">
+				<?php if(strpos($_SERVER['SERVER_PROTOCOL'], 'HTTPS') === false) { ?><img src="http://fabi.me/misc/wpfb_icon.gif" alt="" /><?php } ?> fabi.me</a><br/>
 				Includes code of the thumbnail generator <a href="http://phpthumb.sourceforge.net">phpThumb()</a> by James Heinrich
 				</p>
 			</div> <!-- wrap -->
@@ -518,8 +525,8 @@ function wpfilebase_admin_options()
 		// save options
 		foreach($option_fields as $opt_tag => $opt_data)
 		{
-			if(isset($_POST[$opt_tag]))
-				$options[$opt_tag] = stripslashes(trim($_POST[$opt_tag]));
+			$val = isset($_POST[$opt_tag]) ? $_POST[$opt_tag] : '';
+			$options[$opt_tag] = stripslashes(trim($val));
 		}
 		
 		update_option(WPFB_OPT_NAME, $options);
@@ -566,10 +573,11 @@ function wpfilebase_admin_options()
 	{	
 		$opt_val = $options[$opt_tag];
 		echo "\n".'<tr valign="top">'."\n".'<th scope="row">' . $field_data['title']. '</th>'."\n".'<td>';
+		$style_class = '';
 		if(!empty($field_data['class']))
-			$style_class = ' class="'.$field_data['class'].'"';
-		else
-			$style_class = '';
+			$style_class .= ' class="'.$field_data['class'].'"';
+		if(!empty($field_data['style']))
+			$style_class .= ' style="'.$field_data['style'].'"';
 		switch($field_data['type'])
 		{
 			case 'text':
@@ -577,9 +585,10 @@ function wpfilebase_admin_options()
 			case 'checkbox':
 				echo '<input name="' . $opt_tag . '" type="' . $field_data['type'] . '" id="' . $opt_tag . '"';
 				echo ((!empty($field_data['class'])) ? ' class="' . $field_data['class'] . '"' : '');
-				if($field_data['type'] == 'checkbox')
-					echo ' value="1" ' . checked('1', $opt_val);
-				elseif($field_data['type'] == 'number')
+				if($field_data['type'] == 'checkbox') {
+					echo ' value="1" ';
+					checked('1', $opt_val);
+				} elseif($field_data['type'] == 'number')
 					echo ' value="' . intval($opt_val) . '" size="5"';
 				else {
 					echo ' value="' . attribute_escape($opt_val) . '"';
@@ -591,7 +600,17 @@ function wpfilebase_admin_options()
 				
 			case 'textarea':
 				$code_edit = (strpos($opt_tag, 'template_') !== false || (isset($field_data['class']) && strpos($field_data['class'], 'code') !== false));
-				echo '<textarea name="' . $opt_tag . '" id="' . $opt_tag . '" ' . ($code_edit ? 'rows="20" cols="80" wrap="off" style="width: 100%; font-size: 9px;"' : 'rows="5" cols="50"') . $style_class . '>' . wp_specialchars($opt_val) . '</textarea>';
+				$nowrap = !empty($field_data['nowrap']);
+				echo '<textarea name="' . $opt_tag . '" id="' . $opt_tag . '"';
+				if($nowrap || $code_edit) {
+					echo ' cols="100" wrap="off" style="width: 100%;' . ($code_edit ?  'font-size: 9px;' : '') . '"';
+				} else
+					echo ' cols="50"';
+				echo ' rows="' . ($code_edit ? 20 : 5) . '"';
+				echo $style_class;
+				echo '>';
+				echo wp_specialchars($opt_val);
+				echo '</textarea>';
 				break;
 			case 'select':
 				echo '<select name="' . $opt_tag . '" id="' . $opt_tag . '">';

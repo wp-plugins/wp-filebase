@@ -4,6 +4,8 @@ require_once(WPFB_PLUGIN_ROOT . 'wp-filebase_item.php');
 
 global $wpfb_file_cache;
 $wpfb_file_cache = array(); // (PHP 4 compatibility)
+global $wpfb_file_tpl_uid;
+$wpfb_file_tpl_uid = 0;
 
 class WPFilebaseFile extends WPFilebaseItem {
 
@@ -110,7 +112,7 @@ class WPFilebaseFile extends WPFilebaseItem {
 		if(empty($files))
 			return null;
 		else
-			return reset(&$files);
+			return reset($files);
 	}
 	
 	/*public static (PHP 4 compatibility) */ function get_num_files()
@@ -344,12 +346,15 @@ class WPFilebaseFile extends WPFilebaseItem {
 		}
 		
 		// move file
-		if(!@rename($old_file_path, $this->get_path()))
-			return array( 'error' =>'Unable to move file!');
-		@chmod($this->get_path(), octdec(WPFB_PERM_FILE));
+		if(!empty($old_file_path) && @is_file($old_file_path))
+		{
+			if(!@rename($old_file_path, $this->get_path()))
+				return array( 'error' => sprintf('Unable to move file %s!', $this->get_path()));
+			@chmod($this->get_path(), octdec(WPFB_PERM_FILE));
+		}
 		
 		// move thumb
-		if(!empty($old_thumb_path) && @file_exists($old_thumb_path))
+		if(!empty($old_thumb_path) && @is_file($old_thumb_path))
 		{
 			if(!@rename($old_thumb_path, $this->get_thumbnail_path()))
 				return array( 'error' =>'Unable to move thumbnail!');
@@ -359,10 +364,10 @@ class WPFilebaseFile extends WPFilebaseItem {
 		return array( 'error' => false);
 	}
 	
-	/*public (PHP 4 compatibility) */ function parse_template($template='')
+	/*public (PHP 4 compatibility) */ function generate_template($template='')
 	{
-		static $tpl_uid = 0;
 		static $js_printed = false;
+		global $wpfb_file_tpl_uid;
 		
 		if(empty($template))
 		{
@@ -372,41 +377,15 @@ class WPFilebaseFile extends WPFilebaseItem {
 				$tpl = wpfilebase_get_opt('template_file');
 				if(!empty($tpl))
 				{
-					echo '<!-- parsing template ... -->';
 					wpfilebase_inclib('template');
 					$template = wpfilebase_parse_template($tpl);
 					wpfilebase_update_opt('template_file_parsed', $template); 
 				}
 			}
 		}
-			
-		$data = (array)$this;
-		
-		// additional data
-		$data['file_url'] = $this->get_url();
-		$data['file_post_url'] = $this->get_post_url();
-		if(empty($data['file_post_url']))
-			$data['file_post_url'] = $data['file_url'];
-		$data['file_icon_url'] = $this->get_icon_url();
-		$data['file_size'] = $this->get_formatted_size();
-		$data['file_path'] = substr($this->get_path(), strlen(wpfilebase_upload_dir()) + 1);
-		$parent = $this->get_parent();
-		$data['file_category'] = $parent->cat_name;
-		
-		$data['file_languages'] = wpfilebase_get_tag_names('languages', $this->file_language);
-		$data['file_platforms'] = wpfilebase_get_tag_names('platforms', $this->file_platform);
-		$data['file_requirements'] = wpfilebase_get_tag_names('requirements', $this->file_requirement);
-		$data['file_license'] = wpfilebase_get_tag_names('licenses', $this->file_license);
-		
-		$data['file_required_level'] = ($this->file_required_level - 1);
-		
-		$data['file_date'] = mysql2date(get_option('date_format'), $data['file_date']);
-		$data['file_last_dl_time'] = mysql2date(get_option('date_format'), $data['file_last_dl_time']);
-		
-		$data['uid'] = $tpl_uid++;
-		
-		extract($data);
-		
+
+		$wpfb_file_tpl_uid++;
+		$f = &$this;
 		$template = @eval('return (' . $template . ');');
 		
 		if(!$js_printed)
@@ -422,17 +401,46 @@ function wpfilebase_dlclick(file_id, file_url) {try{
 }catch(err){}}
 </script>
 JS;
-
 			}
 			$js_printed = true;
 		}
 		
 		return $template;
 	}
+    
+    function get_tpl_var($name)
+    {
+		global $wpfb_file_tpl_uid;
+
+		switch($name) {			
+			case 'file_url':			return $this->get_url();			
+			case 'file_post_url':		return is_null($url = $this->get_post_url()) ? $this->get_url() : $url;
+			case 'file_post_url':		return !empty($this->$name) ? $this->$name : $this->file_url;			
+			case 'file_icon_url':		return $this->get_icon_url();			
+			case 'file_size':			return $this->get_formatted_size();
+			case 'file_path':			return $this->get_rel_path();			
+			case 'file_category':		return is_object($parent = $this->get_parent()) ? $parent->cat_name : '';
+			
+			case 'file_languages':		return wpfilebase_parse_selected_options('languages', $this->file_language);
+			case 'file_platforms':		return wpfilebase_parse_selected_options('platforms', $this->file_platform);
+			case 'file_requirements':	return wpfilebase_parse_selected_options('requirements', $this->file_requirement, true);
+			case 'file_license':		return wpfilebase_parse_selected_options('licenses', $this->file_license);
+			
+			case 'file_required_level':	return ($this->file_required_level - 1);
+			
+			case 'file_date':
+			case 'file_last_dl_time':	return mysql2date(get_option('date_format'), $this->$name);
+			
+			case 'uid':					return $wpfb_file_tpl_uid;				
+		}
+		return isset($this->$name) ? $this->$name : '';
+    }
 	
 	/*public (PHP 4 compatibility) */ function download()
 	{
 		global $wpdb, $user_ID;
+		
+		@error_reporting(0);
 		
 		wpfilebase_inclib('download');
 		

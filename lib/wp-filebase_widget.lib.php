@@ -12,6 +12,8 @@ function wpfilebase_widget_filelist($args)
 	echo $before_widget;
 	echo $before_title . $options['filelist_title'] . $after_title;
 	
+	// load all categories
+	WPFilebaseCategory::get_categories();
 	$files = WPFilebaseFile::get_files('ORDER BY ' . $options['filelist_order_by'] . ($options['filelist_asc'] ? ' ASC' : ' DESC') . ' LIMIT ' . (int)$options['filelist_limit']);
 	
 	// add url to template
@@ -32,7 +34,7 @@ function wpfilebase_widget_filelist($args)
 	echo '<ul>';
 	foreach($files as $file)
 	{
-		echo '<li>' . $file->parse_template($options['filelist_template_parsed']) . '</li>';
+		echo '<li>' . $file->generate_template($options['filelist_template_parsed']) . '</li>';
 	}
 	echo '</ul>';
 	

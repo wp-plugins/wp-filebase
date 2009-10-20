@@ -6,7 +6,7 @@ require_once(WPFB_PLUGIN_ROOT . 'wp-filebase_item.php');
 
 function wpfilebase_options()
 {
-	$multiple_entries_desc = __('One entry per line. Seperate the shown name and a short tag (not longer than 8 characters) with \'|\'.<br />All lines beginning with \'*\' are selected by default.');
+	$multiple_entries_desc = __('One entry per line. Seperate the title and a short tag (not longer than 8 characters) with \'|\'.<br />All lines beginning with \'*\' are selected by default.');
 	$multiple_line_desc = __('One entry per line.');
 	$bitrate_desc = __('Limits the maximum tranfer rate for downloads. 0 = unlimited');
 	$traffic_desc = __('Limits the maximum data traffic. 0 = unlimited');
@@ -34,7 +34,7 @@ function wpfilebase_options()
   </div>
   <div class="wpfilebase-filedetails" id="wpfilebase-filedetails%uid%" style="display: none;">
   %file_description%
-  <table border="0" width="220">
+  <table border="0">
    <!-- IF %file_languages% --><tr><th>%'Languages'%:</th><td>%file_languages%</td></tr><!-- ENDIF -->
    <!-- IF %file_author% --><tr><th>%'Author'%:</th><td>%file_author%</td></tr><!-- ENDIF -->
    <!-- IF %file_platforms% --><tr><th>%'Platforms'%:</th><td>%file_platforms%</td></tr><!-- ENDIF -->
@@ -57,9 +57,9 @@ TPLFILE
 , 'title' => __('Attachment Template'), 'type' => 'textarea', 'desc' => (wpfilebase_template_fields_select('template_file') . '<br />' . __('The template for attachments')), 'class' => 'code'),
 
 	'languages'				=> array('default' => "English|en\nDeutsch|de", 'title' => __('Languages'), 'type' => 'textarea', 'desc' => &$multiple_entries_desc),
-	'platforms'				=> array('default' => "Windows 95|win95\n*Windows 98|win98\n*Windows 2000|win2k\n*Windows XP|winxp\n*Windows Vista|vista\n*Windows 7|win7\nLinux|linux\nMac OS X|mac", 'title' => __('Platforms'), 'type' => 'textarea', 'desc' => &$multiple_entries_desc),	
-	'licenses'				=> array('default' => "*Freeware|free\nShareware|share\nGNU General Public License|gpl\nGNU Lesser General Public License|lgpl\nGNU Affero General Public License|agpl", 'title' => __('Licenses'), 'type' => 'textarea', 'desc' => &$multiple_entries_desc),
-	'requirements'			=> array('default' => ".NET Framework 2.0|.net2\n.NET Framework 3.0|.net3\n.NET Framework 3.5|.net35", 'title' => __('Requirements'), 'type' => 'textarea', 'desc' => &$multiple_entries_desc),
+	'platforms'				=> array('default' => "Windows 95|win95\n*Windows 98|win98\n*Windows 2000|win2k\n*Windows XP|winxp\n*Windows Vista|vista\n*Windows 7|win7\nLinux|linux\nMac OS X|mac", 'title' => __('Platforms'), 'type' => 'textarea', 'desc' => &$multiple_entries_desc, 'nowrap' => true),	
+	'licenses'				=> array('default' => "*Freeware|free\nShareware|share\nGNU General Public License|gpl\nGNU Lesser General Public License|lgpl\nGNU Affero General Public License|agpl", 'title' => __('Licenses'), 'type' => 'textarea', 'desc' => &$multiple_entries_desc, 'nowrap' => true),
+	'requirements'			=> array('default' => ".NET Framework 2.0|.net2|http://www.microsoft.com/downloads/details.aspx?FamilyID=0856eacb-4362-4b0d-8edd-aab15c5e04f5\n.NET Framework 3.0|.net3|http://www.microsoft.com/downloads/details.aspx?FamilyID=10cc340b-f857-4a14-83f5-25634c3bf043\n.NET Framework 3.5|.net35|http://www.microsoft.com/downloads/details.aspx?FamilyID=333325fd-ae52-4e35-b531-508d977d32a6", 'title' => __('Requirements'), 'type' => 'textarea', 'desc' => $multiple_entries_desc . ' ' . __('You can optionally add |<i>URL</i> to each line to link to the required software/file.'), 'nowrap' => true),
 	
 	'allowed_referers' 		=> array('default' => '', 'title' => __('Allowed referers'), 'type' => 'textarea', 'desc' => 'Sites with matching URLs can link to files directly.<br />'.$multiple_line_desc),
 	'accept_empty_referers'	=> array('default' => true, 'title' => __('Accept empty referers'), 'type' => 'checkbox', 'desc' => 'If enabled, direct-link-protected files can be downloaded when the referer is empty (i.e. user entered file url in address bar or browser does not send referers)'),
@@ -72,7 +72,7 @@ TPLFILE
 	'file_offline_msg'		=> array('default' => __('This file is currently offline.'), 'title' => __('File offline message'), 'type' => 'text', 'size' => 65),
 	
 	'download_base'			=> array('default' => 'download', 'title' => __('Download URL base'), 'type' => 'text', 'desc' => __('The download url base. (Only used when Permalinks are enabled.)')),
-	'force_download'		=> array('default' => false, 'title' => __('Always force download'), 'type' => 'checkbox', 'desc' => __('If enabled files that can be viewed in the browser (linke images, PDF cocuments and videos) can only be downloaded (no streaming).')),
+	'force_download'		=> array('default' => false, 'title' => __('Always force download'), 'type' => 'checkbox', 'desc' => __('If enabled files that can be viewed in the browser (like images, PDF documents or videos) can only be downloaded (no streaming).')),
 	'ignore_admin_dls'		=> array('default' => true, 'title' => __('Ignore downloads by admins'), 'type' => 'checkbox'),
 	
 	'allow_srv_script_upload'	=> array('default' => false, 'title' => __('Allow script upload'), 'type' => 'checkbox', 'desc' => __('If you enable this, scripts like PHP or CGI can be uploaded. <b>WARNING:</b> Enabling script uploads is a <b>security risk</b>!')),
@@ -168,8 +168,8 @@ function wpfilebase_template_fields_select($input, $short=false)
 function wpfilebase_insert_category($catarr)
 {
 	global $wpdb;
-	$cat_defaults = array('cat_id' => 0, 'cat_name' => '', 'cat_description' => '', 'cat_parent' => 0, 'cat_folder' => '');
-	$catarr = wp_parse_args($catarr, $cat_defaults);
+	
+	$catarr = wp_parse_args($catarr, array('cat_id' => 0, 'cat_name' => '', 'cat_description' => '', 'cat_parent' => 0, 'cat_folder' => ''));
 	extract($catarr, EXTR_SKIP);
 
 	$cat_id = intval($cat_id);
@@ -202,12 +202,16 @@ function wpfilebase_insert_category($catarr)
 		}
 	}
 	
-	if (empty($cat->cat_name))
-		return array( 'error' => __('You did not enter a category name.') );
-	if (empty($cat->cat_folder))
-		return array( 'error' => __('You did not enter a category folder name.') );
+	if (empty($cat->cat_name) && empty($cat->cat_folder))
+		return array( 'error' => __('You must enter a category name or a folder name.') );
 		
-	if(!preg_match('/^[0-9a-z-_.+,]+$/i', $cat->cat_folder))
+	if (empty($cat->cat_name))
+		$cat->cat_name = wpfilebase_filename2title($cat->cat_folder, false);
+	elseif(empty($cat->cat_folder))
+		$cat->cat_folder = strtolower(str_replace(' ', '_', $cat->cat_name));
+	
+	$cat->cat_folder = preg_replace('/\s/', ' ', $cat->cat_folder);
+	if(!preg_match('/^[0-9a-z-_.+,\s]+$/i', $cat->cat_folder))
 		return array( 'error' => __('The category folder name contains invalid characters.') );
 		
 	// handle parent cat
@@ -221,7 +225,7 @@ function wpfilebase_insert_category($catarr)
 	}
 	
 	// if create new and dir already exists, cancel
-	if(!$update)
+	if(!$update && empty($add_existing))
 	{
 		$prev_parent = $cat->cat_parent;
 		$cat->cat_parent = $cat_parent;
@@ -246,9 +250,9 @@ function wpfilebase_insert_category($catarr)
 }
 
 
-function wpfilebase_insert_file($filearr)
+function wpfilebase_insert_file($filedata)
 {	
-	extract($filearr, EXTR_SKIP);
+	extract($filedata, EXTR_SKIP);
 	
 	$file_id = isset($file_id) ? (int)$file_id : 0;
 	
@@ -256,18 +260,29 @@ function wpfilebase_insert_file($filearr)
 	$update = ( !empty($file_id) && $file_id > 0 && (($file = &WPFilebaseFile::get_file($file_id)) != null) );
 	if(!$update)
 		$file = new WPFilebaseFile(array('file_id' => 0));
+		
+	$add_existing = !empty($add_existing);
 	
 	// are we uploading a file?
-	$upload = (@is_uploaded_file($file_upload['tmp_name']) && !empty($file_upload['name']));
-	
+	$upload = (!$add_existing && @is_uploaded_file($file_upload['tmp_name']) && !empty($file_upload['name']));
 	// are we uploading a thumbnail?
-	$upload_thumb = ( @is_uploaded_file($file_upload_thumb['tmp_name']) && file_is_valid_image($file_upload_thumb['tmp_name']));
-		
+	$upload_thumb = (!$add_existing && @is_uploaded_file($file_upload_thumb['tmp_name']) && file_is_valid_image($file_upload_thumb['tmp_name']));
+	
+	$file_src_path = $upload ? $file_upload['tmp_name'] : $file_path;
+	
+	// check extension
+	if($upload || $add_existing) {
+		if(!wpfilebase_extension_is_allowed($upload ? $file_upload['name'] : $file_path))
+		{
+			@unlink($file_src_path);
+			return array( 'error' => sprintf( __( 'The file extension of the file <b>%s</b> is forbidden!' ), $upload ? $file_upload['name'] : $file_path ) );
+		}
+	}
+	
 	// handle category
 	$file_category = (int)$file_category;
 	if ($file_category > 0 && WPFilebaseCategory::get_category($file_category) == null)
 		$file_category = 0;
-	
 	if($update && $file->file_category != $file_category)
 	{
 		$result = $file->change_category($file_category);
@@ -275,63 +290,54 @@ function wpfilebase_insert_file($filearr)
 			return $result;
 	}
 	
-	
 	// delete thumbnail if user wants to
 	if(!empty($file_delete_thumb))
 		$file->delete_thumbnail();
-	
+
+	// if we update, delete the old file
+	if ($update && $upload)
+		$file->delete();
+		
+	// set the new filename & category
+	if($upload || $add_existing)
+		$file->file_name = basename($upload ? $file_upload['name'] : $file_path);
+	if(!$update) {
+		$result = $file->change_category($file_category);
+		if(!empty($result['error']))
+			return $result;
+	}
+
 	// if there is an uploaded file 
-	if($upload)
-	{		
-		// if we update, delete the old file
-		if ($update)
-			$file->delete();
-		
-		// set the new filename
-		$file->file_name = $file_upload['name'];
-		
-		// check extension
-		if(!wpfilebase_extension_is_allowed($file->get_extension()))
-		{
-			@unlink($file_upload['tmp_name']);
-			return array( 'error' => sprintf( __( 'The file extension <b>%s</b> is forbidden!' ), $file->get_extension() ) );
-		}
-		
+	if($upload) {
 		// if create new and file already exists, cancel
-		if(!$update && @file_exists($file->get_path()))
-		{			
+		if(!$update && @file_exists($file->get_path()))	
 			return array( 'error' => sprintf( __( 'File %s already exists. You have to delete it first!' ), $file->get_path() ) );
-		}
 
 		// move uploaded file to the right place
-		if(!@move_uploaded_file($file_upload['tmp_name'], $file->get_path()) || !@file_exists($file->get_path()))
-			return array( 'error' => sprintf( __( 'Unable to move file %s! Is the upload directory writeable?' ), $file->file_name ) );
-
-		// set permissions
-		@chmod ($file->get_path(), octdec(WPFB_PERM_FILE));
-		
-		// get file info
-		$file->file_size = (int)filesize($file->get_path());
-		$file->file_hash = md5_file($file->get_path());
-
-		// check if the file is an image
-		if(empty($file->file_thumbnail) && !$upload_thumb && ($file->get_extension() == '.bmp' || file_is_valid_image($file->get_path())))
-			$file->create_thumbnail();		
-		
-	} elseif (!$update) {
+		if(!@move_uploaded_file($file_src_path, $file->get_path()) || !@file_exists($file->get_path()))
+			return array( 'error' => sprintf( __( 'Unable to move file %s! Is the upload directory writeable?' ), $file->file_name ) );		
+	} elseif(!$add_existing && !$update) {
 		return array( 'error' => __('No file was uploaded.') );
 	}
+	
+	if($upload || $add_existing) {
+		// check if the file is an image and create thumbnail
+		if(empty($file->file_thumbnail) && !$upload_thumb && ($file->get_extension() == '.bmp' || file_is_valid_image($file->get_path())))
+			$file->create_thumbnail();	
+	}
+	
+	// set permissions
+	@chmod ($file->get_path(), octdec(WPFB_PERM_FILE));
+	
+	// get file info
+	$file->file_size = (int)filesize($file->get_path());
+	$file->file_hash = md5_file($file->get_path());
+	$file->file_date = !empty($file_date) ? $file_date : gmdate('Y-m-d H:i:s', filemtime($file->get_path()));
 
 	// set display name
 	$file->file_display_name = $file_display_name;
-	if (empty($file->file_display_name)) {
-		$ft = $file->file_name;
-		$ft = substr($ft, 0, strrpos($ft, '.'));
-		$ft = str_replace(array('.', '_'), ' ', $ft);
-		//$ft{0} = strtoupper($ft{0});
-		$ft = ucwords($ft);
-		$file->file_display_name = $ft;
-	}
+	if (empty($file->file_display_name))
+		$file->file_display_name = wpfilebase_filename2title($file->file_name);
 	
 	$file_language = $file_platform = $file_requirement = '';
 	if(!empty($file_languages))
@@ -417,7 +423,7 @@ function wpfilebase_sync()
 		
 		if(!@is_file($file_path) || !@is_readable($file_path))
 		{
-			$result['not_found'][] = &$file;
+			$result['not_found'][] = $file;
 			continue;
 		}
 		
@@ -433,9 +439,9 @@ function wpfilebase_sync()
 			$result = $file->db_save();
 			
 			if(!empty($result['error']))
-				$result['error'][] = &$file;
+				$result['error'][] = $file;
 			else
-				$result['changed'][] = &$file;
+				$result['changed'][] = $file;
 		}
 	}
 	
@@ -445,6 +451,7 @@ function wpfilebase_sync()
 	// search for not added files
 	$upload_dir = wpfilebase_upload_dir();	
 	$uploaded_files = list_files($upload_dir);
+	$upload_dir_len = strlen($upload_dir);
 	
 	for($i = 0; $i < count($uploaded_files); $i++)
 	{
@@ -453,19 +460,62 @@ function wpfilebase_sync()
 		if($fbn{0} == '.')
 			continue;
 		if(!in_array($fn, $file_paths) && is_file($fn) && is_readable($fn))
-			$result['not_added'][] = substr($fn, strlen($upload_dir));
+		{
+			$res = wpfilebase_add_existing_file($fn);
+			
+			if(empty($res['error']))
+				$result['added'][] = substr($fn, $upload_dir_len);
+			else
+				$result['error'][] = $res['error'];
+		}
 	}
 	
 	// chmod
-	@chmod ($upload_dir, octdec(WPFB_PERM_FILE));
+	@chmod ($upload_dir, octdec(WPFB_PERM_DIR));
 	for($i = 0; $i < count($file_paths); $i++)
-	{		
-		@chmod ($file_paths[$i], octdec(WPFB_PERM_FILE));
+	{
+		if(file_exists($file_paths[$i]))
+		{
+			@chmod ($file_paths[$i], octdec(WPFB_PERM_FILE));
+			if(!is_writable($file_paths[$i]) && !is_writable(dirname($file_paths[$i])))
+				$result['error'][] = sprintf(__('File <b>%s</b> is not writable!'), substr($file_paths[$i], $upload_dir_len));
+		}
 	}
 		
 	wpfilebase_protect_upload_path();
 	
 	return $result;
+}
+
+function wpfilebase_add_existing_file($file_path)
+{
+	$upload_dir = wpfilebase_upload_dir();
+	$rel_path = trim(substr($file_path, strlen($upload_dir)), '/');
+	$rel_dir = dirname($rel_path);
+	
+	$last_cat_id = 0;
+	
+	if(!empty($rel_dir) && $rel_dir != '.')
+	{
+		$dirs = explode('/', $rel_dir);
+		foreach($dirs as $dir)
+		{
+			if(empty($dir) || $dir == '.')
+				continue;
+				
+			if(is_object($cat = WPFilebaseCategory::get_category_by_folder($dir, $last_cat_id))) {
+				$last_cat_id = $cat->cat_id;
+			} else {
+				$result = wpfilebase_insert_category(array('add_existing' => true, 'cat_parent' => $last_cat_id, 'cat_folder' => $dir));
+				if(!empty($result['error']))
+					return $result;
+				else 
+					$last_cat_id = $result['cat_id'];
+			}
+		}
+	}
+	
+	return wpfilebase_insert_file(array('add_existing' => true, 'file_category' => $last_cat_id, 'file_path' => basename($file_path)));
 }
 
 function wpfilebase_wpcache_reject_uri($add_uri, $remove_uri='')
@@ -562,8 +612,7 @@ function wpfilebase_cat_seletion_tree($selected_id = 0, $exclude_id = 0, $cat_id
 function wpfilebase_admin_table_sort_link($order)
 {
 	$desc = (!empty($_GET['order']) && $order == $_GET['order'] && empty($_GET['desc']));
-	$uri = remove_query_arg(array('order', 'desc'), $_SERVER['REQUEST_URI']);
-	$uri .= '&order=' . $order . '&desc=' . ($desc ? '1' : '0');
+	$uri = add_query_arg(array('order' => $order, 'desc' => $desc ? '1' : '0'));
 	return $uri;
 }
 
@@ -585,7 +634,11 @@ function wpfilebase_extension_is_allowed($ext)
 {
 	static $srv_script_exts = array('php', 'php3', 'php4', 'php5', 'phtml', 'cgi', 'pl', 'asp', 'py', 'aspx');	
 	
-	$ext = strtolower(trim($ext, '.'));
+	$ext = strtolower($ext);	
+	$p = strrpos($ext, '.');
+	if($p !== false)
+		$ext = substr($ext, $p + 1);
+	
 	return (wpfilebase_get_opt('allow_srv_script_upload') || !in_array($ext, $srv_script_exts));
 }
 

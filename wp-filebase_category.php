@@ -1,8 +1,9 @@
 <?php
 require_once(WPFB_PLUGIN_ROOT . 'wp-filebase_item.php');
 
-global $wpfb_cat_cache;
+global $wpfb_cat_cache, $wpfb_cat_cache_complete;
 $wpfb_cat_cache = array(); // (PHP 4 compatibility)
+$wpfb_cat_cache_complete = false;
 
 class WPFilebaseCategory extends WPFilebaseItem {
 
@@ -16,12 +17,20 @@ class WPFilebaseCategory extends WPFilebaseItem {
 	
 	/* static private (PHP 4 compatibility) $_cats = array();*/	
 
-	/*public static (PHP 4 compatibility) */ function get_categories($extra_sql = 'ORDER BY cat_name')
+	/*public static (PHP 4 compatibility) */ function get_categories($extra_sql=null)
 	{
-		global $wpdb, $wpfb_cat_cache;
+		global $wpdb, $wpfb_cat_cache, $wpfb_cat_cache_complete;
 		
 		if(!is_array($wpfb_cat_cache))
 			$wpfb_cat_cache = array();
+			
+		if(empty($extra_sql)) {
+			$extra_sql = 'ORDER BY cat_name';
+			if($wpfb_cat_cache_complete)
+				return $wpfb_cat_cache;
+			else
+				$wpfb_cat_cache_complete = true;
+		}
 		
 		$cats = array();
 		
@@ -71,13 +80,13 @@ class WPFilebaseCategory extends WPFilebaseItem {
 		return isset($cats[$id]) ? $cats[$id] : null;
 	}
 	
-	/*public static (PHP 4 compatibility) */ function get_category_by_folder($folder)
+	/*public static (PHP 4 compatibility) */ function get_category_by_folder($folder, $parent = -1)
 	{
 		global $wpdb;
-		$cats = &WPFilebaseCategory::get_categories("WHERE cat_folder = '" . $wpdb->escape($folder) . "'");
+		$cats = &WPFilebaseCategory::get_categories("WHERE cat_folder = '" . $wpdb->escape($folder) . "'" . ( ($parent >= 0) ? (" AND cat_parent = " . (int)$parent) : '') );
 		if(empty($cats))
 			return null;
-		return reset(&$cats);
+		return reset($cats);
 	}
 
 	/*public (PHP 4 compatibility) */ function add_file($file)
@@ -114,15 +123,17 @@ class WPFilebaseCategory extends WPFilebaseItem {
 		$cats = &WPFilebaseCategory::get_categories();
 		foreach($cats as /* & PHP 4 compability */ $cat)
 		{
-			$catfiles = &$cat->get_files(true);
+			$catfiles = $cat->get_files(true);
 			$count = (int)count($catfiles);
 			if($count != $cat->cat_files)
 			{
 				$cat->cat_files = $count;
 				$cat->db_save();
 				
-				$updated_cats[] = &$cat;
+				$updated_cats[] = $cat;
 			}
+			
+			@chmod ($cat->get_path(), octdec(WPFB_PERM_DIR));
 		}
 		
 		return $updated_cats;
