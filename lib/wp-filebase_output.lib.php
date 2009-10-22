@@ -79,7 +79,7 @@ function wpfilebase_get_post_attachments($check_attached = false)
 	return $content;
 }
 
-function wpfilebase_filelist($cat_id=0)
+function wpfilebase_filelist($cat_id=-1)
 {
 	global $wpdb;
 	
@@ -96,6 +96,8 @@ function wpfilebase_filelist($cat_id=0)
 			return '';
 			
 		$extra_sql .= 'WHERE file_category = ' . (int)$cat_id . ' ';
+	} elseif($cat_id == 0) {
+		$extra_sql .= 'WHERE file_category = 0 ';
 	} else {
 		// load all cats
 		WPFilebaseCategory::get_categories();

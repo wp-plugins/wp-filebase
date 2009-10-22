@@ -478,7 +478,7 @@ function wpfilebase_sync()
 		{
 			@chmod ($file_paths[$i], octdec(WPFB_PERM_FILE));
 			if(!is_writable($file_paths[$i]) && !is_writable(dirname($file_paths[$i])))
-				$result['error'][] = sprintf(__('File <b>%s</b> is not writable!'), substr($file_paths[$i], $upload_dir_len));
+				$result['warnings'][] = sprintf(__('File <b>%s</b> is not writable!'), substr($file_paths[$i], $upload_dir_len));
 		}
 	}
 		

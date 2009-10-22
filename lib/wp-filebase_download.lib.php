@@ -303,12 +303,13 @@ function wpfilebase_send_file($file_path, $bitrate = 0)
 		header("Accept-Ranges: bytes");
 	
 	// content headers
-	header("Content-Type: " . $file_type);
+	// charset fix
+	header("Content-Type: " . $file_type . ((strpos($file_type, 'text/') !== false) ? '; charset=' : ''));
 	if(wpfilebase_download_header($file_path, $file_type)) {
 		header("Content-Disposition: attachment; filename=\"" . basename($file_path) . "\"");
 		header("Content-Description: File Transfer");
 	}
-	header("Content-Transfer-Encoding: binary");
+	//header("Content-Transfer-Encoding: binary");
 	header("Content-Length: " . $length);
 	if(!empty($http_range))
 		header("Content-Range: bytes " . $begin . "-" . ($end-1) . "/" . $size);

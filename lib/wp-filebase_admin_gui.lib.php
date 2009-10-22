@@ -254,7 +254,9 @@ function wpfilebase_admin_manage()
 		
 			
 			if(!empty($_GET['order']) && in_array($_GET['order'], array_keys(get_class_vars('WPFilebaseFile'))))
-				$extra_sql .= "ORDER BY " . $_GET['order'] . " " . (!empty($_GET['desc']) ? "DESC" : "ASC");			
+				$extra_sql .= "ORDER BY " . $_GET['order'] . " " . (!empty($_GET['desc']) ? "DESC" : "ASC");	
+			else
+				$extra_sql .= "ORDER BY file_id DESC";
 
 			$files = &WPFilebaseFile::get_files($extra_sql . " LIMIT $pagestart, $filesperpage");
 
@@ -364,7 +366,7 @@ function wpfilebase_admin_manage()
 					$num_added += count($group);
 				elseif($tag == 'error')
 					$num_errors++;
-				else
+				elseif($tag != 'warnings')
 					$num_changed += count($group);
 				
 				echo '<h2>' . __($t) . '</h2><ul>';
@@ -499,7 +501,7 @@ function wpfilebase_admin_options()
 		}
 		
 		$_POST['download_base'] = trim($_POST['download_base'], '/');
-		if(wpfilebase_wpcache_reject_uri('/' . $_POST['download_base'] . '/', '/' . $options['download_base'] . '/'))
+		if(wpfilebase_wpcache_reject_uri($_POST['download_base'] . '/', $options['download_base'] . '/'))
 			$messages[] = sprintf(__('/%s/ added to rejected URIs list of WP Super Cache.'), $_POST['download_base']);
 		
 		if(!empty($_POST['allow_srv_script_upload']))

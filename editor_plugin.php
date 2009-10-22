@@ -26,17 +26,18 @@ function wpfilebase_editor_file_list($cat_id = 0)
 	if(count($cats) > 0)
 	{
 		$content .= '<h3>' . __('Categories') . '</h3>';
-		foreach($cats as $cat)
-			$content .= '<a href="javascript:;" onclick="getSubItems(' . $cat->cat_id . ');" class="catlink">' . wp_specialchars($cat->cat_name) . '</a><br />';
+		foreach($cats as $c)
+			$content .= '<a href="javascript:;" onclick="getSubItems(' . $c->cat_id . ');" class="catlink">' . wp_specialchars($c->cat_name) . '</a><br />';
 	}
 
 	// files
 	$num_total_files = WPFilebaseFile::get_num_files();
-	$files = $cat ? $cat->get_files() : WPFilebaseFile::get_files("WHERE file_category = 0");
-
-	$content .= '<h3>' . __('Files') . '</h3>';
-	foreach($files as $file)
-		$content .= '<label><input type="radio" name="file" value="' . $file->file_id . '" title="' . attribute_escape($file->file_display_name) . '" />' . wp_specialchars($file->file_display_name) . '</label><br />';
+	$files = is_object($cat) ? $cat->get_files() : WPFilebaseFile::get_files("WHERE file_category = 0");
+	if(count($files) > 0) {
+		$content .= '<h3>' . __('Uncategorized Files') . '</h3>';
+		foreach($files as $file)
+			$content .= '<label><input type="radio" name="file" value="' . $file->file_id . '" title="' . attribute_escape($file->file_display_name) . '" />' . wp_specialchars($file->file_display_name) . '</label><br />';
+	}
 	if(count($files) == 0 && $num_total_files == 0)
 		$content .= '<i>' . sprintf(__('You did not upload a file. <a href="%s" target="_parent">Click here to add one.</a>'), get_option('siteurl') . '/wp-admin/tools.php?page=wpfilebase&amp;action=manage_files#addfile') . '</i>';
 		
@@ -230,8 +231,9 @@ if(!empty($_REQUEST['action']) && $_REQUEST['action'] == 'get_sub_items')
 		<div id="filelist" style="display: none;"><?php echo wpfilebase_editor_file_list(); ?></div>
 		
 		<div id="insfilelist" style="display: none;">
-			<label><input type="radio" name="cat" value="all" /><i><?php _e('All Categories'); ?></i></label><br />
-			<label><input type="radio" name="cat" value="attachments" /><i><?php _e('Attachments'); ?></i></label><br />
+			<label><input type="radio" name="cat" value="all" /><i><?php _e('All Categories') ?></i></label><br />
+			<label><input type="radio" name="cat" value="0" /><i><?php _e('Uncategorized Files') ?></i></label><br />
+			<label><input type="radio" name="cat" value="attachments" /><i><?php _e('Attachments') ?></i></label><br />
 			<?php
 				$cats = WPFilebaseCategory::get_categories();
 				if(count($cats) > 0)

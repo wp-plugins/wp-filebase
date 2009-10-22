@@ -3,8 +3,8 @@ Contributors: fabifott
 Donate link: http://fabi.me/donate/
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, traffic, widget, filelist, list, thumb, thumbnail, attachment, attachments, category, categories, media, template, ftp, http
 Requires at least: 2.2.0
-Tested up to: 2.8.4
-Stable tag: 0.1.1.3
+Tested up to: 2.8.5
+Stable tag: 0.1.1.4
 
 Adds a powerful download manager supporting file categories, thumbnails, traffic/bandwidth limits and more to your WordPress blog.
 
@@ -31,7 +31,8 @@ Some more features:
 *   Works with permalink structure
 *   Download counter which ignores multiple downloads from the same client
 *   Many file properties like author, version, supported languages, platforms, license
-*   Custom JavaScript code which is executed when a download link is clicked (e.g. to track downloads with Google Analytics) ...
+*   Custom JavaScript code which is executed when a download link is clicked (e.g. to track downloads with Google Analytics)
+*	Works with WP Super Cache
 
 You can see a [live demo on my Website](http://fabi.me/ "WP-Filebase demo")
 
@@ -45,6 +46,16 @@ You can see a [live demo on my Website](http://fabi.me/ "WP-Filebase demo")
 2. Create the directory `/wp-content/uploads/filebase` and make it writable (FTP command: `CHMOD 777 wp-content/uploads/filebase`)
 3. Activate the Plugin and customize the settings under `Settings->WP-Filebase`
 
+== Frequently Asked Questions ==
+
+= How do I insert a file list into a post?  =
+
+In the post editor click on the *WP-Filebase* button. In the appearing box click on *File list*, then select a category.
+
+= How do I add files with FTP? =
+
+Upload all files you want to add to the WP-Filebase upload directory (default is `wp-content/uploads/filebase`) with your FTP client. Then goto WP-Admin -> Tools -> WP-Filebase and click *Sync Filebase*. All your uploaded files are added to the database now. Categories are created automatically if files are in sub folders.
+
 == Screenshots ==
 
 1. Example of three auto-attached files
@@ -52,6 +63,11 @@ You can see a [live demo on my Website](http://fabi.me/ "WP-Filebase demo")
 3. The Editor Button to insert tags for filelists and download urls
 
 == Changelog ==
+
+= 0.1.1.4 =
+* Download charset HTTP header fixed
+* Editor file list fixed
+* New file list option `Uncategorized Files`
 
 = 0.1.1.3 =
 * Added FTP upload support (use `Sync Filebase` to add uploaded files)
