@@ -11,7 +11,7 @@ class WPFilebaseItem {
 	var /*private (PHP 4 compatibility) */ $last_parent_id = 0;
 	var /*private (PHP 4 compatibility) */ $last_parent = null;
 	
-	function WPFilebaseItem($db_row)
+	function WPFilebaseItem($db_row=null)
 	{
 		if(!empty($db_row))
 		{

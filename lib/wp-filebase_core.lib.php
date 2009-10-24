@@ -36,8 +36,14 @@ function wpfilebase_redirect()
 				require_once(WPFB_PLUGIN_ROOT . 'wp-filebase_item.php');
 				$file = WPFilebaseFile::get_file_by_path($filepath);
 			}
-		} else
+		} else {	
+			// no download, set site visited coockie to disable referer check
+			if(empty($_COOKIE[WPFB_OPT_NAME])) {
+				@setcookie(WPFB_OPT_NAME, '1');
+				$_COOKIE[WPFB_OPT_NAME] = '1';
+			}
 			return;
+		}
 	}
 	
 	if(!empty($file) && is_object($file)) {
@@ -50,7 +56,9 @@ function wpfilebase_redirect()
 
 // add filters
 add_filter('wp_head',		'wpfilebase_head');
-function wpfilebase_head() { echo "\n".'<link rel="stylesheet" type="text/css" href="' . WPFB_PLUGIN_URI . 'wp-filebase.css" />' . "\n"; }
+function wpfilebase_head() {
+	echo "\n".'<link rel="stylesheet" type="text/css" href="' . WPFB_PLUGIN_URI . 'wp-filebase_css.php" />' . "\n";
+}
 
 add_filter('ext2type',		'wpfilebase_ext2type_filter');
 function wpfilebase_ext2type_filter($arr) {

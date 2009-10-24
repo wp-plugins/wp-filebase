@@ -457,7 +457,7 @@ function wpfilebase_sync()
 	{
 		$fn = $uploaded_files[$i];
 		$fbn = basename($fn);
-		if($fbn{0} == '.')
+		if($fbn{0} == '.' || $fbn == '_wp-filebase.css')
 			continue;
 		if(!in_array($fn, $file_paths) && is_file($fn) && is_readable($fn))
 		{
@@ -669,6 +669,28 @@ function wpfilebase_mkdir($dir)
 			return $result;
 	}
 	return array('error' => !(@mkdir($dir, octdec(WPFB_PERM_DIR)) && @chmod($dir, octdec(WPFB_PERM_DIR))), 'dir' => $dir, 'parent' => $parent);
+}
+
+function wpfilebase_max_upload_size() {
+	$val = ini_get('upload_max_filesize');
+    if (is_numeric($val))
+        return $val;
+
+	$val_len = strlen($val);
+	$max_bytes = substr($val, 0, $val_len - 1);
+	$unit = strtolower(substr($val, $val_len - 1));
+	switch($unit) {
+		case 'k':
+			$max_bytes *= 1024;
+			break;
+		case 'm':
+			$max_bytes *= 1048576;
+			break;
+		case 'g':
+			$max_bytes *= 1073741824;
+			break;
+	}
+	return $max_bytes;
 }
 
 ?>

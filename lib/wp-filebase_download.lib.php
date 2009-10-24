@@ -1,6 +1,10 @@
 <?php
 function wpfilebase_referer_check()
 {
+	// fix (FF?): avoid caching of redirections so the file cannot be downloaded anymore
+	if(!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) || !empty($_COOKIE[WPFB_OPT_NAME]))
+		return true;
+		
 	if(empty($_SERVER['HTTP_REFERER']))
 		return ((bool)wpfilebase_get_opt('accept_empty_referers'));
 		
@@ -250,6 +254,7 @@ function wpfilebase_send_file($file_path, $bitrate = 0)
 		header("Expires: ");
 		header("X-Pingback: ");
 	}
+	
 
 	if(!@file_exists($file_path) || !is_file($file_path))
 	{
@@ -261,10 +266,19 @@ function wpfilebase_send_file($file_path, $bitrate = 0)
 	$time = filemtime($file_path);
 	$file_type = wpfilebase_get_file_content_type($file_path);
 	
+	// set basic headers
+	header("Pragma: public");
+	header("Cache-Control: public");
+	header("Connection: close");
+	
+	// charset fix
+	header("Content-Type: " . $file_type . ((strpos($file_type, 'text/') !== false) ? '; charset=' : ''));
+	
 	if(!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']))
 	{
 		if(@strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= $time)
 		{
+			header("Content-Length: " . $size);
 			header("HTTP/1.x 304 Not Modified");
 			exit;
 		}
@@ -296,25 +310,19 @@ function wpfilebase_send_file($file_path, $bitrate = 0)
 	
 	// modifiy some headers...
 	header("Last-Modified: " . gmdate("D, d M Y H:i:s", $time) . " GMT"); 
-	header("Pragma: public");
-	header("Cache-Control: public");
 	
 	if(wpfilebase_range_header($file_path, $file_type))
 		header("Accept-Ranges: bytes");
 	
 	// content headers
-	// charset fix
-	header("Content-Type: " . $file_type . ((strpos($file_type, 'text/') !== false) ? '; charset=' : ''));
 	if(wpfilebase_download_header($file_path, $file_type)) {
 		header("Content-Disposition: attachment; filename=\"" . basename($file_path) . "\"");
 		header("Content-Description: File Transfer");
 	}
-	//header("Content-Transfer-Encoding: binary");
 	header("Content-Length: " . $length);
 	if(!empty($http_range))
 		header("Content-Range: bytes " . $begin . "-" . ($end-1) . "/" . $size);
-	
-	header("Connection: close");
+
 	
 	@session_destroy();
 	

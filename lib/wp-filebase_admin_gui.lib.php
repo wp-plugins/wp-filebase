@@ -21,7 +21,11 @@ function wpfilebase_admin_manage()
 	}
 	
 	wpfilebase_version_update_check();
-		
+	
+	echo '<div class="wrap">';
+	if(!empty($_GET['action'])) {
+			echo '<p><a href="' . $clean_uri . '" class="button">' . __('Go back') . '</a></p>';
+    }
 	switch($action)
 	{
 		case 'updatecat':
@@ -53,15 +57,11 @@ function wpfilebase_admin_manage()
 				}
 			}
 ?>
-
-<div class="wrap">
 	<h2><?php
 	printf(__('Manage Categories (<a href="%s">add new</a>)'), '#addcat');
 	if ( isset($_GET['s']) && $_GET['s'] )
 		printf( '<span class="subtitle">' . __('Search results for &#8220;%s&#8221;') . '</span>', wp_specialchars(stripslashes($_GET['s'])));
 	?></h2>
-
-	<p><?php echo '<a href="' . $clean_uri . '" class="button">' . __('Go back') . '</a>'; ?></p>
 
 	<?php if ( !empty($message) ) : ?><div id="message" class="updated fade"><p><?php echo $message; ?></p></div><?php endif; ?> 
 
@@ -149,8 +149,7 @@ function wpfilebase_admin_manage()
 		<p><?php _e('<strong>Note:</strong><br />Deleting a category does not delete the files in that category. Instead, files that were assigned to the deleted category are set to the parent category.') ?></p><?php
 		wpfilebase_admin_form('cat');
 		endif;
-	?>	
-</div> <!-- wrap -->
+	?>
 <?php
 	break;
 	
@@ -203,18 +202,12 @@ function wpfilebase_admin_manage()
 				}
 			}
 ?>
-<div class="wrap">
-
 	<h2><?php
 	printf(__('Manage Files (<a href="%s">add new</a>)'), '#addfile');
 	if ( isset($_GET['s']) && $_GET['s'] )
 		printf( '<span class="subtitle">' . __('Search results for &#8220;%s&#8221;') . '</span>', wp_specialchars(stripslashes($_GET['s'])));
 	?></h2>
-
-	<p><?php echo '<a href="' . $clean_uri . '" class="button">' . __('Go back') . '</a>'; ?></p>
-
 	<?php if ( !empty($message) ) : ?><div id="message" class="updated fade"><p><?php echo $message; ?></p></div><?php endif; ?> 
-
 	<form class="search-form topmargin" action="" method="get"><p class="search-box">
 			<input type="hidden" value="<?php echo $_GET['page']; ?>" name="page" />
 			<input type="hidden" value="<?php echo $_GET['action']; ?>" name="action" />
@@ -245,11 +238,8 @@ function wpfilebase_admin_manage()
 				OR file_display_name LIKE '%$s%'
 				OR file_description LIKE '%$s%'
 				OR file_requirement LIKE '%$s%'
-				OR file_version LIKE '%$s%'
-				OR file_author LIKE '%$s%'
-				OR file_language LIKE '%$s%'
-				OR file_platform LIKE '%$s%'
-				OR file_license LIKE '%$s%'	";
+				OR file_version LIKE '%$s%' OR file_author LIKE '%$s%'
+				OR file_language LIKE '%$s%' OR file_platform LIKE '%$s%' OR file_license LIKE '%$s%'	";
 			}
 		
 			
@@ -324,7 +314,6 @@ function wpfilebase_admin_manage()
 	</form>
 	
 	<br class="clear" />
-</div> <!-- wrap -->
 
 <?php
 
@@ -390,75 +379,134 @@ function wpfilebase_admin_manage()
 			
 			if( $num_errors == 0)
 				echo '<p>' . __('Filebase successfully synced.') . '</p>';
-			echo '<p><a href="' . $clean_uri . '" class="button">' . __('Go back') . '</a></p>';			
+			//echo '<p><a href="' . $clean_uri . '" class="button">' . __('Go back') . '</a></p>';			
 			
 		break; // sync
+		
+		case 'edit_css':
+			if(!current_user_can('edit_themes'))
+				wp_die(__('Cheatin&#8217; uh?'));
+		
+			$css_path_edit = wpfilebase_upload_dir() . '/_wp-filebase.css';
+			$css_path_default = WPFB_PLUGIN_ROOT . 'wp-filebase.css';
+			
+			$exists = file_exists($css_path_edit) && is_file($css_path_edit);
+			if( ($exists && !is_writable($css_path_edit)) || (!$exists && !is_writable(dirname($css_path_edit))) ) {
+				?><div class="error default-password-nag"><p><?php printf(__('%s is not writable!'), $css_path_edit) ?></p></div><?php
+				break;
+			}
+			
+			if(!empty($_POST['restore_default'])) {
+				@unlink($css_path_edit);
+				$exists = false;				
+			} elseif(!empty($_POST['submit']) && !empty($_POST['newcontent'])) {
+				// write
+				$newcontent = stripslashes($_POST['newcontent']);
+				$f = fopen($css_path_edit, 'w+');
+				if ($f !== FALSE) {
+					fwrite($f, $newcontent);
+					fclose($f);
+					$exists = true;
+				}
+			}
+
+			$fpath = $exists ? $css_path_edit : $css_path_default;
+			$f = fopen($fpath , 'r');
+			$content = fread($f, filesize($fpath));
+			fclose($f);
+			$content = htmlspecialchars($content);
+			?>
+<form name="csseditor" id="csseditor" action="<?php echo $clean_uri ?>&amp;action=edit_css" method="post">
+		 <div><textarea cols="70" rows="25" name="newcontent" id="newcontent" tabindex="1" class="codepress css" style="width: 98%;"><?php echo $content ?></textarea>
+		 <input type="hidden" name="action" value="edit_css" />
+		<p class="submit">
+		<?php echo "<input type='submit' name='submit' class='button-primary' value='" . esc_attr__('Update File') . "' tabindex='2' />" ?>
+		<?php if($exists) { echo "<input type='submit' name='restore_default' class='button' value='" . esc_attr__('Restore Default') . "' tabindex='3' />"; } ?>
+		</p>
+		</div>
+</form>
+<?php
+					
+		break; // edit_css
 		
 		
 		default:
 			$clean_uri = remove_query_arg('pagenum', $clean_uri);
 			?>
-			<div class="wrap">
-				<h2>Filebase</h2>
-				<?php
-					$upload_dir = wpfilebase_upload_dir();
-					$abspath_len = strlen(ABSPATH);
-					$chmod_cmd = "CHMOD 777 ".substr($upload_dir, $abspath_len);
-					if(!is_dir($upload_dir))
-					{
-						$result = wpfilebase_mkdir($upload_dir);
-						if($result['error'])
-							$error_msg = sprintf(__('The upload directory <code>%s</code> does not exists. It could not be created automatically because the directory <code>%s</code> is not writable. Please create <code>%s</code> and make it writable for PHP by execution the following FTP command: <code>%s</code>'), substr($upload_dir, $abspath_len), substr($result['parent'], $abspath_len), substr($upload_dir, $abspath_len), $chmod_cmd);
-					} elseif(!is_writable($upload_dir)) {
-						$error_msg = sprintf(__('The upload directory <code>%s</code> is not writable. Please make it writable for PHP by executing the follwing FTP command: <code>%s</code>'), substr($upload_dir, $abspath_len), $chmod_cmd);
+			<h2>Filebase</h2>
+			<?php
+				$upload_dir = wpfilebase_upload_dir();
+				$abspath_len = strlen(ABSPATH);
+				$chmod_cmd = "CHMOD 777 ".substr($upload_dir, $abspath_len);
+				if(!is_dir($upload_dir))
+				{
+					$result = wpfilebase_mkdir($upload_dir);
+					if($result['error'])
+						$error_msg = sprintf(__('The upload directory <code>%s</code> does not exists. It could not be created automatically because the directory <code>%s</code> is not writable. Please create <code>%s</code> and make it writable for PHP by execution the following FTP command: <code>%s</code>'), substr($upload_dir, $abspath_len), substr($result['parent'], $abspath_len), substr($upload_dir, $abspath_len), $chmod_cmd);
+				} elseif(!is_writable($upload_dir)) {
+					$error_msg = sprintf(__('The upload directory <code>%s</code> is not writable. Please make it writable for PHP by executing the follwing FTP command: <code>%s</code>'), substr($upload_dir, $abspath_len), $chmod_cmd);
+				}
+				
+				if(!empty($error_msg)) { ?><div class="error default-password-nag"><p><?php echo $error_msg ?></p></div><?php } ?>
+			<p>
+			<?php
+				$buttons = array(
+								 array('title' => 'Manage Files',		'desc' => 'View uploaded files and edit them',	'capability' => 'upload_files',			'action' => 'manage_files'),
+								 array('title' => 'Manage Categories',	'desc' => 'Manage existing categories and add new ones.',	'capability' => 'manage_categories',	'action' => 'manage_files'),
+								 array('title' => 'Edit Stylesheet',	'desc' => 'Edit the CSS for the file template',	'capability' => 'edit_themes',			'action' => 'edit_css'),
+								 array('title' => 'Sync Filebase',		'desc' => 'Synchronises the database with the file system. Use this to add FTP-uploaded files.',	'capability' => '',						'action' => 'sync'),
+								);
+				foreach($buttons as $btn) {
+					if(empty($btn['capability']) || current_user_can($btn['capability'])) {
+						echo '<a href="' . $clean_uri . '&amp;action=' . $btn['action'] . '" class="button" title="' . $btn['desc'] . '">' . __($btn['title']) . '</a>'."\n";
 					}
-					
-					if(!empty($error_msg)) { ?><div class="error default-password-nag"><p><?php echo $error_msg ?></p></div><?php } ?>
-				
-				<?php if ( current_user_can('upload_files') ) : ?><a href="<?php echo $clean_uri; ?>&amp;action=manage_files" class="button"><?php _e('Manage files'); ?></a><?php endif; ?>
-				<?php if ( current_user_can('manage_categories') ) : ?><a href="<?php echo $clean_uri; ?>&amp;action=manage_cats" class="button"><?php _e('Manage categories'); ?></a><?php endif; ?>	
-				<a href="<?php echo $clean_uri; ?>&amp;action=sync" class="button"><?php _e('Sync Filebase'); ?></a>
-				</p>
-				
-				<h2><?php _e('Traffic'); ?></h2>
-				<table class="form-table">
-				<?php
-					$traffic_stats = wpfilebase_get_traffic();					
-					$limit_day = (wpfilebase_get_opt('traffic_day') * 1048576);
-					$limit_month = (wpfilebase_get_opt('traffic_month') * 1073741824);
-				?>
-				<tr>
-					<th scope="row"><?php _e('Today'); ?></th>
-					<td><?php
-						if($limit_day > 0)
-							wpfilebase_progress_bar($traffic_stats['today'] / $limit_day, wpfilebase_format_filesize($traffic_stats['today']) . '/' . wpfilebase_format_filesize($limit_day));
-						else
-							echo wpfilebase_format_filesize($traffic_stats['today']);
-					?></td>
-				</tr>
-				<tr>
-					<th scope="row"><?php _e('This Month'); ?></th>
-					<td><?php
-						if($limit_month > 0)
-							wpfilebase_progress_bar($traffic_stats['month'] / $limit_month, wpfilebase_format_filesize($traffic_stats['month']) . '/' . wpfilebase_format_filesize($limit_month));
-						else
-							echo wpfilebase_format_filesize($traffic_stats['month']);
-					?></td>
-				</tr>
-				</table>
-				
-				<?php wpfilebase_admin_form('file', null, $exform) ?>
-				
-				<h2><?php _e('Copyright'); ?></h2>
-				<p>
-				<?php echo WPFB_PLUGIN_NAME . ' ' . WPFB_VERSION ?> Copyright &copy; 2009 by Fabian Schlieper <a href="http://fabi.me/">
-				<?php if(strpos($_SERVER['SERVER_PROTOCOL'], 'HTTPS') === false) { ?><img src="http://fabi.me/misc/wpfb_icon.gif" alt="" /><?php } ?> fabi.me</a><br/>
-				Includes code of the thumbnail generator <a href="http://phpthumb.sourceforge.net">phpThumb()</a> by James Heinrich
-				</p>
-			</div> <!-- wrap -->
+				}
+			?>
+			</p>
+			
+			<h2><?php _e('Traffic'); ?></h2>
+			<table class="form-table">
+			<?php
+				$traffic_stats = wpfilebase_get_traffic();					
+				$limit_day = (wpfilebase_get_opt('traffic_day') * 1048576);
+				$limit_month = (wpfilebase_get_opt('traffic_month') * 1073741824);
+			?>
+			<tr>
+				<th scope="row"><?php _e('Today'); ?></th>
+				<td><?php
+					if($limit_day > 0)
+						wpfilebase_progress_bar($traffic_stats['today'] / $limit_day, wpfilebase_format_filesize($traffic_stats['today']) . '/' . wpfilebase_format_filesize($limit_day));
+					else
+						echo wpfilebase_format_filesize($traffic_stats['today']);
+				?></td>
+			</tr>
+			<tr>
+				<th scope="row"><?php _e('This Month'); ?></th>
+				<td><?php
+					if($limit_month > 0)
+						wpfilebase_progress_bar($traffic_stats['month'] / $limit_month, wpfilebase_format_filesize($traffic_stats['month']) . '/' . wpfilebase_format_filesize($limit_month));
+					else
+						echo wpfilebase_format_filesize($traffic_stats['month']);
+				?></td>
+			</tr>
+			</table>
+			
+			<?php wpfilebase_admin_form('file', null, $exform) ?>
+			
+			<h2><?php _e('Copyright'); ?></h2>
+			<p>
+			<?php echo WPFB_PLUGIN_NAME . ' ' . WPFB_VERSION ?> Copyright &copy; 2009 by Fabian Schlieper <a href="http://fabi.me/">
+			<?php if(strpos($_SERVER['SERVER_PROTOCOL'], 'HTTPS') === false) { ?><img src="http://fabi.me/misc/wpfb_icon.gif" alt="" /><?php } ?> fabi.me</a><br/>
+			Includes code of the thumbnail generator <a href="http://phpthumb.sourceforge.net">phpThumb()</a> by James Heinrich
+			</p>
+			
 			<?
 			break;
 	}
+	
+	?>
+</div> <!-- wrap -->
+<?php
 }
 
 function wpfilebase_admin_options()

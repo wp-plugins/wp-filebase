@@ -20,7 +20,8 @@ $file_members_only = ($file->file_required_level > 0);
 <table class="form-table">
 	<tr>
 		<th scope="row" valign="top"><label for="file_upload"><?php _e('Choose File') ?></label></th>
-		<td class="form-field" colspan="3"><input type="file" name="file_upload" id="file_upload" />
+		<td class="form-field" colspan="3"><input type="file" name="file_upload" id="file_upload" /><br />
+		<?php printf(__('Maximum file size: %s'), wpfilebase_format_filesize(wpfilebase_max_upload_size())) ?>
 		<?php if($update) { echo '<br /><b>' . $file->file_name . '</b> (' . $file->get_formatted_size() . ')'; } ?>
 		</td>
 	</tr>

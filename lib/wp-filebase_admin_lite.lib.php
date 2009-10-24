@@ -52,9 +52,9 @@ function _wpfilebase_admin_manage()
 function _wpfilebase_widget_filelist_control()
 {
 	wpfilebase_inclib('widget');
-	return wpfilebase_widget_filelist_control();
+	wpfilebase_widget_filelist_control();
 }
-wp_register_widget_control(WPFB_PLUGIN_NAME, WPFB_PLUGIN_NAME, '_widget_filelist_control');
+wp_register_widget_control(WPFB_PLUGIN_NAME, WPFB_PLUGIN_NAME, '_wpfilebase_widget_filelist_control');
 
 function wpfilebase_version_update_check()
 {

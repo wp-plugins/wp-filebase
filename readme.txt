@@ -4,7 +4,7 @@ Donate link: http://fabi.me/donate/
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, traffic, widget, filelist, list, thumb, thumbnail, attachment, attachments, category, categories, media, template, ftp, http
 Requires at least: 2.2.0
 Tested up to: 2.8.5
-Stable tag: 0.1.1.4
+Stable tag: 0.1.1.5
 
 Adds a powerful download manager supporting file categories, thumbnails, traffic/bandwidth limits and more to your WordPress blog.
 
@@ -56,6 +56,10 @@ In the post editor click on the *WP-Filebase* button. In the appearing box click
 
 Upload all files you want to add to the WP-Filebase upload directory (default is `wp-content/uploads/filebase`) with your FTP client. Then goto WP-Admin -> Tools -> WP-Filebase and click *Sync Filebase*. All your uploaded files are added to the database now. Categories are created automatically if files are in sub folders.
 
+= How do I customize the appearance of filelists and attached files? =
+
+You can change the HTML template under WP-Admin -> Settings -> WP-Filebase. To edit the stylesheet goto WP-Admin -> Tools -> WP-Filebase anc click *Edit Stylesheet*.
+
 == Screenshots ==
 
 1. Example of three auto-attached files
@@ -63,6 +67,13 @@ Upload all files you want to add to the WP-Filebase upload directory (default is
 3. The Editor Button to insert tags for filelists and download urls
 
 == Changelog ==
+
+= 0.1.1.5 =
+* Added CSS Editor
+* Added max upload size display
+* Fixed settings error `Missing argument 1 for WPFilebaseItem::WPFilebaseItem()`
+* Fixed widget control
+* Fixed an issue with browser caching and hotlink protection
 
 = 0.1.1.4 =
 * Download charset HTTP header fixed
