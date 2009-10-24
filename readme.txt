@@ -16,7 +16,7 @@ Additionally the downloadmanager offers options to limit traffic and download sp
 
 Some more features:
 
-*   Arrange files in categories and sub-categories
+*   Powerful filemanger to arrange files in categories and sub-categories
 *   Insert file lists in posts and pages (with Editor Button)
 *   Automatically creates thumbnails of images (JPEG, PNG, GIF, BMP)
 *   Upload files with your browser or FTP client
