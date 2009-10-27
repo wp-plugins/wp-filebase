@@ -16,7 +16,7 @@ function wpfilebase_add_options()
 		'filelist_order_by' => 'file_hits',
 		'filelist_asc' => false,
 		'filelist_limit' => 10,
-		'filelist_template' => '<a href="%file_post_url%">%file_display_name%</a> (%file_hits% hits)',
+		'filelist_template' => '<a href="%file_post_url%">%file_display_name%</a> (%file_hits%)',
 		'filelist_template_parsed' => ''
 	);
 
@@ -41,6 +41,18 @@ function wpfilebase_add_options()
 		if($changed)
 			update_option(WPFB_OPT_NAME, $new_opts);
 	}
+	
+	$default_tpls = array(
+		'image_320' => '[caption id="file_%file_id%" align="alignnone" width="320" caption="<!-- IF %file_description% -->%file_description%<!-- ELSE -->%file_display_name%<!-- ENDIF -->"]<img class="size-full" title="%file_display_name%" src="%file_url%" alt="%file_display_name%" width="320" />[/caption]'."\n\n",
+		'thumbnail' => '<div class="wpfilebase-fileicon"><a href="%file_url%" title="Download %file_display_name%"><img align="middle" src="%file_icon_url%" /></a></div>'."\n",
+		'simple'	=> '<p><img align="absmiddle" src="%file_icon_url%" height="20" /> <a href="%file_url%" title="Download %file_display_name%">%file_display_name%</a> (%file_size%)</p>'
+	);
+	
+	$tpls = get_option(WPFB_OPT_NAME . '_tpls');
+	if(empty($tpls) || !is_array($tpls) || count($tpls) == 0) {
+		$tpls = $default_tpls;
+		update_option(WPFB_OPT_NAME . '_tpls', $tpls);
+	}
 }
 
 
@@ -56,8 +68,12 @@ function wpfilebase_remove_options()
 
 function wpfilebase_reset_options()
 {
+	// keep stats
+	$traffic = wpfilebase_get_opt('traffic_stats');
 	wpfilebase_remove_options();
 	wpfilebase_add_options();
+	wpfilebase_update_opt('traffic_stats', $traffic);
+	wpfilebase_reset_tpls();
 }
 
 function wpfilebase_create_tables()
@@ -132,5 +148,6 @@ function wpfilebase_reset_tpls()
 	$widget = wpfilebase_get_opt('widget');	
 	$widget['filelist_template_parsed'] = '';	
 	wpfilebase_update_opt('widget', $widget);
+	update_option(WPFB_OPT_NAME . '_tpls_parsed', '');
 }
 ?>

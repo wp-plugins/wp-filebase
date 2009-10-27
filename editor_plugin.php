@@ -3,8 +3,8 @@
 require('../../../wp-config.php');
 
 // anti hack
-if(!current_user_can('edit_posts'))
-	exit;
+if(!current_user_can('publish_posts') && !current_user_can('edit_posts') && !current_user_can('edit_pages'))
+	wp_die(__('Cheatin&#8217; uh?'));
 
 wpfilebase_inclib('common');
 include_once(WPFB_PLUGIN_ROOT . 'wp-filebase_item.php');
@@ -36,7 +36,7 @@ function wpfilebase_editor_file_list($cat_id = 0)
 	if(count($files) > 0) {
 		$content .= '<h3>' . __('Uncategorized Files') . '</h3>';
 		foreach($files as $file)
-			$content .= '<label><input type="radio" name="file" value="' . $file->file_id . '" title="' . attribute_escape($file->file_display_name) . '" />' . wp_specialchars($file->file_display_name) . '</label><br />';
+			$content .= '<label><input type="radio" name="file" value="' . $file->file_id . '" title="' . esc_attr($file->file_display_name) . '" />' . wp_specialchars($file->file_display_name) . '</label><br />';
 	}
 	if(count($files) == 0 && $num_total_files == 0)
 		$content .= '<i>' . sprintf(__('You did not upload a file. <a href="%s" target="_parent">Click here to add one.</a>'), get_option('siteurl') . '/wp-admin/tools.php?page=wpfilebase&amp;action=manage_files#addfile') . '</i>';
@@ -63,7 +63,7 @@ if(!empty($_REQUEST['action']) && $_REQUEST['action'] == 'get_sub_items')
 	<style type="text/css">
 	<!--
 		h2{
-			margin: 0 0 5px 0;
+			margin: 5px 0 5px 0;
 			font-size: 12px;
 			padding: 0 0 4px 0;
 			border-bottom: 1px #BAC3CA solid;
@@ -85,16 +85,21 @@ if(!empty($_REQUEST['action']) && $_REQUEST['action'] == 'get_sub_items')
 		#filelist, #insfilelist {
 			margin: 5px;
 		}
+		
+		#tpllist {
+			margin-top: 10px;
+		}
 	-->
 	</style>
 	<script type="text/javascript">	
 	var currentContainer = '';
 	var panelVisible = false;
 	
-	function showContainer(btn)
+	function insertTypeBtnClicked(btn)
 	{
 		var el_fl = document.getElementById('filelist');
 		var el_ifl = document.getElementById('insfilelist');
+		var el_tpls = document.getElementById('tpllist');
 		
 		if(btn.name == 'insfilelist')
 		{
@@ -104,6 +109,8 @@ if(!empty($_REQUEST['action']) && $_REQUEST['action'] == 'get_sub_items')
 			el_ifl.style.display = 'none';
 			el_fl.style.display = 'block';
 		}
+		
+		el_tpls.style.display = (btn.name == 'insfileurl') ? 'none' : 'block';
 		
 		document.getElementById('containertitle').innerHTML = btn.value;
 		
@@ -160,11 +167,18 @@ if(!empty($_REQUEST['action']) && $_REQUEST['action'] == 'get_sub_items')
 				if(els[i].checked)
 					return els[i];
 			}
-		} else if(typeof(els.value) != 'undefined') {
+		} else if(typeof(els.checked) != 'undefined' && els.checked) {
 			return els;
 		}
 		
 		return null;
+	}
+	
+	function getSelectedRadioValue(name) {
+		var el = getSelectedRadio(name);
+		if(el != null && typeof(el.value) != 'undefined')
+			return el.value;
+		return '';
 	}
 	
 	function doInsert()
@@ -179,35 +193,42 @@ if(!empty($_REQUEST['action']) && $_REQUEST['action'] == 'get_sub_items')
 		
 		if(currentContainer == 'insfilelist')
 		{
-			var cat = getSelectedRadio('cat').value;			
+			var cat = getSelectedRadioValue('cat');	
+			if(cat.length == 0)
+				return;
 			if(cat == 'attachments') {
 				content += 'attachments';
 			} else {
 				content += 'filelist';
 				if(cat != null && cat.length > 0 && cat != 'all')
-					content += ':cat' + cat;
+					content += ':cat=' + cat;
 			}
-			content += ']';
 		} else {
 			content += 'file';
 			if(url)
 				content += 'url';
-			var radio = getSelectedRadio('file');
-			var file = radio.value;
-			if(file != null && file.length > 0)
-				content += ':file' + file;
-			else
-				return;	
-			content += ']';
-			
+			var file = getSelectedRadioValue('file');
+			if(file.length == 0)
+				return
+			content += ':file=' + file;
+
+		
 			if(url)
 			{
-				var fileTitle = radio.title;
+				var fileTitle = getSelectedRadio('file').title;
 				var linkText = prompt('<?php _e('Enter link text:') ?>', fileTitle);
 				if(!linkText || linkText == null || linkText == '')
-					linkText = fileTitle;
-				content += '">' + linkText + '</a>';
+					return;
+				content += ']">' + linkText + '</a>';
 			}
+		}
+		
+		if(!url) {
+			var tpl = getSelectedRadioValue('tpl');
+			if(tpl.length != 0) {
+				content += ':tpl=' + tpl;
+			}
+			content += ']';
 		}
 		
 		tinyMCEPopup.execCommand("mceInsertContent", false, content);
@@ -220,9 +241,9 @@ if(!empty($_REQUEST['action']) && $_REQUEST['action'] == 'get_sub_items')
 
 <form onsubmit="doInsert(); return false;" action="#">
 	<div id="menu" class="mceActionPanel">
-		<input type="button" name="insfile" class="button" onclick="showContainer(this);" value="<?php _e('Single file'); ?>" />
-		<input type="button" name="insfileurl" class="button" onclick="showContainer(this);" value="<?php _e('File URL'); ?>" />
-		<input type="button" name="insfilelist" class="button" onclick="showContainer(this);" value="<?php _e('File list'); ?>" />
+		<input type="button" name="insfile" class="button" onclick="insertTypeBtnClicked(this);" value="<?php _e('Single file'); ?>" />
+		<input type="button" name="insfileurl" class="button" onclick="insertTypeBtnClicked(this);" value="<?php _e('File URL'); ?>" />
+		<input type="button" name="insfilelist" class="button" onclick="insertTypeBtnClicked(this);" value="<?php _e('File list'); ?>" />
 	</div>
 	
 	<div style="height: 290px; overflow: auto;">
@@ -239,13 +260,25 @@ if(!empty($_REQUEST['action']) && $_REQUEST['action'] == 'get_sub_items')
 				if(count($cats) > 0)
 				{
 					foreach($cats as $cat)
-						echo '<label><input type="radio" name="cat" value="' . $cat->cat_id . '" title="' . attribute_escape($cat->cat_name) . '" />' . wp_specialchars($cat->cat_name) . '</label><br />';
+						echo '<label><input type="radio" name="cat" value="' . $cat->cat_id . '" title="' . esc_attr($cat->cat_name) . '" />' . wp_specialchars($cat->cat_name) . '</label><br />';
 				} else {
 					echo '<i>';
 					printf(__('You did not create a category. <a href="%s" target="_parent">Click here to create one.</a>'), get_option('siteurl') . '/wp-admin/tools.php?page=wpfilebase&amp;action=manage_cats#addcat');
 					echo '</i>';
 				}
 			?>
+		</div>
+		
+		<div id="tpllist" style="display: none;">
+			<h2><?php _e('Select Template') ?></h2>
+			<label><input type="radio" name="tpl" value="" /><i><?php _e('Default Template') ?></i></label><br />
+			<?php $tpls = get_option(WPFB_OPT_NAME . '_tpls');
+				if(!empty($tpls)) {
+					foreach($tpls as $tpl_tag => $tpl_src)
+						echo '<label><input type="radio" name="tpl" value="' . esc_attr($tpl_tag) . '" />' . wp_specialchars($tpl_tag) . '</label><br />';
+				} ?>
+			<br />
+			<i><a href="<?php echo get_option('siteurl') . '/wp-admin/tools.php?page=wpfilebase&amp;action=manage_tpls#addtpl' ?>" target="_parent"><?php _e('Add Template') ?></a></i>
 		</div>
 	</div>
 	

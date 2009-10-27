@@ -67,8 +67,8 @@ function wpfilebase_ext2type_filter($arr) {
 	return $arr;
 }
 
-add_filter('the_content',	'wpfilebase_content_filter', '7');
-add_filter('the_excerpt',	'wpfilebase_content_filter', '7');
+add_filter('the_content',	'wpfilebase_content_filter', 9); // must be lower than 11 (before do_shortcode)
+add_filter('the_excerpt',	'wpfilebase_content_filter', 9);
 function wpfilebase_content_filter($content)
 {
 	if(is_feed())

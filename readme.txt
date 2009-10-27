@@ -4,7 +4,7 @@ Donate link: http://fabi.me/donate/
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, traffic, widget, filelist, list, thumb, thumbnail, attachment, attachments, category, categories, media, template, ftp, http
 Requires at least: 2.2.0
 Tested up to: 2.8.5
-Stable tag: 0.1.1.5
+Stable tag: 0.1.2.0
 
 Adds a powerful download manager supporting file categories, thumbnails, traffic/bandwidth limits and more to your WordPress blog.
 
@@ -19,10 +19,11 @@ Some more features:
 *   Powerful filemanger to arrange files in categories and sub-categories
 *   Insert file lists in posts and pages (with Editor Button)
 *   Automatically creates thumbnails of images (JPEG, PNG, GIF, BMP)
-*   Upload files with your browser or FTP client
+*   Upload files with your browser or FTP client (**NEW**)
 *   Powerful template engine (variables, IF-Blocks)
 *   Associate files to posts and automatically attach them to the content
 *   Customisable file list widget
+*   Multiple custom templates for filelists (**NEW**)
 *   Hotlinking protection
 *   Daily and monthly traffic limits
 *   Download speed limiter for registered users and anonymous
@@ -30,7 +31,7 @@ Some more features:
 *   Range download (allows user to pause downloads and continue them later)
 *   Works with permalink structure
 *   Download counter which ignores multiple downloads from the same client
-*   Many file properties like author, version, supported languages, platforms, license
+*   Many file properties like author, version, supported languages, platforms and license
 *   Custom JavaScript code which is executed when a download link is clicked (e.g. to track downloads with Google Analytics)
 *	Works with WP Super Cache
 
@@ -50,7 +51,7 @@ You can see a [live demo on my Website](http://fabi.me/ "WP-Filebase demo")
 
 = How do I insert a file list into a post?  =
 
-In the post editor click on the *WP-Filebase* button. In the appearing box click on *File list*, then select a category.
+In the post editor click on the *WP-Filebase* button. In the appearing box click on *File list*, then select a category. Optionally you can select a custom template.
 
 = How do I add files with FTP? =
 
@@ -58,7 +59,8 @@ Upload all files you want to add to the WP-Filebase upload directory (default is
 
 = How do I customize the appearance of filelists and attached files? =
 
-You can change the HTML template under WP-Admin -> Settings -> WP-Filebase. To edit the stylesheet goto WP-Admin -> Tools -> WP-Filebase anc click *Edit Stylesheet*.
+You can change the HTML template under WP-Admin -> Settings -> WP-Filebase. To edit the stylesheet goto WP-Admin -> Tools -> WP-Filebase and click *Edit Stylesheet*.
+Since Version 0.1.2.0 you can create your custom templates for individual file lists. You can manage the templates under WP-Admin -> Tools -> WP-Filebase -> Manage templates. When adding a tag to a post/page you can now select the template.
 
 == Screenshots ==
 
@@ -67,6 +69,15 @@ You can change the HTML template under WP-Admin -> Settings -> WP-Filebase. To e
 3. The Editor Button to insert tags for filelists and download urls
 
 == Changelog ==
+
+= 0.1.2.0 =
+* Added multiple templates support (you can now create custom templates for file lists)
+* Added option *Hide inaccessible files* and *Inaccessible file message*
+* When resetting WP-Filebase settings the traffic stats are retained now
+* Fixed *Manage Categories* button
+* Enhanced content tag parser
+* Added support for HTTP `ETag` header (for caching)
+* Improved template generation
 
 = 0.1.1.5 =
 * Added CSS Editor

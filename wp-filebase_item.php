@@ -158,8 +158,10 @@ class WPFilebaseItem {
 		return $this->is_ancestor_of($p);
 	}
 	
-	/*public (PHP 4 compatibility) */ function current_user_can_access()
+	/*public (PHP 4 compatibility) */ function current_user_can_access($for_tpl=false)
 	{
+		if($for_tpl && !wpfilebase_get_opt('hide_inaccessible'))
+			return true;
 		$level = intval($this->is_file ? $this->file_required_level : $this->cat_required_level) - 1;
 		return ($level < 0 || current_user_can('level_'.$level));
 	}

@@ -39,13 +39,13 @@ $file_members_only = ($file->file_required_level > 0);
 	</tr>
 	<tr class="form-field">
 		<th scope="row" valign="top"><label for="file_display_name"><?php _e('Title') ?></label></th>
-		<td><input name="file_display_name" id="file_display_name" type="text" value="<?php echo attribute_escape($file->file_display_name); ?>" size="40" /></td>
+		<td><input name="file_display_name" id="file_display_name" type="text" value="<?php echo esc_attr($file->file_display_name); ?>" size="40" /></td>
 		<th scope="row" valign="top"><label for="file_version"><?php _e('Version') ?></label></th>
-		<td><input name="file_version" id="file_version" type="text" value="<?php echo attribute_escape($file->file_version); ?>" size="20" /></td>
+		<td><input name="file_version" id="file_version" type="text" value="<?php echo esc_attr($file->file_version); ?>" size="20" /></td>
 	</tr>
 	<tr class="form-field">
 		<th scope="row" valign="top"><label for="file_author"><?php _e('Author') ?></label></th>
-		<td><input name="file_author" id="file_author" type="text" value="<?php echo attribute_escape($file->file_author); ?>" size="40" /></td>
+		<td><input name="file_author" id="file_author" type="text" value="<?php echo esc_attr($file->file_author); ?>" size="40" /></td>
 		<?php if($exform) { ?>
 		<th scope="row" valign="top"><label for="file_date"><?php _e('Date') ?></label></th>
 		<td><?php
@@ -70,7 +70,7 @@ $file_members_only = ($file->file_required_level > 0);
 
 	<tr class="form-field">
 		<th scope="row" valign="top"><label for="file_post_id"><?php _e('Post') ?> ID</label></th>
-		<td><input type="text" name="file_post_id" class="small-text" id="file_post_id" value="<?php echo attribute_escape($file->file_post_id); ?>" /> <a href="javascript:;" class="button" onclick="openPostBrowser('<?php echo attribute_escape(get_option('siteurl')) ?>');"><?php _e('Browse...') ?></a></td>
+		<td><input type="text" name="file_post_id" class="small-text" id="file_post_id" value="<?php echo esc_attr($file->file_post_id); ?>" /> <a href="javascript:;" class="button" onclick="openPostBrowser('<?php echo esc_attr(get_option('siteurl')) ?>');"><?php _e('Browse...') ?></a></td>
 		<?php if($exform) { ?>
 		<th scope="row" valign="top"><label for="file_hits"><?php _e('Download Counter') ?></label></th>
 		<td><input type="text" name="file_hits" class="small-text" id="file_hits" value="<?php echo (int)$file->file_hits; ?>" /></td>
@@ -117,6 +117,6 @@ $file_members_only = ($file->file_required_level > 0);
 	</tr>
 	<?php } ?>
 </table>
-<p class="submit"><input type="submit" class="button" name="submit" value="<?php _e('Submit') ?>" /></p>
+<p class="submit"><input type="submit" class="button-primary" name="submit" value="<?php echo $title ?>" /></p>
 </form>
 </div>

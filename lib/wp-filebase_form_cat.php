@@ -28,11 +28,11 @@ $cat_members_only = ($file_category->cat_required_level > 0);
 	<table class="form-table">
 		<tr class="form-field form-required">
 			<th scope="row" valign="top"><label for="cat_name"><?php _e('Category Name') ?></label></th>
-			<td><input name="cat_name" id="cat_name" type="text" value="<?php echo attribute_escape($file_category->cat_name); ?>" size="40" aria-required="true" /></td>
+			<td><input name="cat_name" id="cat_name" type="text" value="<?php echo esc_attr($file_category->cat_name); ?>" size="40" aria-required="true" /></td>
 		</tr>
 		<tr class="form-field">
 			<th scope="row" valign="top"><label for="cat_folder"><?php _e('Category Folder') ?></label></th>
-			<td><input name="cat_folder" id="cat_folder" type="text" value="<?php echo attribute_escape($file_category->cat_folder); ?>" size="40" /><br />
+			<td><input name="cat_folder" id="cat_folder" type="text" value="<?php echo esc_attr($file_category->cat_folder); ?>" size="40" /><br />
             <?php _e('The &#8220;slug&#8221; is the URL-friendly version of the name. It is usually all lowercase and contains only letters, numbers, and hyphens.'); ?></td>
 		</tr>
 		<tr class="form-field">
@@ -60,6 +60,6 @@ $cat_members_only = ($file_category->cat_required_level > 0);
 		</tr>
 		<?php } ?>
 	</table>
-<p class="submit"><input type="submit" class="button" name="submit" value="<?php echo _e('Submit') ?>" /></p>
+<p class="submit"><input type="submit" class="button-primary" name="submit" value="<?php echo _e('Submit') ?>" /></p>
 </form>
 </div>

@@ -13,6 +13,7 @@ class WPFilebaseFile extends WPFilebaseItem {
 	var $file_name;
 	var $file_size;
 	var $file_date;
+	var $file_hash;
 	var $file_thumbnail;
 	var $file_display_name;
 	var $file_description;
@@ -408,7 +409,7 @@ JS;
 		return $template;
 	}
     
-    function get_tpl_var($name)
+    function _get_tpl_var($name)
     {
 		global $wpfb_file_tpl_uid;
 
@@ -436,6 +437,10 @@ JS;
 		return isset($this->$name) ? $this->$name : '';
     }
 	
+	function get_tpl_var($name) {
+		return htmlspecialchars($this->_get_tpl_var($name));
+	}
+	
 	/*public (PHP 4 compatibility) */ function download()
 	{
 		global $wpdb, $user_ID;
@@ -445,8 +450,10 @@ JS;
 		wpfilebase_inclib('download');
 		
 		// check user level
-		if(!$this->current_user_can_access())
-			wp_die(__('Cheatin&#8217; uh?'));
+		if(!$this->current_user_can_access()) {
+			$msg = wpfilebase_get_opt('inaccessible_msg');
+			wp_die(empty($msg) ? __('Cheatin&#8217; uh?') : $msg);
+		}
 		
 		// check offline
 		if($this->file_offline)
@@ -482,7 +489,7 @@ JS;
 				$wpdb->query("UPDATE " . $wpdb->wpfilebase_files . " SET file_hits = file_hits + 1, file_last_dl_ip = '" . $downloader_ip . "', file_last_dl_time = '" . current_time('mysql') . "' WHERE file_id = " . (int)$this->file_id);
 		}
 		
-		wpfilebase_send_file($this->get_path(), wpfilebase_get_opt('bitrate_' . ($logged_in?'registered':'unregistered')));
+		wpfilebase_send_file($this->get_path(), wpfilebase_get_opt('bitrate_' . ($logged_in?'registered':'unregistered')), $this->file_hash);
 		
 		exit;
 	}

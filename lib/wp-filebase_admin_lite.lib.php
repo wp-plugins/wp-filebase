@@ -2,8 +2,11 @@
 
 function wpfilebase_admin_header()
 {
-	wpfilebase_head();	
-	echo '<script type="text/javascript" src="' . WPFB_PLUGIN_URI . 'wp-filebase_admin.js"></script>';
+	wpfilebase_head();
+	?>
+	<link rel="stylesheet" type="text/css" href="<?php echo WPFB_PLUGIN_URI ?>wp-filebase_admin.css" />
+	<script type="text/javascript" src="<?php echo WPFB_PLUGIN_URI ?>wp-filebase_admin.js"></script>
+	<?php
 	wpfilebase_version_update_check();
 }
 add_action('admin_head', 'wpfilebase_admin_header', 10);

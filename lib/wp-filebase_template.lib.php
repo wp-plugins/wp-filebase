@@ -15,20 +15,20 @@ function wpfilebase_parse_template($tpl)
 	// parse if's
 	$tpl = preg_replace(
 	'/<\!\-\- IF (.+?) \-\->([\s\S]+?)<!-- ENDIF -->/e',
-	"'\\' . ( (' . wpfilebase_parse_template_expression('$1') . ') ? (\\'' . wpfilebase_parse_template_ifblock('$2') . '\\') ) . \\''", $tpl);
+	"'\\'.(('.wpfilebase_parse_template_expression('$1').')?(\\''.wpfilebase_parse_template_ifblock('$2').'\\')).\\''", $tpl);
 	
 	// parse translation texts
-	$tpl = preg_replace('/([^\w])%\\\\\'(.+?)\\\\\'%([^\w])/', '$1\' . __(\'$2\') . \'$3', $tpl);
+	$tpl = preg_replace('/([^\w])%\\\\\'(.+?)\\\\\'%([^\w])/', '$1\'.__(\'$2\').\'$3', $tpl);
 	// parse variables
-	$tpl = preg_replace('/%([a-z0-9_]+?)%/i', '\' . $f->get_tpl_var(\'$1\') . \'', $tpl);
+	$tpl = preg_replace('/%([a-z0-9_]+?)%/i', '\'.$f->get_tpl_var(\'$1\').\'', $tpl);
 	
 	// remove html comments
 	$tpl = preg_replace('/<\!\-\-[\s\S]+?\-\->/', '', $tpl);
 	
-	// cleanup
-	$tpl = str_replace(". ''", "", $tpl);
-	
 	$tpl = "'$tpl'";
+	
+	// cleanup
+	$tpl = str_replace('.\s*\'\'', '', $tpl);
 	
 	echo '<!-- done! -->';
 	
@@ -47,7 +47,7 @@ function wpfilebase_parse_template_expression($exp)
 function wpfilebase_parse_template_ifblock($block)
 {
 	static $s = '<!-- ELSE -->';
-	static $r = '\') : (\'';
+	static $r = '\'):(\'';
 	if(strpos($block, $s) === false)
 		$block .= $r;
 	else

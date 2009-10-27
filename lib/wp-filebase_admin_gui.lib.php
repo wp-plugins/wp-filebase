@@ -9,7 +9,7 @@ function wpfilebase_admin_manage()
 	
 	$action = ( !empty($_POST['action']) ? $_POST['action'] : ( !empty($_GET['action']) ? $_GET['action'] : '' ) );
 
-	$clean_uri = remove_query_arg(array('message', 'action', 'file_id', 'cat_id' /* , 's'*/)); // keep search keyword
+	$clean_uri = remove_query_arg(array('message', 'action', 'file_id', 'cat_id', 'deltpl' /* , 's'*/)); // keep search keyword
 	
 	// switch simple/extended form
 	if(isset($_GET['exform']))
@@ -26,6 +26,10 @@ function wpfilebase_admin_manage()
 	if(!empty($_GET['action'])) {
 			echo '<p><a href="' . $clean_uri . '" class="button">' . __('Go back') . '</a></p>';
     }
+	
+	$_POST = stripslashes_deep($_POST);
+	$_GET = stripslashes_deep($_GET);
+	
 	switch($action)
 	{
 		case 'updatecat':
@@ -133,7 +137,7 @@ function wpfilebase_admin_manage()
 			?>
 			<tr id='cat-<?php echo $cat_id ?>'>
 				<th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $cat_id ?>' /></th>
-				<td><a class='row-title' href='<?php echo $clean_uri; ?>&amp;action=editcat&amp;cat_id=<?php echo $cat_id ?>' title='&quot;<?php echo attribute_escape($cat->cat_name); ?>&quot; bearbeiten'><?php echo attribute_escape($cat->cat_name); ?></a></td>
+				<td><a class='row-title' href='<?php echo $clean_uri; ?>&amp;action=editcat&amp;cat_id=<?php echo $cat_id ?>' title='&quot;<?php echo esc_attr($cat->cat_name); ?>&quot; bearbeiten'><?php echo esc_attr($cat->cat_name); ?></a></td>
 				<td><?php echo wp_specialchars($cat->cat_description) ?></td>
 				<td class='num'><?php echo $cat->cat_files ?></td>
 				<td><?php echo wp_specialchars($parent_cat->cat_name) ?></td>
@@ -295,7 +299,7 @@ function wpfilebase_admin_manage()
 				?>
 				<tr id='file-<?php echo $file_id ?>'<?php if($file->file_offline) { echo " class='offline'"; } ?>>
 						   <th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $file_id ?>' /></th>
-							<td><a class='row-title' href='<?php echo $clean_uri; ?>&amp;action=editfile&amp;file_id=<?php echo $file_id ?>' title='&quot;<?php echo attribute_escape($file->file_display_name); ?>&quot; bearbeiten'><?php echo wp_specialchars($file->file_display_name); ?></a></td>
+							<td><a class='row-title' href='<?php echo $clean_uri; ?>&amp;action=editfile&amp;file_id=<?php echo $file_id ?>' title='&quot;<?php echo esc_attr($file->file_display_name); ?>&quot; bearbeiten'><?php echo wp_specialchars($file->file_display_name); ?></a></td>
 							<td><?php echo wp_specialchars($file->file_name) ?></td>
 							<td><?php echo wpfilebase_format_filesize($file->file_size) ?></td>
 							<td><?php echo wp_specialchars($file->file_description) ?></td>
@@ -430,6 +434,67 @@ function wpfilebase_admin_manage()
 		break; // edit_css
 		
 		
+		case 'manage_tpls':			
+			$tpls = get_option(WPFB_OPT_NAME . '_tpls');
+			
+			if(!empty($_POST['submit'])) {
+				foreach($tpls as $tpl_tag => $tpl_src) {
+					if(!empty($_POST['tplsrc_'.$tpl_tag]))
+						$tpls[$tpl_tag] = stripslashes($_POST['tplsrc_'.$tpl_tag]);
+				}
+				
+				if(!empty($_POST['newtpl_tag']) && !empty($_POST['newtpl_src'])) {
+					$tag = preg_replace('/[^a-z0-9_-]/', '', str_replace(' ', '_', strtolower($_POST['newtpl_tag'])));
+					$tpls[$tag] = stripslashes($_POST['newtpl_src']);
+				}
+				
+				update_option(WPFB_OPT_NAME . '_tpls', $tpls);
+				wpfilebase_parse_tpls();
+			} elseif(!empty($_GET['deltpl']) && isset($tpls[$_GET['deltpl']])) {
+				unset($tpls[$_GET['deltpl']]);
+				update_option(WPFB_OPT_NAME . '_tpls', $tpls);
+				wpfilebase_parse_tpls();
+			}
+			
+			if(!empty($tpls)) {
+			?>
+<p>Here you can add and edit your custom templates for file lists and single files embedded in your posts. When creating a template you can use file variables in the HTML code.
+<h2><?php _e('Edit Templates') ?></h2>
+<form name="addtpl" id="addtpl" action="<?php echo $clean_uri ?>&amp;action=manage_tpls" method="post">
+			<?php
+				foreach($tpls as $tpl_tag => $tpl_src)
+				{
+					?>
+					<div style="margin: 10px 0 25px 0;">
+						<b><?php esc_attr_e($tpl_tag) ?></b> <a href="<?php echo $clean_uri ?>&amp;action=manage_tpls&amp;deltpl=<?php esc_attr_e($tpl_tag) ?>" class="button delete"><?php _e('Delete') ?></a>
+						<textarea cols="70" rows="<?php echo (substr_count($tpl_src, "\n") + 2); ?>" wrap="off" name="tplsrc_<?php esc_attr_e($tpl_tag) ?>" tabindex="1" class="codepress html wpfilebase-tpledit" style="margin-top: 5px;"><?php echo htmlspecialchars($tpl_src) ?></textarea><br />
+						<?php echo wpfilebase_template_fields_select('tplsrc_'.$tpl_tag) ?>
+					</div>
+					<?php
+				}
+				?>
+	<p class="submit"><?php echo "<input type='submit' name='submit' class='button-primary' value='" . esc_attr__('Submit Template Changes') . "' tabindex='2' />" ?></p>
+</form>
+				<?php
+			}
+			
+			?>
+			
+			<h2><?php _e('Add Template') ?></h2>
+<form name="addtpl" id="addtpl" action="<?php echo $clean_uri ?>&amp;action=manage_tpls" method="post">
+	<p>
+		<?php _e('Template Tag (a single word to describe the template):') ?><br />
+		<input type="text" name="newtpl_tag" value="" tabindex="1" maxlength="20" /><br />
+		<?php _e('Template Code:') ?><br />
+		<textarea cols="70" wrap="off" rows="15" name="newtpl_src" tabindex="2" class="codepress html wpfilebase-tpledit"></textarea><br />
+		<?php echo wpfilebase_template_fields_select('newtpl_src') ?>
+	</p>
+	<p class="submit"><?php echo "<input type='submit' name='submit' class='button-primary' value='" . esc_attr__('Add Template') . "' tabindex='2' />" ?></p>
+</form>
+		<?php
+		
+		break; // manage_tpls
+			
 		default:
 			$clean_uri = remove_query_arg('pagenum', $clean_uri);
 			?>
@@ -451,11 +516,12 @@ function wpfilebase_admin_manage()
 			<p>
 			<?php
 				$buttons = array(
-								 array('title' => 'Manage Files',		'desc' => 'View uploaded files and edit them',	'capability' => 'upload_files',			'action' => 'manage_files'),
-								 array('title' => 'Manage Categories',	'desc' => 'Manage existing categories and add new ones.',	'capability' => 'manage_categories',	'action' => 'manage_files'),
-								 array('title' => 'Edit Stylesheet',	'desc' => 'Edit the CSS for the file template',	'capability' => 'edit_themes',			'action' => 'edit_css'),
-								 array('title' => 'Sync Filebase',		'desc' => 'Synchronises the database with the file system. Use this to add FTP-uploaded files.',	'capability' => '',						'action' => 'sync'),
-								);
+					array('title' => 'Manage Files',		'desc' => 'View uploaded files and edit them',				'capability' => 'upload_files',			'action' => 'manage_files'),
+					array('title' => 'Manage Categories',	'desc' => 'Manage existing categories and add new ones.',	'capability' => 'manage_categories',	'action' => 'manage_cats'),
+					array('title' => 'Sync Filebase',		'desc' => 'Synchronises the database with the file system. Use this to add FTP-uploaded files.',	'action' => 'sync'),
+					array('title' => 'Edit Stylesheet',		'desc' => 'Edit the CSS for the file template',				'capability' => 'edit_themes',			'action' => 'edit_css'),
+					array('title' => 'Manage Templates',	'desc' => 'Edit custom file list templates',				'capability' => 'edit_themes',			'action' => 'manage_tpls'),
+				);
 				foreach($buttons as $btn) {
 					if(empty($btn['capability']) || current_user_can($btn['capability'])) {
 						echo '<a href="' . $clean_uri . '&amp;action=' . $btn['action'] . '" class="button" title="' . $btn['desc'] . '">' . __($btn['title']) . '</a>'."\n";
@@ -498,9 +564,7 @@ function wpfilebase_admin_manage()
 			<?php echo WPFB_PLUGIN_NAME . ' ' . WPFB_VERSION ?> Copyright &copy; 2009 by Fabian Schlieper <a href="http://fabi.me/">
 			<?php if(strpos($_SERVER['SERVER_PROTOCOL'], 'HTTPS') === false) { ?><img src="http://fabi.me/misc/wpfb_icon.gif" alt="" /><?php } ?> fabi.me</a><br/>
 			Includes code of the thumbnail generator <a href="http://phpthumb.sourceforge.net">phpThumb()</a> by James Heinrich
-			</p>
-			
-			<?
+			</p><?
 			break;
 	}
 	
@@ -612,8 +676,8 @@ function wpfilebase_admin_options()
 <form method="post" action="<?php echo $action_uri; ?>" name="wpfilebase-options">
 	<?php wp_nonce_field('update-options'); ?>
 	<p class="submit">
-	<input type="submit" name="submit" value="<?php _e('Save Changes') ?>" />
-	<input type="submit" id="deletepost" name="reset" value="<?php _e('Reset options') ?>" onclick="return confirm('<?php _e('Are you sure?'); ?>')" />
+	<input type="submit" name="submit" value="<?php _e('Save Changes') ?>" class="button-primary" />
+	<input type="submit" id="deletepost" name="reset" value="<?php _e('Reset options') ?>" onclick="return confirm('<?php _e('Are you sure?'); ?>')" class="button delete" />
 	</p>
 	<table class="form-table">	
 	<?php
@@ -641,7 +705,7 @@ function wpfilebase_admin_options()
 				} elseif($field_data['type'] == 'number')
 					echo ' value="' . intval($opt_val) . '" size="5"';
 				else {
-					echo ' value="' . attribute_escape($opt_val) . '"';
+					echo ' value="' . esc_attr($opt_val) . '"';
 					if(isset($field_data['size']))
 						echo ' size="' . (int)$field_data['size'] . '"';
 				}
@@ -665,7 +729,7 @@ function wpfilebase_admin_options()
 			case 'select':
 				echo '<select name="' . $opt_tag . '" id="' . $opt_tag . '">';
 				foreach($field_data['options'] as $opt_v => $opt_n)
-					echo '<option value="' . attribute_escape($opt_v) . '"' . (($opt_v == $opt_val) ? ' selected="selected" ' : '') . $style_class . '>' . (!is_numeric($opt_v) ? (wp_specialchars($opt_v) . ': ') : '') . wp_specialchars($opt_n) . '</option>';
+					echo '<option value="' . esc_attr($opt_v) . '"' . (($opt_v == $opt_val) ? ' selected="selected" ' : '') . $style_class . '>' . (!is_numeric($opt_v) ? (wp_specialchars($opt_v) . ': ') : '') . wp_specialchars($opt_n) . '</option>';
 				echo '</select>';
 				break;
 		}
@@ -683,23 +747,10 @@ function wpfilebase_admin_options()
 	<input type="hidden" name="action" value="update" />
 	<input type="hidden" name="page_options" value="<?php echo $page_option_list; ?>" />
 	<p class="submit">
-	<input type="submit" name="submit" value="<?php _e('Save Changes') ?>" />
-	<input type="submit" id="deletepost" name="reset" value="<?php _e('Reset options') ?>" onclick="return confirm('<?php _e('Are you sure?'); ?>')" />
+	<input type="submit" name="submit" value="<?php _e('Save Changes') ?>" class="button-primary" />
+	<input type="submit" id="deletepost" name="reset" class="button delete" value="<?php _e('Reset options') ?>" onclick="return confirm('<?php _e('Are you sure?'); ?>')" />
 	</p>
 </form>
-<!--
-<h2><?php _e('Custom templates'); ?></h2>
-<form method="post" action="<?php echo $action_uri; ?>" name="wpfilebase-templates">
-<?php
-	$tpls = wpfilebase_get_opt('templates');
-	
-	foreach($tpls as $tpl_name => $tpl)
-	{
-		
-	}
-?>
-</form>
--->
 </div>	<!-- wrap -->	
 <?php
 }

@@ -65,7 +65,7 @@ function wpfilebase_widget_filelist_control()
 	?>
 	<div>
 		<p><label for="wpfilebase-filelist-title"><?php _e('Title:'); ?>
-			<input type="text" id="wpfilebase-filelist-title" name="wpfilebase-filelist-title" value="<?php echo attribute_escape($options['filelist_title']); ?>" />
+			<input type="text" id="wpfilebase-filelist-title" name="wpfilebase-filelist-title" value="<?php echo esc_attr($options['filelist_title']); ?>" />
 		</label></p>
 		
 		<p>
@@ -76,7 +76,7 @@ function wpfilebase_widget_filelist_control()
 				$field_descs = &wpfilebase_template_fields_desc();
 				foreach($order_by_options as $tag)
 				{
-					echo '<option value="' . attribute_escape($tag) . '" title="' . attribute_escape(__($field_descs[$tag])) . '"' . ( ($options['filelist_order_by'] == $tag) ? ' selected="selected"' : '' ) . '>' . __($tag) . '</option>';
+					echo '<option value="' . esc_attr($tag) . '" title="' . esc_attr(__($field_descs[$tag])) . '"' . ( ($options['filelist_order_by'] == $tag) ? ' selected="selected"' : '' ) . '>' . __($tag) . '</option>';
 				}
 			?>
 			</select><br />
@@ -89,7 +89,7 @@ function wpfilebase_widget_filelist_control()
 		</label></p>
 		
 		<p>
-			<label for="wpfilebase-filelist-template"><?php _e('Template:'); ?><br /><input class="widefat" type="text" id="wpfilebase-filelist-template" name="wpfilebase-filelist-template" value="<?php echo attribute_escape($options['filelist_template']); ?>" /></label>
+			<label for="wpfilebase-filelist-template"><?php _e('Template:'); ?><br /><input class="widefat" type="text" id="wpfilebase-filelist-template" name="wpfilebase-filelist-template" value="<?php echo esc_attr($options['filelist_template']); ?>" /></label>
 			<br />
 			<?php					
 				echo wpfilebase_template_fields_select('wpfilebase-filelist-template', true);

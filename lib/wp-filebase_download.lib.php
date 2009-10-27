@@ -245,7 +245,7 @@ function wpfilebase_range_header($file_path, $file_type)
 	return true;
 }
 
-function wpfilebase_send_file($file_path, $bitrate = 0)
+function wpfilebase_send_file($file_path, $bandwidth = 0, $etag = null)
 {
 	// remove some headers
 	if(function_exists('header_remove')) {
@@ -254,7 +254,6 @@ function wpfilebase_send_file($file_path, $bitrate = 0)
 		header("Expires: ");
 		header("X-Pingback: ");
 	}
-	
 
 	if(!@file_exists($file_path) || !is_file($file_path))
 	{
@@ -265,19 +264,30 @@ function wpfilebase_send_file($file_path, $bitrate = 0)
 	$size = filesize($file_path);
 	$time = filemtime($file_path);
 	$file_type = wpfilebase_get_file_content_type($file_path);
+	if(empty($etag))
+		$etag = md5("$size|$time|$file_type");
 	
 	// set basic headers
 	header("Pragma: public");
 	header("Cache-Control: public");
 	header("Connection: close");
+	header("Content-Type: " . $file_type . ((strpos($file_type, 'text/') !== false) ? '; charset=' : '')); 	// charset fix
+	header("Last-Modified: " . gmdate("D, d M Y H:i:s", $time) . " GMT");
+	header("ETag: $etag");
 	
-	// charset fix
-	header("Content-Type: " . $file_type . ((strpos($file_type, 'text/') !== false) ? '; charset=' : ''));
+	$if_mod_since = !empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) ? $_SERVER['HTTP_IF_MODIFIED_SINCE'] : false;
+	$if_none_match = !empty($_SERVER['HTTP_IF_NONE_MATCH']) ? $_SERVER['HTTP_IF_NONE_MATCH'] : false;
 	
-	if(!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']))
-	{
-		if(@strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= $time)
-		{
+	if($if_mod_since || $if_none_match) {
+		$not_modified = true;
+		
+		if($not_modified && $if_mod_since)
+			$not_modified = (@strtotime($if_mod_since) >= $time);
+			
+		if($not_modified && $if_none_match)
+			$not_modified = ($if_none_match == $etag);
+			
+		if($not_modified) {
 			header("Content-Length: " . $size);
 			header("HTTP/1.x 304 Not Modified");
 			exit;
@@ -308,8 +318,6 @@ function wpfilebase_send_file($file_path, $bitrate = 0)
 	$length = ($end-$begin);
 	wpfilebase_add_traffic($length);
 	
-	// modifiy some headers...
-	header("Last-Modified: " . gmdate("D, d M Y H:i:s", $time) . " GMT"); 
 	
 	if(wpfilebase_range_header($file_path, $file_type))
 		header("Accept-Ranges: bytes");
@@ -328,15 +336,15 @@ function wpfilebase_send_file($file_path, $bitrate = 0)
 	
 	// send the file!
 	
-	$bitrate = (float)$bitrate;
-	if($bitrate <= 0)
-		$bitrate = 1024 * 1024;
+	$bandwidth = (float)$bandwidth;
+	if($bandwidth <= 0)
+		$bandwidth = 1024 * 1024;
 	
-	$buffer_size = (int)(1024 * min($bitrate, 64));
+	$buffer_size = (int)(1024 * min($bandwidth, 64));
 	
 	// convert kib/s => bytes/ms
-	$bitrate *= 1024;
-	$bitrate /= 1000;
+	$bandwidth *= 1024;
+	$bandwidth /= 1000;
 
 	$cur = $begin;
 	fseek($fh,$begin,0);
@@ -350,7 +358,7 @@ function wpfilebase_send_file($file_path, $bitrate = 0)
 		@flush();
 		
 		$dt = (microtime(true) - $ts) * 1000; // dt = time delta in ms		
-		$st = ($nbytes / $bitrate) - $dt;
+		$st = ($nbytes / $bandwidth) - $dt;
 		if($st > 0)
 			usleep($st * 1000);			
 		

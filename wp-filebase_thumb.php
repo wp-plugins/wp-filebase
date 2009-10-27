@@ -6,7 +6,7 @@ wpfilebase_inclib('common');
 require_once(WPFB_PLUGIN_ROOT . 'wp-filebase_item.php');
 
 $file = WPFilebaseFile::get_file(intval($_GET['fid']));
-if($file == null || !$file->current_user_can_access())
+if($file == null || !$file->current_user_can_access(true))
 	exit;
 	
 // if no thumbnail, redirect
