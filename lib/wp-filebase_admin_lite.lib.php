@@ -42,13 +42,13 @@ add_action('init', 'wpfilebase_mce_addbuttons');
 
 function _wpfilebase_admin_options()
 {
-	wpfilebase_inclib('admin_gui');
+	wpfilebase_inclib('admin_gui_options');
 	wpfilebase_admin_options();
 }
 
 function _wpfilebase_admin_manage()
 {
-	wpfilebase_inclib('admin_gui');
+	wpfilebase_inclib('admin_gui_manage');
 	wpfilebase_admin_manage();
 }
 

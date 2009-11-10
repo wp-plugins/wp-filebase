@@ -26,7 +26,12 @@ define('WPFB_PERM_FILE', 777);
 define('WPFB_PERM_DIR', 777);
 
 if(!function_exists('wpfilebase_inclib')) {
-	function wpfilebase_inclib($lib) { return @include_once(WPFB_PLUGIN_ROOT . 'lib/wp-filebase_' . $lib . '.lib.php'); }
+	function wpfilebase_inclib($lib) {
+		$res = @include_once(WPFB_PLUGIN_ROOT . 'lib/wp-filebase_' . $lib . '.lib.php');
+		if($res === false)
+			echo("<p>WP-Filebase Error: Could not include library <b>'$lib'</b>!</p>");
+		return true;
+	}
 }
 
 wpfilebase_inclib('core');

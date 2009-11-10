@@ -438,7 +438,8 @@ JS;
     }
 	
 	function get_tpl_var($name) {
-		return htmlspecialchars($this->_get_tpl_var($name));
+		static $no_esc = array('file_languages', 'file_platforms', 'file_requirements', 'file_license');
+		return in_array($name, $no_esc) ? $this->_get_tpl_var($name) : htmlspecialchars($this->_get_tpl_var($name));
 	}
 	
 	/*public (PHP 4 compatibility) */ function download()
