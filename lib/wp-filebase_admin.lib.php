@@ -412,16 +412,17 @@ function wpfilebase_insert_file($filedata)
 }
 
 
-function wpfilebase_sync()
+function wpfilebase_sync($hash_sync=false)
 {
+	@set_time_limit(0);
+	
 	$result = array('not_found' => array(), 'changed' => array(), 'not_added' => array(), 'error' => array(), 'updated_categories' => array());
 	$files = &WPFilebaseFile::get_files();
 	
 	$file_paths = array();
-	
 	foreach($files as $id => /* & PHP 4 compability */ $file)
 	{
-		$file_path = $file->get_path();
+		$file_path = str_replace('\\', '/', $file->get_path());
 		$file_paths[] = $file_path;
 		if($file->get_thumbnail_path())
 			$file_paths[] = $file->get_thumbnail_path();
@@ -432,14 +433,15 @@ function wpfilebase_sync()
 			continue;
 		}
 		
-		
-		$file_hash = @md5_file($file_path);
+		if($hash_sync)
+			$file_hash = @md5_file($file_path);
 		$file_size = (int)@filesize($file_path);
+		$file_time = filemtime($file_path);
 		
-		if($file->file_hash != $file_hash || $file->file_size != $file_size)
+		if( ($hash_sync && $file->file_hash != $file_hash) || $file->file_size != $file_size)
 		{
 			$file->file_size = $file_size;
-			$file->file_hash = $file_hash;
+			$file->file_hash = $hash_sync ? $file_hash : @md5_file($file_path);
 			
 			$result = $file->db_save();
 			
@@ -457,10 +459,9 @@ function wpfilebase_sync()
 	$upload_dir = wpfilebase_upload_dir();	
 	$uploaded_files = list_files($upload_dir);
 	$upload_dir_len = strlen($upload_dir);
-	
 	for($i = 0; $i < count($uploaded_files); $i++)
 	{
-		$fn = $uploaded_files[$i];
+		$fn = str_replace('\\', '/', $uploaded_files[$i]);
 		$fbn = basename($fn);
 		if($fbn{0} == '.' || $fbn == '_wp-filebase.css')
 			continue;
