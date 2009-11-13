@@ -491,9 +491,9 @@ function wpfilebase_admin_manage()
 			<?php
 				$upload_dir = wpfilebase_upload_dir();
 				$abspath_len = strlen(ABSPATH);
+				echo substr($upload_dir, $abspath_len);
 				$chmod_cmd = "CHMOD 777 ".substr($upload_dir, $abspath_len);
-				if(!is_dir($upload_dir))
-				{
+				if(!is_dir($upload_dir)) {
 					$result = wpfilebase_mkdir($upload_dir);
 					if($result['error'])
 						$error_msg = sprintf(__('The upload directory <code>%s</code> does not exists. It could not be created automatically because the directory <code>%s</code> is not writable. Please create <code>%s</code> and make it writable for PHP by execution the following FTP command: <code>%s</code>'), substr($upload_dir, $abspath_len), substr($result['parent'], $abspath_len), substr($upload_dir, $abspath_len), $chmod_cmd);

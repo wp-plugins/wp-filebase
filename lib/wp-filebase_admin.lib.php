@@ -84,7 +84,16 @@ TPLFILE
 
 	'template_cat'			=> array('default' =>
 <<<TPLCAT
-<p><a href="%cat_url%" title="Goto category %cat_name%">%cat_name%</a></p>
+<div class="wpfilebase-attachment-cat">
+ <div class="wpfilebase-fileicon"><a href="%cat_url%" title="Goto %cat_name%"><img align="middle" src="%cat_icon_url%" /></a></div>
+ <div class="wpfilebase-rightcol">
+  <div class="wpfilebase-filetitle">
+   <p><a href="%cat_url%" title="Goto category %cat_name%">%cat_name%</a></p>
+   %cat_num_files% <!-- IF %cat_num_files% == 1 -->file<!-- ELSE -->files<!-- ENDIF -->
+  </div>
+ </div>
+ <div style="clear: both;"></div>
+</div>
 TPLCAT
 	, 'title' => __('Category Template'), 'type' => 'textarea', 'desc' => (wpfilebase_template_fields_select('template_cat', false, true) . '<br />' . __('The template for category lists (used in the file browser)')), 'class' => 'code'),
 

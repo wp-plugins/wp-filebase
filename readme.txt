@@ -55,7 +55,7 @@ In the post editor click on the *WP-Filebase* button. In the appearing box click
 
 = How do I list a categories, sub categories and files?  =
 
-To list all categories and files on your blog, create an empty page (e.g named *Downloads*) and select it in the post browser for the option *Post ID of the file browser* under WP-Filebase Settings.
+To list all categories and files on your blog, create an empty page (e.g named *Downloads*). Then goto *WP-Filebase Settings* and select it in the post browser for the option *Post ID of the file browser*.
 Now a file browser should be appended to the content of the page.
 
 = How do I add files with FTP? =

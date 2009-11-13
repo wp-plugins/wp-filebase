@@ -277,6 +277,7 @@ class WPFilebaseCategory extends WPFilebaseItem {
 			case 'cat_path':		return $this->get_rel_path();	
 			case 'cat_parent':
 			case 'cat_parent_name':	return is_object($parent = $this->get_parent()) ? $parent->cat_name : '';
+			case 'cat_icon_url':	return WPFB_PLUGIN_URI . '/images/crystal_cat.png';
 			
 			case 'cat_num_files':	return $this->cat_files;
 			
@@ -288,7 +289,7 @@ class WPFilebaseCategory extends WPFilebaseItem {
     }
 	
 	function get_tpl_var($name) {
-		return htmlspecialchars($this->_get_tpl_var($name));
+		return wp_specialchars($this->_get_tpl_var($name));
 	}
 }
 

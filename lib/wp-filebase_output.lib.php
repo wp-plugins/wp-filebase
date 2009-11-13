@@ -204,9 +204,11 @@ function wpfilebase_file_browser(&$content)
 	
 	if($cat_id > 0)
 	{
-		if($parent_cat_id < 0 || !is_object($parent_cat = &WPFilebaseCategory::get_category($parent_cat_id)))
+		if($parent_cat_id < 0 || !is_object($parent_cat = &WPFilebaseCategory::get_category($parent_cat_id))) {
 			$parent_cat = new WPFilebaseCategory();
-		$parent_cat->cat_name = __('Go Back');
+			$parent_cat->cat_files = count(WPFilebaseFile::get_files("WHERE file_category = 0"));
+		}
+		$parent_cat->cat_name = __('Go back');
 		$content .= $parent_cat->generate_template();
 	}
 	

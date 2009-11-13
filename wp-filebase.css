@@ -18,6 +18,10 @@
 	border-radius: 3px;
 }
 
+.wpfilebase-attachment-cat {
+	background-image: none;
+}
+
 .wpfilebase-fileicon { float: left; }
 
 .wpfilebase-fileicon img {
