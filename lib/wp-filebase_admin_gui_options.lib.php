@@ -48,18 +48,31 @@ function wpfilebase_admin_options()
 		if(!empty($_POST['allow_srv_script_upload']))
 			$messages[] = __('WARNING: Script upload enabled!');
 		
-		$attach_template = stripslashes($_POST['template_file']);
-		if(!empty($attach_template) && (empty($options['template_file_parsed']) || $attach_template != $options['template_file']))
+		$tpl_file = stripslashes($_POST['template_file']);
+		$tpl_cat = stripslashes($_POST['template_cat']);
+		if(!empty($tpl_file) && (empty($options['template_file_parsed']) || $tpl_file != $options['template_file']))
 		{
 			wpfilebase_inclib('template');
-			$start_time = microtime(true);
-			$attach_template = wpfilebase_parse_template($attach_template);
-			$result = wpfilebase_check_template($attach_template);
-			$time_span = (microtime(true) - $start_time);
+			$tpl_file = wpfilebase_parse_template($tpl_file);
+			$result = wpfilebase_check_template($tpl_file);
 			
 			if(!$result['error']) {
-				$options['template_file_parsed'] = $attach_template;
-				$messages[] = __('Template successfully parsed.' /* in %f ms.'*/);
+				$options['template_file_parsed'] = $tpl_file;
+				$messages[] = __('File template successfully parsed.');
+			} else {
+				$errors[] = sprintf(__('Could not parse template: error (%s) in line %s.'), $result['msg'], $result['line']);
+			}
+		}
+		
+		if(!empty($tpl_cat) && (empty($options['template_cat_parsed']) || $tpl_cat != $options['template_cat']))
+		{
+			wpfilebase_inclib('template');
+			$tpl_cat = wpfilebase_parse_template($tpl_cat);
+			$result = wpfilebase_check_template($tpl_cat);
+			
+			if(!$result['error']) {
+				$options['template_cat_parsed'] = $tpl_cat;
+				$messages[] = __('Category template successfully parsed.');
 			} else {
 				$errors[] = sprintf(__('Could not parse template: error (%s) in line %s.'), $result['msg'], $result['line']);
 			}
@@ -79,6 +92,8 @@ function wpfilebase_admin_options()
 		if(count($errors) == 0)
 			$messages[] = __('Options updated.');
 	}
+	
+	wpfilebase_flush_rewrite_rules();
 	
 	$action_uri = $_SERVER['PHP_SELF'] . '?page=' . $_GET['page'] . '&amp;updated=true';
 
@@ -167,7 +182,7 @@ function wpfilebase_admin_options()
 			echo ' ' . $field_data['unit'];
 			
 		if(!empty($field_data['desc']))
-			echo "\n".'<br />' . $field_data['desc'];
+			echo "\n".'<br />' . str_replace('%value%', $opt_val, $field_data['desc']);
 		echo "\n</td>\n</tr>";		
 		$page_option_list .= $opt_tag . ',';
 	}

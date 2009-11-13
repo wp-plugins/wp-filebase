@@ -1,5 +1,6 @@
 <?php
 
+
 function wpfilebase_get_opt($name = null)
 {
 	$options = get_option(WPFB_OPT_NAME);		
@@ -20,7 +21,6 @@ add_action('template_redirect',	'wpfilebase_redirect');
 function wpfilebase_redirect()
 {
 	global $wpdb;
-	
 	$file = null;
 
 	if(!empty($_GET['wpfb_dl'])) {
@@ -71,20 +71,31 @@ add_filter('the_content',	'wpfilebase_content_filter', 9); // must be lower than
 add_filter('the_excerpt',	'wpfilebase_content_filter', 9);
 function wpfilebase_content_filter($content)
 {
+	global $id;
+	
 	if(is_feed())
 		return $content;		
 		
 	// all tags start with '[filebase'
-	if(strpos($content, '[filebase:') !== false)
+	if(strpos($content, '[filebase') !== false)
 	{
 		wpfilebase_inclib('output');
 		wpfilebase_parse_content_tags(&$content);
 	}	
 	
-	if(wpfilebase_get_opt('auto_attach_files') && (is_single() || is_page()))
+	if(!empty($id) && $id > 0 && (is_single() || is_page()))
 	{
-		wpfilebase_inclib('output');
-		$content .= wpfilebase_get_post_attachments(true);
+		if($id == wpfilebase_get_opt('file_browser_post_id'))
+		{
+			wpfilebase_inclib('output');
+			wpfilebase_file_browser(&$content);
+		}
+	
+		if(wpfilebase_get_opt('auto_attach_files'))
+		{
+			wpfilebase_inclib('output');
+			wpfilebase_get_post_attachments(&$content, true);
+		}
 	}
 
     return $content;
@@ -94,6 +105,24 @@ wp_enqueue_script('wpfilebasejs', '/wp-content/plugins/wp-filebase/wp-filebase.j
 
 if(is_admin()) {
 	wpfilebase_inclib('admin_lite');
+}
+
+add_action('generate_rewrite_rules', 'wpfilebase_add_rewrite_rules');
+function wpfilebase_add_rewrite_rules($wp_rewrite) {	
+	$browser_base = wpfilebase_get_opt('file_browser_base');
+	$redirect = wpfilebase_get_opt('file_browser_redirect');
+	if(empty($browser_base) || empty($redirect))
+		return;
+    $new_rules = array('^' . $browser_base . '/(.+)$' => $redirect);
+    $wp_rewrite->rules = $new_rules + $wp_rewrite->rules;
+}
+
+add_filter('query_vars', 'wpfilebase_queryvars' );
+function wpfilebase_queryvars($qvars){
+	$qvars[] = 'wpfb_cat_path';
+	$qvars[] = 'wpfb_cat';
+	$qvars[] = 'wpfb_dl';
+    return $qvars;
 }
 
 ?>

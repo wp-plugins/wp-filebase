@@ -28,11 +28,13 @@ function wpfilebase_options()
 	'traffic_exceeded_msg'	=> array('default' => __('Traffic limit exceeded! Please try again later.'), 'title' => __('Traffic exceeded message'), 'type' => 'text', 'size' => 65),
 	'file_offline_msg'		=> array('default' => __('This file is currently offline.'), 'title' => __('File offline message'), 'type' => 'text', 'size' => 65),
 	
-	'download_base'			=> array('default' => 'download', 'title' => __('Download URL base'), 'type' => 'text', 'desc' => __('The download url base. (Only used when Permalinks are enabled.)')),
+	'disable_permalinks'	=> array('default' => false, 'title' => __('Disable download permalinks'), 'type' => 'checkbox', 'desc' => __('Enable this if you have problems with permalinks.')),
+	'download_base'			=> array('default' => 'download', 'title' => __('Download URL base'), 'type' => 'text', 'desc' => sprintf(__('The url prefix for file download links. Example: <code>%s</code> (Only used when Permalinks are enabled.)'), get_option('siteurl').'/%value%/category/file.zip')),
+	'file_browser_post_id'	=> array('default' => '', 'title' => __('Post ID of the file browser'), 'type' => 'number', 'unit' => '<a href="javascript:;" class="button" onclick="openPostBrowser(\'file_browser_post_id\')">' . __('Browse...') . '</a>', 'desc' => 'Specify the ID of the post or page where the file browser should be placed. If you want to disable this feature leave the field blank.'),
 	'force_download'		=> array('default' => false, 'title' => __('Always force download'), 'type' => 'checkbox', 'desc' => __('If enabled files that can be viewed in the browser (like images, PDF documents or videos) can only be downloaded (no streaming).')),
 	'ignore_admin_dls'		=> array('default' => true, 'title' => __('Ignore downloads by admins'), 'type' => 'checkbox'),
 	'hide_inaccessible'		=> array('default' => true, 'title' => __('Hide inaccessible files and categories'), 'type' => 'checkbox', 'desc' => __('If enabled files tagged <i>For members only</i> will not be listed for guests or users whith insufficient rights.')),
-	'inaccessible_msg'		=> array('default' => __('You are not allowed to access this file!'), 'title' => __('Inaccessible file message'), 'type' => 'text', 'size' => 65, 'desc' => __('This message will be displayed if a user tries to download a file he/she cannot access')),
+	'inaccessible_msg'		=> array('default' => __('You are not allowed to access this file!'), 'title' => __('Inaccessible file message'), 'type' => 'text', 'size' => 65, 'desc' => __('This message will be displayed if users try to download a file they cannot access')),
 	
 	'allow_srv_script_upload'	=> array('default' => false, 'title' => __('Allow script upload'), 'type' => 'checkbox', 'desc' => __('If you enable this, scripts like PHP or CGI can be uploaded. <b>WARNING:</b> Enabling script uploads is a <b>security risk</b>!')),
 	
@@ -80,6 +82,12 @@ function wpfilebase_options()
 TPLFILE
 	, 'title' => __('Default File Template'), 'type' => 'textarea', 'desc' => (wpfilebase_template_fields_select('template_file') . '<br />' . __('The template for attachments')), 'class' => 'code'),
 
+	'template_cat'			=> array('default' =>
+<<<TPLCAT
+<p><a href="%cat_url%" title="Goto category %cat_name%">%cat_name%</a></p>
+TPLCAT
+	, 'title' => __('Category Template'), 'type' => 'textarea', 'desc' => (wpfilebase_template_fields_select('template_cat', false, true) . '<br />' . __('The template for category lists (used in the file browser)')), 'class' => 'code'),
+
 	'dlclick_js'			=> array('default' =>
 <<<JS
 if(typeof pageTracker == 'object') {
@@ -97,15 +105,32 @@ JS
 }
 
 
-function wpfilebase_template_fields_desc()
+function wpfilebase_template_fields_desc($for_cat=false)
 {
-	return array(	
+	return ( $for_cat ?
+	array(	
+	'cat_name'				=> 'Name of the category',
+	'cat_description'		=> 'A short description',
+	
+	'cat_url'				=> 'The category URL',
+	'cat_path'				=> 'Category path (e.g cat1/cat2/)',
+	'cat_folder'			=> 'Just the category folder name, not the path',
+	
+	'cat_parent_name'		=> 'Name of the parent categories (empty if none)',
+	'cat_num_files'				=> 'Number of files in the category',
+	
+	'cat_required_level'	=> 'The minimum user level to view this category (-1 = guest, 0 = Subscriber ...)',
+	
+	'cat_id'				=> 'The category ID',
+	'uid'					=> 'A unique ID number to indetify elements within a template',
+	):
+	array(	
 	'file_name'				=> 'Name of the file',
 	'file_size'				=> 'Formatted file size',
 	'file_date'				=> 'Formatted file date',
 	'file_thumbnail'		=> 'Name of the thumbnail file',
 	'file_display_name'		=> 'Title',
-	'file_description'		=> 'Short description',
+	'file_description'		=> 'A short description',
 	'file_version'			=> 'File version',
 	'file_author'			=> 'Author',
 	'file_languages'		=> 'Supported languages',
@@ -133,7 +158,7 @@ function wpfilebase_template_fields_desc()
 	'file_id'				=> 'The file ID',
 	
 	'uid'					=> 'A unique ID number to indetify elements within a template',
-	);
+	));
 }
 
 function wpfilebase_sorting_options()
@@ -158,10 +183,10 @@ function wpfilebase_sorting_options()
 	);
 }
 
-function wpfilebase_template_fields_select($input, $short=false)
+function wpfilebase_template_fields_select($input, $short=false, $for_cat=false)
 {
 	$out = __('Add template variable:') . ' <select name="_wpfb_tpl_fields" onchange="wpfilebaseAddTplField(this, \'' . $input . '\')"><option value=""></option>';	
-	foreach(wpfilebase_template_fields_desc() as $tag => $desc)
+	foreach(wpfilebase_template_fields_desc($for_cat) as $tag => $desc)
 	{
 		$out .= '<option value="' . $tag . '" title="'.$desc.'">' . $tag . ($short ? '' : ' (' . __($desc) . ')') . '</option>';
 	}
@@ -640,12 +665,15 @@ function wpfilebase_extension_is_allowed($ext)
 {
 	static $srv_script_exts = array('php', 'php3', 'php4', 'php5', 'phtml', 'cgi', 'pl', 'asp', 'py', 'aspx');	
 	
+	if(wpfilebase_get_opt('allow_srv_script_upload'))
+		return true;
+	
 	$ext = strtolower($ext);	
 	$p = strrpos($ext, '.');
 	if($p !== false)
 		$ext = substr($ext, $p + 1);
 	
-	return (wpfilebase_get_opt('allow_srv_script_upload') || !in_array($ext, $srv_script_exts));
+	return !in_array($ext, $srv_script_exts);
 }
 
 function wpfilebase_uninstall()
@@ -711,4 +739,22 @@ function wpfilebase_parse_tpls() {
 	update_option(WPFB_OPT_NAME . '_tpls_parsed', $ptpls);
 }
 
+function wpfilebase_flush_rewrite_rules()
+{
+    global $wp_rewrite;
+	$browser_post_id = intval(wpfilebase_get_opt('file_browser_post_id'));
+	if($browser_post_id <= 0) {
+		$redirect = '';
+		$regex = '';
+	} else {
+		$is_page = (get_post_type($browser_post_id) == 'page');
+		$redirect = 'index.php?' . ($is_page ? 'page_id' : 'p') . '=' . $browser_post_id . '&wpfb_cat_path=$matches[1]';
+		$file_browser_base = trim(substr(get_permalink($browser_post_id), strlen(get_option('siteurl'))), '/');
+	}
+	wpfilebase_update_opt('file_browser_redirect', $redirect);
+	wpfilebase_update_opt('file_browser_base', $file_browser_base);
+	
+	if(is_object($wp_rewrite))
+		$wp_rewrite->flush_rules();
+}
 ?>

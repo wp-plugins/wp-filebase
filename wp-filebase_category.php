@@ -4,6 +4,8 @@ require_once(WPFB_PLUGIN_ROOT . 'wp-filebase_item.php');
 global $wpfb_cat_cache, $wpfb_cat_cache_complete;
 $wpfb_cat_cache = array(); // (PHP 4 compatibility)
 $wpfb_cat_cache_complete = false;
+global $wpfb_cat_tpl_uid;
+$wpfb_cat_tpl_uid = 0;
 
 class WPFilebaseCategory extends WPFilebaseItem {
 
@@ -242,6 +244,51 @@ class WPFilebaseCategory extends WPFilebaseItem {
 		$wpdb->query("DELETE FROM " . $wpdb->wpfilebase_cats . " WHERE cat_id = " . (int)$this->get_id());
 		
 		return array('error' => false);
+	}
+	
+	/*public (PHP 4 compatibility) */ function generate_template()
+	{
+		global $wpfb_cat_tpl_uid;
+		
+		$_tpl = wpfilebase_get_opt('template_cat_parsed');
+		if(empty($_tpl))
+		{
+			$_tpl = wpfilebase_get_opt('template_cat');
+			if(!empty($_tpl))
+			{
+				wpfilebase_inclib('template');
+				$_tpl = wpfilebase_parse_template($_tpl);
+				wpfilebase_update_opt('template_cat_parsed', $_tpl); 
+			}
+		}
+		
+		$wpfb_cat_tpl_uid++;
+		$f = &$this;		
+		
+		return @eval('return (' . $_tpl . ');');
+	}
+	
+    function _get_tpl_var($name)
+    {
+		global $wpfb_cat_tpl_uid;
+	
+		switch($name) {			
+			case 'cat_url':			return $this->get_url();
+			case 'cat_path':		return $this->get_rel_path();	
+			case 'cat_parent':
+			case 'cat_parent_name':	return is_object($parent = $this->get_parent()) ? $parent->cat_name : '';
+			
+			case 'cat_num_files':	return $this->cat_files;
+			
+			case 'cat_required_level':	return ($this->cat_required_level - 1);
+			
+			case 'uid': return $wpfb_cat_tpl_uid;				
+		}
+		return isset($this->$name) ? $this->$name : '';
+    }
+	
+	function get_tpl_var($name) {
+		return htmlspecialchars($this->_get_tpl_var($name));
 	}
 }
 

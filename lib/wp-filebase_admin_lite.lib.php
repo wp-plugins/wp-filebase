@@ -5,7 +5,7 @@ function wpfilebase_admin_header()
 	wpfilebase_head();
 	?>
 	<link rel="stylesheet" type="text/css" href="<?php echo WPFB_PLUGIN_URI ?>wp-filebase_admin.css" />
-	<script type="text/javascript" src="<?php echo WPFB_PLUGIN_URI ?>wp-filebase_admin.js"></script>
+	<script type="text/javascript" src="<?php echo WPFB_PLUGIN_URI ?>wp-filebase_admin.js?ver=<?php echo WPFB_VERSION ?>"></script>
 	<?php
 	wpfilebase_version_update_check();
 }

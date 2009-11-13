@@ -68,7 +68,7 @@ function wpfilebase_parse_content_tags(&$content)
 					break;
 					
 				case 'attachments':
-					$tag_content = wpfilebase_get_post_attachments(!empty($args['tpl']) ? $args['tpl'] : null);
+					wpfilebase_get_post_attachments(&$tag_content, false, !empty($args['tpl']) ? $args['tpl'] : null);
 					break;
 			}
 		}
@@ -105,35 +105,32 @@ function wpfilebase_file_generate_template($file_id)
 }
 
 
-function wpfilebase_get_post_attachments($check_attached = false, $tpl_tag=null)
+function wpfilebase_get_post_attachments(&$content, $check_attached = false, $tpl_tag=null)
 {
-	global $wpdb;	
 	static $attached = false;
+	global $wpdb, $id;
+	
+	if(empty($id) || $id <= 0 || ($check_attached && $attached))
+		return false;
 	
 	require_once(WPFB_PLUGIN_ROOT . 'wp-filebase_item.php');
 	
-	if($check_attached && $attached)
-		return '';
-		
 	if(!empty($tpl_tag))
 		$tpl = wpfilebase_get_parsed_tpl($tpl_tag);
 	else
 		$tpl = null;
 	
-	$content = '';	
-	$post_id = (int)get_the_ID();
-	$files = &WPFilebaseFile::get_files("WHERE file_post_id = $post_id " . wpfilebase_get_filelist_sorting_sql());
-	if(count($files) > 0)
-	{
+	if(count($files = &WPFilebaseFile::get_files("WHERE file_post_id = $id " . wpfilebase_get_filelist_sorting_sql())) > 0) {
 		$attached = true;
 		foreach($files as $file)
 		{
 			if($file->current_user_can_access(true))
 				$content .= $file->generate_template($tpl);
 		}
+		$content .= '<div style="clear:both;"></div>';
+		return true;
 	}
-	
-	return $content . '<div style="clear:both;"></div>';
+	return false;
 }
 
 function wpfilebase_filelist($cat_id=-1, $tpl_tag=null)
@@ -175,6 +172,59 @@ function wpfilebase_filelist($cat_id=-1, $tpl_tag=null)
 	}
 	
 	return $content . '<div style="clear:both;"></div>';
+}
+
+function wpfilebase_file_browser(&$content)
+{
+	global $wp_query;
+
+	//print_r($wp_query->query_vars);	
+	$cat_id = !empty($_GET['wpfb_cat']) ? intval($_GET['wpfb_cat']) : (isset($wp_query->query_vars['wpfb_cat']) ? intval($wp_query->query_vars['wpfb_cat']) : 0);
+	$cat_path = !empty($_GET['wpfb_cat_path']) ? $_GET['wpfb_cat_path'] : (isset($wp_query->query_vars['wpfb_cat_path']) ? $wp_query->query_vars['wpfb_cat_path'] : '');
+	$parent_cat_id = 0;
+	
+	if($cat_id <= 0 && !empty($cat_path)) {
+		$folders = explode('/', $cat_path);
+		$cat_id = 0;
+		for($i = 0; $i < count($folders); $i++) {
+			$folder = trim($folders[$i], '/');
+			if(empty($folder))
+				continue;
+			if(!is_object($cat = &WPFilebaseCategory::get_category_by_folder($folder, $cat_id))) {
+				$cat_id = 0;
+				break;
+			}
+			$parent_cat_id = $cat->cat_parent;
+			$cat_id = $cat->cat_id;
+		}
+	} elseif($cat_id > 0){
+		$cat = &WPFilebaseCategory::get_category($cat_id);
+		$parent_cat_id = $cat->cat_parent;
+	}
+	
+	if($cat_id > 0)
+	{
+		if($parent_cat_id < 0 || !is_object($parent_cat = &WPFilebaseCategory::get_category($parent_cat_id)))
+			$parent_cat = new WPFilebaseCategory();
+		$parent_cat->cat_name = __('Go Back');
+		$content .= $parent_cat->generate_template();
+	}
+	
+	$cats = &WPFilebaseCategory::get_categories("WHERE cat_parent = $cat_id");
+	$files = &WPFilebaseFile::get_files("WHERE file_category = $cat_id");
+	
+	foreach($cats as /* & PHP 4 compability */ $cat)
+	{
+		if($cat->current_user_can_access(true))
+			$content .= $cat->generate_template();
+	}
+	
+	foreach($files as /* & PHP 4 compability */ $file)
+	{
+		if($file->current_user_can_access(true))
+			$content .= $file->generate_template();
+	}
+	$content .= '<div style="clear:both;"></div>';
 }
 
 function wpfilebase_get_filelist_sorting_sql()

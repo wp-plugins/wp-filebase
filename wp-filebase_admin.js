@@ -1,7 +1,7 @@
-function openPostBrowser(siteurl)
+function openPostBrowser(inputId)
 {
-	var postId = document.getElementById('file_post_id').value;
-	var browserWindow = window.open(siteurl + "/wp-content/plugins/wp-filebase/wp-filebase_post_browser.php?post=" + postId + "&el_id=file_post_id", "PostBrowser", "width=300,height=400,menubar=no,location=no,resizable=no,status=no,toolbar=no");
+	var postId = document.getElementById(inputId).value;
+	var browserWindow = window.open("../wp-content/plugins/wp-filebase/wp-filebase_post_browser.php?post=" + postId + "&el_id=" + inputId, "PostBrowser", "width=300,height=400,menubar=no,location=no,resizable=no,status=no,toolbar=no");
 	browserWindow.focus();
 }
 

@@ -246,19 +246,6 @@ class WPFilebaseFile extends WPFilebaseItem {
 		}
 	}
 
-	/*public (PHP 4 compatibility) */ function get_url()
-	{	
-		$url = get_option('siteurl') . '/';
-		
-		$ps = get_option('permalink_structure');
-		if(!empty($ps))
-			$url .= str_replace(wpfilebase_upload_dir(), wpfilebase_get_opt('download_base'), $this->get_path());
-		else
-			$url .= '?wpfb_dl=' . $this->file_id;
-		
-		return $url;
-	}
-	
 	/*public (PHP 4 compatibility) */ function get_post_url()
 	{
 		if(empty($this->file_post_id))
@@ -413,13 +400,12 @@ JS;
     {
 		global $wpfb_file_tpl_uid;
 
-		switch($name) {			
-			case 'file_url':			return $this->get_url();			
-			case 'file_post_url':		return is_null($url = $this->get_post_url()) ? $this->get_url() : $url;
-			case 'file_post_url':		return !empty($this->$name) ? $this->$name : $this->file_url;			
-			case 'file_icon_url':		return $this->get_icon_url();			
+		switch($name) {
+			case 'file_url':			return $this->get_url();
+			case 'file_post_url':		return is_null($url = $this->get_post_url()) ? $this->get_url() : $url;			
+			case 'file_icon_url':		return $this->get_icon_url();
 			case 'file_size':			return $this->get_formatted_size();
-			case 'file_path':			return $this->get_rel_path();			
+			case 'file_path':			return $this->get_rel_path();
 			case 'file_category':		return is_object($parent = $this->get_parent()) ? $parent->cat_name : '';
 			
 			case 'file_languages':		return wpfilebase_parse_selected_options('languages', $this->file_language);
@@ -432,7 +418,7 @@ JS;
 			case 'file_date':
 			case 'file_last_dl_time':	return mysql2date(get_option('date_format'), $this->$name);
 			
-			case 'uid':					return $wpfb_file_tpl_uid;				
+			case 'uid':					return $wpfb_file_tpl_uid;
 		}
 		return isset($this->$name) ? $this->$name : '';
     }

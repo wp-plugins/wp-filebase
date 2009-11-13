@@ -70,7 +70,7 @@ $file_members_only = ($file->file_required_level > 0);
 
 	<tr class="form-field">
 		<th scope="row" valign="top"><label for="file_post_id"><?php _e('Post') ?> ID</label></th>
-		<td><input type="text" name="file_post_id" class="small-text" id="file_post_id" value="<?php echo esc_attr($file->file_post_id); ?>" /> <a href="javascript:;" class="button" onclick="openPostBrowser('<?php echo esc_attr(get_option('siteurl')) ?>');"><?php _e('Browse...') ?></a></td>
+		<td><input type="text" name="file_post_id" class="small-text" id="file_post_id" value="<?php echo esc_attr($file->file_post_id); ?>" /> <a href="javascript:;" class="button" onclick="openPostBrowser('file_post_id');"><?php _e('Browse...') ?></a></td>
 		<?php if($exform) { ?>
 		<th scope="row" valign="top"><label for="file_hits"><?php _e('Download Counter') ?></label></th>
 		<td><input type="text" name="file_hits" class="small-text" id="file_hits" value="<?php echo (int)$file->file_hits; ?>" /></td>
