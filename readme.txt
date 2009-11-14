@@ -76,11 +76,12 @@ Since Version 0.1.2.0 you can create your custom templates for individual file l
 == Changelog ==
 
 = 0.1.2.1 =
-* Added category template for category listing
-* Added file browser which lists categories and files
+* New feature: category template for category listing
+* New feature: added file browser which lists categories and files
 * Added option to disable download permalinks
 * Fixed a problem with download permalinks
 * Fixed an issue with auto attaching files
+* Fixed a SQL table index issue causing trouble with syncing
 
 = 0.1.2.0 =
 * Added multiple templates support (you can now create custom templates for file lists)

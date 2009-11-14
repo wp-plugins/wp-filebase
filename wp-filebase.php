@@ -42,7 +42,7 @@ if(!function_exists('wpfilebase_activate')) {
 		wpfilebase_inclib('setup');
 		
 		wpfilebase_add_options();
-		wpfilebase_create_tables();
+		wpfilebase_setup_tables();
 		wpfilebase_protect_upload_path();
 		wpfilebase_reset_tpls();
 		wpfilebase_flush_rewrite_rules();

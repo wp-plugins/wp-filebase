@@ -11,7 +11,7 @@ function wpfilebase_admin_manage()
 	$_GET = stripslashes_deep($_GET);
 	
 	$action = (!empty($_POST['action']) ? $_POST['action'] : (!empty($_GET['action']) ? $_GET['action'] : ''));
-	$clean_uri = remove_query_arg(array('message', 'action', 'file_id', 'cat_id', 'deltpl' /* , 's'*/)); // keep search keyword
+	$clean_uri = remove_query_arg(array('message', 'action', 'file_id', 'cat_id', 'deltpl', 'hash_sync' /* , 's'*/)); // keep search keyword
 	
 	// switch simple/extended form
 	if(isset($_GET['exform'])) {
@@ -334,7 +334,7 @@ function wpfilebase_admin_manage()
 			
 			
 		case 'sync':
-			$result = wpfilebase_sync();
+			$result = wpfilebase_sync(!empty($_GET['hash_sync']));
 			$num_changed = $num_added = $num_errors = 0;
 			foreach($result as $tag => $group)
 			{
@@ -372,7 +372,9 @@ function wpfilebase_admin_manage()
 			
 			if( $num_errors == 0)
 				echo '<p>' . __('Filebase successfully synced.') . '</p>';
-			//echo '<p><a href="' . $clean_uri . '" class="button">' . __('Go back') . '</a></p>';			
+			
+			if(empty($_GET['hash_sync']))
+				echo '<p><a href="' . $clean_uri . '&amp;action=sync&amp;hash_sync=1" class="button">' . __('Complete file sync') . '</a><br />' . __('Check files for changes, so more reliable but might take much longer. Do this if you uploaded changed files with FTP.') . '</p>';			
 			
 		break; // sync
 		
@@ -490,15 +492,14 @@ function wpfilebase_admin_manage()
 			<h2>Filebase</h2>
 			<?php
 				$upload_dir = wpfilebase_upload_dir();
-				$abspath_len = strlen(ABSPATH);
-				echo substr($upload_dir, $abspath_len);
-				$chmod_cmd = "CHMOD 777 ".substr($upload_dir, $abspath_len);
+				$upload_dir_rel = str_replace(ABSPATH, '', $upload_dir);
+				$chmod_cmd = "CHMOD 777 ".$upload_dir_rel;
 				if(!is_dir($upload_dir)) {
 					$result = wpfilebase_mkdir($upload_dir);
 					if($result['error'])
-						$error_msg = sprintf(__('The upload directory <code>%s</code> does not exists. It could not be created automatically because the directory <code>%s</code> is not writable. Please create <code>%s</code> and make it writable for PHP by execution the following FTP command: <code>%s</code>'), substr($upload_dir, $abspath_len), substr($result['parent'], $abspath_len), substr($upload_dir, $abspath_len), $chmod_cmd);
+						$error_msg = sprintf(__('The upload directory <code>%s</code> does not exists. It could not be created automatically because the directory <code>%s</code> is not writable. Please create <code>%s</code> and make it writable for the webserver by executing the following FTP command: <code>%s</code>'), $upload_dir_rel, str_replace(ABSPATH, '', $result['parent']), $upload_dir_rel, $chmod_cmd);
 				} elseif(!is_writable($upload_dir)) {
-					$error_msg = sprintf(__('The upload directory <code>%s</code> is not writable. Please make it writable for PHP by executing the follwing FTP command: <code>%s</code>'), substr($upload_dir, $abspath_len), $chmod_cmd);
+					$error_msg = sprintf(__('The upload directory <code>%s</code> is not writable. Please make it writable for PHP by executing the follwing FTP command: <code>%s</code>'), $upload_dir_rel, $chmod_cmd);
 				}
 				
 				if(!empty($error_msg)) { ?><div class="error default-password-nag"><p><?php echo $error_msg ?></p></div><?php } ?>

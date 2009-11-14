@@ -22,7 +22,7 @@ function wpfilebase_admin_options()
 	{
 		wpfilebase_inclib('setup');
 		wpfilebase_reset_options();
-		$messages[] = __('Options reseted.');		
+		$messages[] = __('Settings reseted.');		
 		$options = get_option(WPFB_OPT_NAME);
 	}
 	elseif(isset($_POST['submit']))
@@ -40,6 +40,9 @@ function wpfilebase_admin_options()
 					$_POST[$opt_tag] = intval($_POST[$opt_tag]);
 			}
 		}
+		
+		$_POST['upload_path'] = str_replace(ABSPATH, '', $_POST['upload_path']);
+		$options['upload_path'] = str_replace(ABSPATH, '', $options['upload_path']);
 		
 		$_POST['download_base'] = trim($_POST['download_base'], '/');
 		if(wpfilebase_wpcache_reject_uri($_POST['download_base'] . '/', $options['download_base'] . '/'))
@@ -90,7 +93,7 @@ function wpfilebase_admin_options()
 		wpfilebase_protect_upload_path();
 		
 		if(count($errors) == 0)
-			$messages[] = __('Options updated.');
+			$messages[] = __('Settings updated.');
 	}
 	
 	wpfilebase_flush_rewrite_rules();
@@ -115,7 +118,7 @@ function wpfilebase_admin_options()
 <?php endif; ?>
 
 <div class="wrap">
-<h2><?php echo WPFB_PLUGIN_NAME; echo ' '; _e("Options"); ?></h2>
+<h2><?php echo WPFB_PLUGIN_NAME; echo ' '; _e("Settings"); ?></h2>
 
 <form method="post" action="<?php echo $action_uri; ?>" name="wpfilebase-options">
 	<?php wp_nonce_field('update-options'); ?>

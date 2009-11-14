@@ -1,5 +1,4 @@
 <?php
-
 function wpfilebase_update_opt($opt, $value = null)
 {
 	$options = get_option(WPFB_OPT_NAME);
@@ -8,18 +7,20 @@ function wpfilebase_update_opt($opt, $value = null)
 }
 
 function wpfilebase_upload_dir() {
-	$upload_path = wpfilebase_get_opt('upload_path');
-	if ( trim($upload_path) == '' )
+	$upload_path = trim(wpfilebase_get_opt('upload_path'));
+	if (empty($upload_path))
 		$upload_path = WP_CONTENT_DIR . '/uploads/filebase';
-	$dir = $upload_path;
-	// $dir is absolute, $path is (maybe) relative to ABSPATH
-	$dir = path_join( ABSPATH, $upload_path );	
-	return $dir;
+	return path_join(ABSPATH, $upload_path);
 }
 
-function wpfilebase_get_post_url($post_id)
-{
-	return get_permalink(intval($post_id));	
+global $wpfb_post_url_cache;
+$wpfb_post_url_cache = array();
+function wpfilebase_get_post_url($id) {
+	global $wpfb_post_url_cache;
+	$id = intval($id);
+	if(isset($wpfb_post_url_cache[$id]))
+		return $wpfb_post_url_cache[$id];
+	return ($wpfb_post_url_cache[$id] = get_permalink($id));
 }
 
 function wpfilebase_get_traffic()
@@ -38,5 +39,4 @@ function wpfilebase_get_traffic()
 		
 	return $traffic;
 }
-
 ?>

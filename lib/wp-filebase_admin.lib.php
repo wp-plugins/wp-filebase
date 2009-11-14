@@ -13,7 +13,7 @@ function wpfilebase_options()
 	
 	return array (
 	
-	'upload_path'			=> array('default' => get_option('upload_path') . '/filebase', 'title' => __('Upload Path'), 'type' => 'text', 'class' => 'code', 'size' => 65),
+	'upload_path'			=> array('default' => str_replace(ABSPATH, '', get_option('upload_path')) . '/filebase', 'title' => __('Upload Path'), 'type' => 'text', 'class' => 'code', 'size' => 65),
 
 	'thumbnail_size'		=> array('default' => 120, 'title' => __('Thumbnail size'), 'type' => 'number', 'class' => 'num', 'size' => 8),
 	
@@ -311,8 +311,7 @@ function wpfilebase_insert_file($filedata)
 	
 	// check extension
 	if($upload || $add_existing) {
-		if(!wpfilebase_extension_is_allowed($upload ? $file_upload['name'] : $file_path))
-		{
+		if(!wpfilebase_extension_is_allowed($upload ? $file_upload['name'] : $file_path)) {
 			@unlink($file_src_path);
 			return array( 'error' => sprintf( __( 'The file extension of the file <b>%s</b> is forbidden!' ), $upload ? $file_upload['name'] : $file_path ) );
 		}
@@ -493,16 +492,13 @@ function wpfilebase_sync($hash_sync=false)
 	$upload_dir = wpfilebase_upload_dir();	
 	$uploaded_files = list_files($upload_dir);
 	$upload_dir_len = strlen($upload_dir);
-	for($i = 0; $i < count($uploaded_files); $i++)
-	{
+	for($i = 0; $i < count($uploaded_files); $i++) {
 		$fn = str_replace('\\', '/', $uploaded_files[$i]);
 		$fbn = basename($fn);
 		if($fbn{0} == '.' || $fbn == '_wp-filebase.css')
 			continue;
-		if(!in_array($fn, $file_paths) && is_file($fn) && is_readable($fn))
-		{
-			$res = wpfilebase_add_existing_file($fn);
-			
+		if(!in_array($fn, $file_paths) && is_file($fn) && is_readable($fn)) {
+			$res = wpfilebase_add_existing_file($fn);			
 			if(empty($res['error']))
 				$result['added'][] = substr($fn, $upload_dir_len);
 			else
@@ -555,7 +551,7 @@ function wpfilebase_add_existing_file($file_path)
 		}
 	}
 	
-	return wpfilebase_insert_file(array('add_existing' => true, 'file_category' => $last_cat_id, 'file_path' => basename($file_path)));
+	return wpfilebase_insert_file(array('add_existing' => true, 'file_category' => $last_cat_id, 'file_path' => $file_path));
 }
 
 function wpfilebase_wpcache_reject_uri($add_uri, $remove_uri='')

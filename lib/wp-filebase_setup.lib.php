@@ -76,13 +76,15 @@ function wpfilebase_reset_options()
 	wpfilebase_reset_tpls();
 }
 
-function wpfilebase_create_tables()
+function wpfilebase_setup_tables()
 {
 	global $wpdb;
 
 	$queries = array();
+	$tbl_cats = $wpdb->prefix . 'wpfb_cats';
+	$tbl_files = $wpdb->prefix . 'wpfb_files';
 	
-	$queries[] = "CREATE TABLE IF NOT EXISTS `" . $wpdb->prefix . "wpfb_cats` (
+	$queries[] = "CREATE TABLE IF NOT EXISTS `$tbl_cats` (
   `cat_id` int(8) unsigned NOT NULL auto_increment,
   `cat_name` varchar(255) NOT NULL default '',
   `cat_description` text,
@@ -90,14 +92,11 @@ function wpfilebase_create_tables()
   `cat_parent` int(8) unsigned NOT NULL default '0',
   `cat_files` bigint(20) unsigned NOT NULL default '0',
   `cat_required_level` tinyint(2) NOT NULL default '0',
-  PRIMARY KEY  (`cat_id`),
-  UNIQUE KEY `CAT_FOLDER` (`cat_folder`),
-  KEY `CAT_NAME` (`cat_name`),
-  FULLTEXT KEY `FULLTEXT` (`cat_description`)
+  PRIMARY KEY  (`cat_id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1";
 				
 	
-	$queries[] = "CREATE TABLE IF NOT EXISTS `" . $wpdb->prefix . "wpfb_files` (
+	$queries[] = "CREATE TABLE IF NOT EXISTS `$tbl_files` (
   `file_id` bigint(20) unsigned NOT NULL auto_increment,
   `file_name` varchar(255) NOT NULL default '',
   `file_size` bigint(20) unsigned NOT NULL default '0',
@@ -127,6 +126,17 @@ function wpfilebase_create_tables()
   PRIMARY KEY  (`file_id`),
   FULLTEXT KEY `FULLTEXT` (`file_description`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1";
+
+
+	$queries[] = "ALTER TABLE `$tbl_cats` DROP INDEX `FULLTEXT`";
+	$queries[] = "ALTER TABLE `$tbl_cats` DROP INDEX `CAT_NAME`";
+	$queries[] = "ALTER TABLE `$tbl_cats` DROP INDEX `CAT_FOLDER`";
+	$queries[] = "ALTER TABLE `$tbl_cats` ADD UNIQUE `UNIQUE_FOLDER` ( `cat_folder` , `cat_parent` ) ";
+	
+	$queries[] = "ALTER TABLE `$tbl_files` ADD UNIQUE `UNIQUE_FILE` ( `file_name` , `file_category` )";
+	
+	$queries[] = "OPTIMIZE TABLE `$tbl_cats`";
+	$queries[] = "OPTIMIZE TABLE `$tbl_files`";
 
 	foreach($queries as $sql)
 		$wpdb->query($sql);
