@@ -4,7 +4,7 @@ Donate link: http://fabi.me/donate/
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, traffic, widget, filelist, list, thumb, thumbnail, attachment, attachments, category, categories, media, template, ftp, http
 Requires at least: 2.2.0
 Tested up to: 2.8.5
-Stable tag: 0.1.2.0
+Stable tag: 0.1.2.1
 
 Adds a powerful download manager supporting file categories, thumbnails, traffic/bandwidth limits and more to your WordPress blog.
 
@@ -33,7 +33,7 @@ Some more features:
 *   Download counter which ignores multiple downloads from the same client
 *   Many file properties like author, version, supported languages, platforms and license
 *   Custom JavaScript code which is executed when a download link is clicked (e.g. to track downloads with Google Analytics)
-*	Works with WP Super Cache
+*   Works with WP Super Cache
 
 You can see a [live demo on my Website](http://fabi.me/ "WP-Filebase demo")
 
@@ -79,9 +79,11 @@ Since Version 0.1.2.0 you can create your custom templates for individual file l
 * New feature: category template for category listing
 * New feature: added file browser which lists categories and files
 * Added option to disable download permalinks
+* New option *Decimal file size prefixes*
 * Fixed a problem with download permalinks
 * Fixed an issue with auto attaching files
 * Fixed a SQL table index issue causing trouble with syncing
+* Fixed a sync bug causing categories to be moved into others
 
 = 0.1.2.0 =
 * Added multiple templates support (you can now create custom templates for file lists)

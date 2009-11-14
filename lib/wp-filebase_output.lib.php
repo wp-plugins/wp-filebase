@@ -261,19 +261,36 @@ function wpfilebase_parse_selected_options($opt_name, $sel_tags, $uris=false)
 	return implode(', ', $outarr);
 }
 
-function wpfilebase_format_filesize($file_size)
-{
-	if($file_size <= 1024) {
-		$unit = 'B';
-	} elseif($file_size < 1048576) {
-		$file_size /= 1024;
-		$unit = 'KiB';
-	} elseif($file_size < 1073741824) {
-		$file_size /= 1048576;
-		$unit = 'MiB';
+function wpfilebase_format_filesize($file_size) {
+	global $wpfb_dec_size_format;
+	if(!isset($wpfb_dec_size_format))
+		$wpfb_dec_size_format = wpfilebase_get_opt('decimal_size_format');
+	if($wpfb_dec_size_format) {
+		if($file_size <= 1000) {
+			$unit = 'B';
+		} elseif($file_size < 1000000) {
+			$file_size /= 1000;
+			$unit = 'KB';
+		} elseif($file_size < 1000000000) {
+			$file_size /= 1000000;
+			$unit = 'MB';
+		} else {
+			$file_size /= 1000000000;
+			$unit = 'GB';
+		}
 	} else {
-		$file_size /= 1073741824;
-		$unit = 'GiB';
+		if($file_size <= 1024) {
+			$unit = 'B';
+		} elseif($file_size < 1048576) {
+			$file_size /= 1024;
+			$unit = 'KiB';
+		} elseif($file_size < 1073741824) {
+			$file_size /= 1048576;
+			$unit = 'MiB';
+		} else {
+			$file_size /= 1073741824;
+			$unit = 'GiB';
+		}
 	}
 	
 	return sprintf('%01.1f %s', $file_size, $unit);

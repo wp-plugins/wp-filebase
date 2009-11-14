@@ -2,7 +2,7 @@
 
 wpfilebase_inclib('common');
 wpfilebase_inclib('admin_lite');
-require_once(WPFB_PLUGIN_ROOT . 'wp-filebase_item.php');
+include_once(WPFB_PLUGIN_ROOT . 'wp-filebase_item.php');
 
 function wpfilebase_options()
 {
@@ -11,8 +11,7 @@ function wpfilebase_options()
 	$bitrate_desc = __('Limits the maximum tranfer rate for downloads. 0 = unlimited');
 	$traffic_desc = __('Limits the maximum data traffic. 0 = unlimited');
 	
-	return array (
-	
+	return array (	
 	'upload_path'			=> array('default' => str_replace(ABSPATH, '', get_option('upload_path')) . '/filebase', 'title' => __('Upload Path'), 'type' => 'text', 'class' => 'code', 'size' => 65),
 
 	'thumbnail_size'		=> array('default' => 120, 'title' => __('Thumbnail size'), 'type' => 'number', 'class' => 'num', 'size' => 8),
@@ -40,6 +39,8 @@ function wpfilebase_options()
 	
 	'accept_empty_referers'	=> array('default' => true, 'title' => __('Accept empty referers'), 'type' => 'checkbox', 'desc' => 'If enabled, direct-link-protected files can be downloaded when the referer is empty (i.e. user entered file url in address bar or browser does not send referers)'),	
 	'allowed_referers' 		=> array('default' => '', 'title' => __('Allowed referers'), 'type' => 'textarea', 'desc' => 'Sites with matching URLs can link to files directly.<br />'.$multiple_line_desc),
+	
+	'decimal_size_format'	=> array('default' => false, 'title' => 'Decimal file size prefixes', 'type' => 'checkbox', 'desc' => 'Enable this if you want decimal prefixes (1 MB = 1000 KB = 1 000 000 B) instead of binary (1 MiB = 1024 KiB = 1 048 576 B)'),
 
 	'languages'				=> array('default' => "English|en\nDeutsch|de", 'title' => __('Languages'), 'type' => 'textarea', 'desc' => &$multiple_entries_desc),
 	'platforms'				=> array('default' => "Windows 95|win95\n*Windows 98|win98\n*Windows 2000|win2k\n*Windows XP|winxp\n*Windows Vista|vista\n*Windows 7|win7\nLinux|linux\nMac OS X|mac", 'title' => __('Platforms'), 'type' => 'textarea', 'desc' => &$multiple_entries_desc, 'nowrap' => true),	
@@ -219,7 +220,7 @@ function wpfilebase_insert_category($catarr)
 	if ($update)
 		$cat = WPFilebaseCategory::get_category($cat_id);
 	else
-		$cat = &new WPFilebaseCategory(array('cat_id' => 0));
+		$cat = new WPFilebaseCategory(array('cat_id' => 0));
 	
 	$cat->cat_name = trim($cat_name);
 	$cat->cat_description = trim($cat_description);
@@ -273,7 +274,8 @@ function wpfilebase_insert_category($catarr)
 			return array( 'error' => sprintf( __( 'The directory %s already exists!' ), $cat->get_path() ) );
 		}
 		$cat->cat_parent = $prev_parent;
-	}
+	} elseif($add_existing)
+		$cat->cat_parent = intval($cat_parent);
 	
 	$result = $cat->change_category($cat_parent);
 	if(!empty($result['error']))
@@ -296,7 +298,7 @@ function wpfilebase_insert_file($filedata)
 	$file_id = isset($file_id) ? (int)$file_id : 0;
 	
 	// are we updating or creating?
-	$update = ( !empty($file_id) && $file_id > 0 && (($file = &WPFilebaseFile::get_file($file_id)) != null) );
+	$update = ( !empty($file_id) && $file_id > 0 && (($file = WPFilebaseFile::get_file($file_id)) != null) );
 	if(!$update)
 		$file = new WPFilebaseFile(array('file_id' => 0));
 		
@@ -318,7 +320,7 @@ function wpfilebase_insert_file($filedata)
 	}
 	
 	// handle category
-	$file_category = (int)$file_category;
+	$file_category = intval($file_category);
 	if ($file_category > 0 && WPFilebaseCategory::get_category($file_category) == null)
 		$file_category = 0;
 	if($update && $file->file_category != $file_category)
@@ -458,7 +460,7 @@ function wpfilebase_sync($hash_sync=false)
 		$file_path = str_replace('\\', '/', $file->get_path());
 		$file_paths[] = $file_path;
 		if($file->get_thumbnail_path())
-			$file_paths[] = $file->get_thumbnail_path();
+			$file_paths[] = str_replace('\\', '/', $file->get_thumbnail_path());
 		
 		if(!@is_file($file_path) || !@is_readable($file_path))
 		{
@@ -484,9 +486,6 @@ function wpfilebase_sync($hash_sync=false)
 				$result['changed'][] = $file;
 		}
 	}
-	
-	// sync categories
-	$result['updated_categories'] = &WPFilebaseCategory::sync_categories();
 	
 	// search for not added files
 	$upload_dir = wpfilebase_upload_dir();	
@@ -516,7 +515,10 @@ function wpfilebase_sync($hash_sync=false)
 			if(!is_writable($file_paths[$i]) && !is_writable(dirname($file_paths[$i])))
 				$result['warnings'][] = sprintf(__('File <b>%s</b> is not writable!'), substr($file_paths[$i], $upload_dir_len));
 		}
-	}
+	}	
+	
+	// sync categories
+	$result['updated_categories'] = WPFilebaseCategory::sync_categories();
 		
 	wpfilebase_protect_upload_path();
 	
@@ -545,8 +547,10 @@ function wpfilebase_add_existing_file($file_path)
 				$result = wpfilebase_insert_category(array('add_existing' => true, 'cat_parent' => $last_cat_id, 'cat_folder' => $dir));
 				if(!empty($result['error']))
 					return $result;
-				else 
-					$last_cat_id = $result['cat_id'];
+				elseif(empty($result['cat_id']))
+					wp_die('Could not create category!');
+				else
+					$last_cat_id = intval($result['cat_id']);
 			}
 		}
 	}
