@@ -28,7 +28,7 @@ function wpfilebase_options()
 	'file_offline_msg'		=> array('default' => __('This file is currently offline.'), 'title' => __('File offline message'), 'type' => 'text', 'size' => 65),
 	
 	'disable_permalinks'	=> array('default' => false, 'title' => __('Disable download permalinks'), 'type' => 'checkbox', 'desc' => __('Enable this if you have problems with permalinks.')),
-	'download_base'			=> array('default' => 'download', 'title' => __('Download URL base'), 'type' => 'text', 'desc' => sprintf(__('The url prefix for file download links. Example: <code>%s</code> (Only used when Permalinks are enabled.)'), get_option('siteurl').'/%value%/category/file.zip')),
+	'download_base'			=> array('default' => 'download', 'title' => __('Download URL base'), 'type' => 'text', 'desc' => sprintf(__('The url prefix for file download links. Example: <code>%s</code> (Only used when Permalinks are enabled.)'), get_option('home').'/%value%/category/file.zip')),
 	'file_browser_post_id'	=> array('default' => '', 'title' => __('Post ID of the file browser'), 'type' => 'number', 'unit' => '<a href="javascript:;" class="button" onclick="openPostBrowser(\'file_browser_post_id\')">' . __('Browse...') . '</a>', 'desc' => 'Specify the ID of the post or page where the file browser should be placed. If you want to disable this feature leave the field blank.'),
 	'force_download'		=> array('default' => false, 'title' => __('Always force download'), 'type' => 'checkbox', 'desc' => __('If enabled files that can be viewed in the browser (like images, PDF documents or videos) can only be downloaded (no streaming).')),
 	'ignore_admin_dls'		=> array('default' => true, 'title' => __('Ignore downloads by admins'), 'type' => 'checkbox'),
@@ -224,7 +224,30 @@ function wpfilebase_insert_category($catarr)
 	
 	$cat->cat_name = trim($cat_name);
 	$cat->cat_description = trim($cat_description);
+	$old_path = !empty($cat->cat_folder) ? $cat->get_path() : '';
 	$cat->cat_folder = trim($cat_folder);
+	$new_path = $cat->get_path();
+	
+	if (empty($cat->cat_name) && empty($cat->cat_folder))
+		return array( 'error' => __('You must enter a category name or a folder name.') );
+		
+	if (empty($cat->cat_name))
+		$cat->cat_name = wpfilebase_filename2title($cat->cat_folder, false);
+	elseif(empty($cat->cat_folder))
+		$cat->cat_folder = strtolower(str_replace(' ', '_', $cat->cat_name));
+	
+	$cat->cat_folder = preg_replace('/\s/', ' ', $cat->cat_folder);
+	if(!preg_match('/^[0-9a-z-_.+,\s]+$/i', $cat->cat_folder))
+		return array( 'error' => __('The category folder name contains invalid characters.') );
+	
+	// move existing dir
+	if($update && !empty($old_path) && $old_path != $new_path && is_dir($old_path)) {
+		//die($old_path.'=>'.$new_path);
+		if (!wp_mkdir_p($new_path))
+			return array( 'error' => sprintf( __( 'Unable to create directory %s. Is its parent directory writable by the server?' ), $new_path) );
+		wpfilebase_inclib('file');
+		wpfilebase_move_dir($old_path, $new_path);
+	}
 		
 	// permission
 	$cat_members_only = !empty($cat_members_only);
@@ -242,17 +265,6 @@ function wpfilebase_insert_category($catarr)
 		}
 	}
 	
-	if (empty($cat->cat_name) && empty($cat->cat_folder))
-		return array( 'error' => __('You must enter a category name or a folder name.') );
-		
-	if (empty($cat->cat_name))
-		$cat->cat_name = wpfilebase_filename2title($cat->cat_folder, false);
-	elseif(empty($cat->cat_folder))
-		$cat->cat_folder = strtolower(str_replace(' ', '_', $cat->cat_name));
-	
-	$cat->cat_folder = preg_replace('/\s/', ' ', $cat->cat_folder);
-	if(!preg_match('/^[0-9a-z-_.+,\s]+$/i', $cat->cat_folder))
-		return array( 'error' => __('The category folder name contains invalid characters.') );
 		
 	// handle parent cat
 	if($cat_parent <= 0 || $cat_parent == $cat_id) {
@@ -758,7 +770,7 @@ function wpfilebase_flush_rewrite_rules()
 	} else {
 		$is_page = (get_post_type($browser_post_id) == 'page');
 		$redirect = 'index.php?' . ($is_page ? 'page_id' : 'p') . '=' . $browser_post_id . '&wpfb_cat_path=$matches[1]';
-		$file_browser_base = trim(substr(get_permalink($browser_post_id), strlen(get_option('siteurl'))), '/');
+		$file_browser_base = trim(substr(get_permalink($browser_post_id), strlen(get_option('home'))), '/');
 	}
 	wpfilebase_update_opt('file_browser_redirect', $redirect);
 	wpfilebase_update_opt('file_browser_base', $file_browser_base);

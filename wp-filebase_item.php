@@ -171,18 +171,18 @@ class WPFilebaseItem {
 		$ps = wpfilebase_get_opt('disable_permalinks') ? null : get_option('permalink_structure');
 		
 		if($this->is_file) {
-			$url = trailingslashit(get_option('siteurl'));	
+			$url = trailingslashit(get_option('home'));	
 			if(!empty($ps))
 				$url .= str_replace(wpfilebase_upload_dir(), wpfilebase_get_opt('download_base'), $this->get_path());
 			else
-				$url .= '?wpfb_dl='.$this->file_id;
+				$url = add_query_arg(array('wpfb_dl' => $this->file_id), $url);
 		} else {
 			$url = get_permalink(wpfilebase_get_opt('file_browser_post_id'));	
 			if(!empty($ps)) {
 				$url = str_replace(wpfilebase_upload_dir() . '/', $url, $this->get_path());
 				$url = trailingslashit($url);
 			} elseif($this->cat_id > 0) {
-				$url .= '?wpfb_cat='.$this->cat_id;
+				$url = add_query_arg(array('wpfb_cat' => $this->cat_id), $url);
 			}			
 		}
 			

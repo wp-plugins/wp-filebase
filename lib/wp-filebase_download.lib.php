@@ -12,7 +12,7 @@ function wpfilebase_referer_check()
 	$referer = $referer['host'];
 	
 	$allowed_referers = explode("\n", wpfilebase_get_opt('allowed_referers'));
-	$allowed_referers[] = get_option('siteurl');
+	$allowed_referers[] = get_option('home');
 	
 	foreach($allowed_referers as $ar)
 	{

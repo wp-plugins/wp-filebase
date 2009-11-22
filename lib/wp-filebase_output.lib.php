@@ -212,8 +212,8 @@ function wpfilebase_file_browser(&$content)
 		$content .= $parent_cat->generate_template();
 	}
 	
-	$cats = &WPFilebaseCategory::get_categories("WHERE cat_parent = $cat_id");
-	$files = &WPFilebaseFile::get_files("WHERE file_category = $cat_id");
+	$cats = &WPFilebaseCategory::get_categories("WHERE cat_parent = $cat_id ORDER BY cat_name " . (wpfilebase_get_opt('filelist_sorting_dir') ? 'DESC' : 'ASC'));
+	$files = &WPFilebaseFile::get_files("WHERE file_category = $cat_id " . wpfilebase_get_filelist_sorting_sql());
 	
 	foreach($cats as /* & PHP 4 compability */ $cat)
 	{

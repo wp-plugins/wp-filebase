@@ -27,7 +27,7 @@ function wpfilebase_redirect()
 		require_once(WPFB_PLUGIN_ROOT . 'wp-filebase_item.php');
 		$file = $file = WPFilebaseFile::get_file((int)$_GET['wpfb_dl']);
 	} else {
-		$dl_url = parse_url(get_option('siteurl') . '/' . wpfilebase_get_opt('download_base') . '/');
+		$dl_url = parse_url(get_option('home') . '/' . wpfilebase_get_opt('download_base') . '/');
 		$dl_url_path = $dl_url['path'];
 		$pos = strpos($_SERVER['REQUEST_URI'], $dl_url_path);
 		if($pos !== false && $pos == 0) {

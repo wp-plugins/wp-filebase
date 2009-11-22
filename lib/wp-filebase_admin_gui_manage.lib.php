@@ -96,7 +96,7 @@ function wpfilebase_admin_manage()
 
 			$cats = WPFilebaseCategory::get_categories($extra_sql . " LIMIT $pagestart, $catsperpage");
 
-			$page_links = paginate_links( array(
+			$page_links = paginate_links(array(
 				'base' => add_query_arg( 'pagenum', '%#%' ),
 				'format' => '',
 				'total' => ceil(count(WPFilebaseCategory::get_categories($extra_sql)) / $catsperpage),
@@ -398,7 +398,7 @@ function wpfilebase_admin_manage()
 				// write
 				$newcontent = stripslashes($_POST['newcontent']);
 				$f = fopen($css_path_edit, 'w+');
-				if ($f !== FALSE) {
+				if ($f !== false) {
 					fwrite($f, $newcontent);
 					fclose($f);
 					$exists = true;
@@ -421,7 +421,6 @@ function wpfilebase_admin_manage()
 		</div>
 </form>
 <?php
-					
 		break; // edit_css
 		
 		
@@ -467,8 +466,7 @@ function wpfilebase_admin_manage()
 	<p class="submit"><?php echo "<input type='submit' name='submit' class='button-primary' value='" . esc_attr__('Submit Template Changes') . "' tabindex='2' />" ?></p>
 </form>
 				<?php
-			}
-			
+			}			
 			?>
 			
 			<h2><?php _e('Add Template') ?></h2>
@@ -482,8 +480,7 @@ function wpfilebase_admin_manage()
 	</p>
 	<p class="submit"><?php echo "<input type='submit' name='submit' class='button-primary' value='" . esc_attr__('Add Template') . "' tabindex='2' />" ?></p>
 </form>
-		<?php
-		
+		<?php		
 		break; // manage_tpls
 			
 		default:
@@ -556,8 +553,7 @@ function wpfilebase_admin_manage()
 			Includes code of the thumbnail generator <a href="http://phpthumb.sourceforge.net">phpThumb()</a> by James Heinrich
 			</p><?
 			break;
-	}
-	
+	}	
 	?>
 </div> <!-- wrap -->
 <?php
