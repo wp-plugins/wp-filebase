@@ -18,6 +18,7 @@ Some more features:
 
 *   Powerful filemanger to arrange files in categories and sub-categories
 *   Insert file lists in posts and pages (with Editor Button)
+*	Flexible content tags
 *   Automatically creates thumbnails of images (JPEG, PNG, GIF, BMP)
 *   Upload files with your browser or FTP client (**NEW**)
 *   Powerful template engine (variables, IF-Blocks)
