@@ -20,17 +20,18 @@ Some more features:
 *   Insert file lists in posts and pages (with Editor Button)
 *	Flexible content tags
 *   Automatically creates thumbnails of images (JPEG, PNG, GIF, BMP)
-*   Upload files with your browser or FTP client (**NEW**)
+*   Upload files with your browser or FTP client
 *   Powerful template engine (variables, IF-Blocks)
 *   Associate files to posts and automatically attach them to the content
 *   Customisable file list widget
-*   Multiple custom templates for filelists (**NEW**)
+*   Multiple custom templates for filelists
+*   Access control for categories and files (e.g. to make files accessible for members only)
 *   Hotlinking protection
 *   Daily and monthly traffic limits
 *   Download speed limiter for registered users and anonymous
 *   Traffic limits
 *   Range download (allows user to pause downloads and continue them later)
-*   Works with permalink structure
+*   Works with permalink structure (nice download URIs)
 *   Download counter which ignores multiple downloads from the same client
 *   Many file properties like author, version, supported languages, platforms and license
 *   Custom JavaScript code which is executed when a download link is clicked (e.g. to track downloads with Google Analytics)
