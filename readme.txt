@@ -3,7 +3,7 @@ Contributors: fabifott
 Donate link: http://fabi.me/donate/
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, traffic, widget, filelist, list, thumb, thumbnail, attachment, attachments, category, categories, media, template, ftp, http
 Requires at least: 2.2.0
-Tested up to: 2.8.5
+Tested up to: 2.8.6
 Stable tag: 0.1.2.3
 
 Adds a powerful download manager supporting file categories, thumbnails, traffic/bandwidth limits and more to your WordPress blog.
@@ -30,7 +30,7 @@ Some more features:
 *   Daily and monthly traffic limits
 *   Download speed limiter for registered users and anonymous
 *   Traffic limits
-*   Range download (allows user to pause downloads and continue them later)
+*   Range download (allows users to pause downloads and continue them later)
 *   Works with permalink structure (nice download URIs)
 *   Download counter which ignores multiple downloads from the same client
 *   Many file properties like author, version, supported languages, platforms and license
