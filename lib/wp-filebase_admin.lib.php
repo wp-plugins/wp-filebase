@@ -291,7 +291,25 @@ function wpfilebase_insert_category($catarr)
 	
 	$result = $cat->change_category($cat_parent);
 	if(!empty($result['error']))
-		return $result;	
+		return $result;
+		
+		
+	// icon
+	if(!empty($cat_icon_delete)) {
+		@unlink($cat->get_thumbnail_path());
+		$cat->cat_icon = null;
+	}
+	if(!empty($cat_icon) && @is_uploaded_file($cat_icon['tmp_name']) && !empty($cat_icon['name'])) {
+		$ext = strtolower(substr($cat_icon['name'], strrpos($cat_icon['name'], '.')+1));
+		if($ext == 'jpg' || $ext == 'jpeg' || $ext == 'png' || $ext == 'gif') {
+			if(!empty($cat->cat_icon))
+				@unlink($cat->get_thumbnail_path());
+			$cat->cat_icon = '_caticon.'.$ext;
+			if(!@move_uploaded_file($cat_icon['tmp_name'], $cat->get_thumbnail_path()))
+				return array( 'error' => __( 'Unable to move category icon!' ));	
+			@chmod($cat->get_thumbnail_path(), octdec(WPFB_PERM_FILE));
+		}
+	}
 	
 	// save into db
 	$result = $cat->db_save();	
@@ -437,8 +455,7 @@ function wpfilebase_insert_file($filedata)
 				
 		if(@move_uploaded_file($file_upload_thumb['tmp_name'], $thumb_dest_path))
 		{
-			$file->create_thumbnail($thumb_dest_path);			
-			@unlink($thumb_dest_path); 
+			$file->create_thumbnail($thumb_dest_path);
 		}
 	}
 	
@@ -506,7 +523,7 @@ function wpfilebase_sync($hash_sync=false)
 	for($i = 0; $i < count($uploaded_files); $i++) {
 		$fn = str_replace('\\', '/', $uploaded_files[$i]);
 		$fbn = basename($fn);
-		if($fbn{0} == '.' || $fbn == '_wp-filebase.css')
+		if($fbn{0} == '.' || $fbn == '_wp-filebase.css' || substr($fbn, '_caticon.') !== false)
 			continue;
 		if(!in_array($fn, $file_paths) && is_file($fn) && is_readable($fn)) {
 			$res = wpfilebase_add_existing_file($fn);			

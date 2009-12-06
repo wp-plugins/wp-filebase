@@ -6,11 +6,11 @@ $update = (!empty($file_category) && !empty($file_category->cat_id));
 
 $title = __($update ? 'Edit Category' : 'Add Category');
 if ( $update ) {	
-	$form = '<form name="editcat" id="editcat" method="post" action="' . remove_query_arg(array('cat_id', 'action')) . '&amp;action=manage_cats" class="validate">';
+	$form = '<form enctype="multipart/form-data" name="editcat" id="editcat" method="post" action="' . remove_query_arg(array('cat_id', 'action')) . '&amp;action=manage_cats" class="validate">';
 	$action = 'updatecat';
 	$nonce_action = 'update-filecat_' . $file_category->cat_id;		
 } else {
-	$form = '<form name="addcat" id="addcat" method="post" action="' . remove_query_arg(array('cat_id', 'action')) . '&amp;action=manage_cats" class="add:the-list: validate">';
+	$form = '<form enctype="multipart/form-data" name="addcat" id="addcat" method="post" action="' . remove_query_arg(array('cat_id', 'action')) . '&amp;action=manage_cats" class="add:the-list: validate">';
 	$action = 'addcat';
 	$nonce_action = 'add-filecat';
 	$file_category = null;
@@ -45,6 +45,15 @@ $cat_members_only = ($file_category->cat_required_level > 0);
 		<tr class="form-field">
 			<th scope="row" valign="top"><label for="cat_description"><?php _e('Description') ?></label></th>
 			<td><textarea name="cat_description" id="cat_description" rows="5" cols="50" style="width: 97%;"><?php echo wp_specialchars($file_category->cat_description); ?></textarea></td>
+		</tr>
+		<tr>
+			<th scope="row" valign="top" class="form-field"><label for="cat_icon"><?php _e('Category Icon') ?></label></th>
+			<td><input type="file" name="cat_icon" id="cat_icon" />
+			<?php if(!empty($file_category->cat_icon)) { ?>
+				<br /><img src="<?php echo $file_category->get_icon_url(); ?>" /><br />
+				<input type="checkbox" value="1" name="cat_icon_delete" id="file_delete_thumb" /><label for="cat_icon_delete"><?php _e('Delete'); ?></label>
+			<?php } ?>
+			</td>
 		</tr>
 		<tr>
 			<th scope="row" valign="top"><label for="cat_members_only"><?php _e('For members only') ?></label></th>

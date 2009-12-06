@@ -92,6 +92,7 @@ function wpfilebase_setup_tables()
   `cat_parent` int(8) unsigned NOT NULL default '0',
   `cat_files` bigint(20) unsigned NOT NULL default '0',
   `cat_required_level` tinyint(2) NOT NULL default '0',
+  `cat_icon` varchar(255) default NULL,
   PRIMARY KEY  (`cat_id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1";
 				
@@ -134,6 +135,9 @@ function wpfilebase_setup_tables()
 	$queries[] = "ALTER TABLE `$tbl_cats` ADD UNIQUE `UNIQUE_FOLDER` ( `cat_folder` , `cat_parent` ) ";
 	
 	$queries[] = "ALTER TABLE `$tbl_files` ADD UNIQUE `UNIQUE_FILE` ( `file_name` , `file_category` )";
+	
+	// <= v0.1.2.2
+	$queries[] = "ALTER TABLE `$tbl_cats` ADD `cat_icon` VARCHAR(255) NULL DEFAULT NULL";
 	
 	$queries[] = "OPTIMIZE TABLE `$tbl_cats`";
 	$queries[] = "OPTIMIZE TABLE `$tbl_files`";

@@ -186,7 +186,8 @@ class WPFilebaseFile extends WPFilebaseItem {
 	
 	/*public (PHP 4 compatibility) */ function create_thumbnail($src_image='')
 	{
-		if(empty($src_image))
+		$src_set = !empty($src_image) && file_exists($src_image);
+		if(!$src_set)
 			$src_image = $this->get_path();
 		
 		if(!file_exists($src_image) || @filesize($src_image) < 3)
@@ -234,9 +235,15 @@ class WPFilebaseFile extends WPFilebaseItem {
 			}				
 		}
 		
-		if(empty($thumb) || !is_string($thumb)) {
+		
+		
+		if(!$src_set && (empty($thumb) || !is_string($thumb) || !file_exists($thumb))) {
 			$this->file_thumbnail = null;
 		} else {
+			// fallback to source image
+			if($src_set && (empty($thumb)  || !file_exists($thumb)))
+				$thumb = $src_image;
+			
 			$this->file_thumbnail = basename($thumb);
 			
 			if(!@rename($thumb, $this->get_thumbnail_path()))
@@ -402,6 +409,7 @@ JS;
 
 		switch($name) {
 			case 'file_url':			return $this->get_url();
+			case 'file_url_rel':		return wpfilebase_get_opt('download_base') . '/' . str_replace('\\', '/', $this->get_rel_path());
 			case 'file_post_url':		return is_null($url = $this->get_post_url()) ? $this->get_url() : $url;			
 			case 'file_icon_url':		return $this->get_icon_url();
 			case 'file_size':			return $this->get_formatted_size();

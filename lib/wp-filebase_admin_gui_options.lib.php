@@ -88,6 +88,19 @@ function wpfilebase_admin_options()
 			$options[$opt_tag] = stripslashes(trim($val));
 		}
 		
+		// make sure a short tag exists, if not append one
+		$select_opts = array('languages', 'platforms', 'licenses', 'requirements');
+		foreach($select_opts as $opt_tag) {
+			$lines = explode("\n", $options[$opt_tag]);
+			for($i = 0; $i < count($lines); $i++) {
+				$lines[$i] = trim($lines[$i], "|\r");
+				$pos = strpos($lines[$i], '|');
+				if($pos <= 0)
+					$lines[$i] .= '|'.str_replace(' ','',strtolower(substr($lines[$i], 0, min(8, strlen($lines[$i])))));
+			}
+			$options[$opt_tag] = implode("\n", $lines);
+		}
+		
 		update_option(WPFB_OPT_NAME, $options);
 		
 		wpfilebase_protect_upload_path();

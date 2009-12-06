@@ -37,7 +37,7 @@ function wpfilebase_admin_manage()
 			if ( !current_user_can('manage_categories') )
 				wp_die(__('Cheatin&#8217; uh?'));
 			
-			$result = wpfilebase_insert_category($_POST);
+			$result = wpfilebase_insert_category(array_merge($_POST, $_FILES));
 			if(isset($result['error']) && $result['error']) {
 				$message = $result['error'];
 			} else {
@@ -374,7 +374,7 @@ function wpfilebase_admin_manage()
 				echo '<p>' . __('Filebase successfully synced.') . '</p>';
 			
 			if(empty($_GET['hash_sync']))
-				echo '<p><a href="' . $clean_uri . '&amp;action=sync&amp;hash_sync=1" class="button">' . __('Complete file sync') . '</a><br />' . __('Check files for changes, so more reliable but might take much longer. Do this if you uploaded changed files with FTP.') . '</p>';			
+				echo '<p><a href="' . $clean_uri . '&amp;action=sync&amp;hash_sync=1" class="button">' . __('Complete file sync') . '</a><br />' . __('Check files for changes, so more reliable but might take much longer. Do this if you uploaded/changed files with FTP.') . '</p>';			
 			
 		break; // sync
 		
