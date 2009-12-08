@@ -61,7 +61,7 @@ $file_members_only = ($file->file_required_level > 0);
 	<tr class="form-field">
 		<?php } ?>
 		<th scope="row" valign="top"><label for="file_category"><?php _e('Category') ?></label></th>
-		<td><select name="file_category" id="file_category" class="postform"><?php wpfilebase_cat_seletion_tree($update ? $file->file_category : 0) ?></select></td>
+		<td><select name="file_category" id="file_category" class="postform"><?php echo wpfilebase_cat_selection_tree($update ? $file->file_category : 0) ?></select></td>
 		<?php if($exform) { ?>
 		<th scope="row" valign="top"><label for="file_license"><?php _e('License') ?></label></th>
 		<td><select name="file_license" id="file_license" class="postform"><?php echo wpfilebase_make_options_list('licenses', $file ? $file->file_license : null, true) ?></select></td>

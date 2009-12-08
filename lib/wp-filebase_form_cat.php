@@ -38,7 +38,7 @@ $cat_members_only = ($file_category->cat_required_level > 0);
 		<tr class="form-field">
 			<th scope="row" valign="top"><label for="cat_parent"><?php _e('Category Parent') ?></label></th>
 			<td>
-	  			<select name="cat_parent" id="cat_parent" class="postform"><?php wpfilebase_cat_seletion_tree($update ? $file_category->cat_parent : 0, $update ? $file_category->cat_id : 0) ?></select><br />
+	  			<select name="cat_parent" id="cat_parent" class="postform"><?php echo wpfilebase_cat_selection_tree($update ? $file_category->cat_parent : 0, $update ? $file_category->cat_id : 0) ?></select><br />
                 <?php _e('Categories, unlike tags, can have a hierarchy. You might have a Jazz category, and under that have children categories for Bebop and Big Band. Totally optional.'); ?>
 	  		</td>
 		</tr>

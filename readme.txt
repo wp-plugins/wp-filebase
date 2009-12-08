@@ -4,7 +4,7 @@ Donate link: http://fabi.me/donate/
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, traffic, widget, filelist, list, thumb, thumbnail, attachment, attachments, category, categories, media, template, ftp, http
 Requires at least: 2.2.0
 Tested up to: 2.8.6
-Stable tag: 0.1.2.3
+Stable tag: 0.1.2.4
 
 Adds a powerful download manager supporting file categories, thumbnails, traffic/bandwidth limits and more to your WordPress blog.
 
@@ -76,6 +76,10 @@ Since Version 0.1.2.0 you can create your custom templates for individual file l
 3. The Editor Button to insert tags for filelists and download urls
 
 == Changelog ==
+
+= 0.1.2.4 =
+* New option *Category drop down list* for the file browser
+* Fixed sync bug
 
 = 0.1.2.3 =
 * Added support for custom Category Icons

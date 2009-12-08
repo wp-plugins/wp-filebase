@@ -29,7 +29,10 @@ function wpfilebase_options()
 	
 	'disable_permalinks'	=> array('default' => false, 'title' => __('Disable download permalinks'), 'type' => 'checkbox', 'desc' => __('Enable this if you have problems with permalinks.')),
 	'download_base'			=> array('default' => 'download', 'title' => __('Download URL base'), 'type' => 'text', 'desc' => sprintf(__('The url prefix for file download links. Example: <code>%s</code> (Only used when Permalinks are enabled.)'), get_option('home').'/%value%/category/file.zip')),
+	
 	'file_browser_post_id'	=> array('default' => '', 'title' => __('Post ID of the file browser'), 'type' => 'number', 'unit' => '<a href="javascript:;" class="button" onclick="openPostBrowser(\'file_browser_post_id\')">' . __('Browse...') . '</a>', 'desc' => 'Specify the ID of the post or page where the file browser should be placed. If you want to disable this feature leave the field blank.'),
+	'cat_drop_down'			=> array('default' => false, 'title' => __('Category drop down list'), 'type' => 'checkbox', 'desc' => __('Use category drop down list in the file browser instead of listing like files.')),
+
 	'force_download'		=> array('default' => false, 'title' => __('Always force download'), 'type' => 'checkbox', 'desc' => __('If enabled files that can be viewed in the browser (like images, PDF documents or videos) can only be downloaded (no streaming).')),
 	'ignore_admin_dls'		=> array('default' => true, 'title' => __('Ignore downloads by admins'), 'type' => 'checkbox'),
 	'hide_inaccessible'		=> array('default' => true, 'title' => __('Hide inaccessible files and categories'), 'type' => 'checkbox', 'desc' => __('If enabled files tagged <i>For members only</i> will not be listed for guests or users whith insufficient rights.')),
@@ -523,7 +526,7 @@ function wpfilebase_sync($hash_sync=false)
 	for($i = 0; $i < count($uploaded_files); $i++) {
 		$fn = str_replace('\\', '/', $uploaded_files[$i]);
 		$fbn = basename($fn);
-		if($fbn{0} == '.' || $fbn == '_wp-filebase.css' || substr($fbn, '_caticon.') !== false)
+		if($fbn{0} == '.' || $fbn == '_wp-filebase.css' || strpos($fbn, '_caticon.') !== false)
 			continue;
 		if(!in_array($fn, $file_paths) && is_file($fn) && is_readable($fn)) {
 			$res = wpfilebase_add_existing_file($fn);			
@@ -653,30 +656,6 @@ function wpfilebase_make_options_list($opt_name, $selected = null, $add_empty_op
 	return $list;
 }
 
-
-function wpfilebase_cat_seletion_tree($selected_id = 0, $exclude_id = 0, $cat_id = 0, $deepth = 0)
-{
-	if($cat_id <= 0)
-	{
-		echo '<option value="0">' . __('None') . '</option>';
-		$cats = &WPFilebaseCategory::get_categories();
-		foreach($cats as $c)
-		{
-			if($c->cat_id != $exclude_id && $c->cat_parent <= 0)
-				wpfilebase_cat_seletion_tree($selected_id, $exclude_id, $c->cat_id, 0);	
-		}
-	} else {
-		$cat = &WPFilebaseCategory::get_category($cat_id);	
-		echo '<option value="' . $cat_id . '"' . (($cat_id == $selected_id) ? ' selected="selected"' : '') . '>' . str_repeat('&nbsp;&nbsp; ', $deepth) . esc_attr($cat->cat_name) . '</option>';
-
-		if(isset($cat->cat_childs)) {
-			foreach($cat->cat_childs as $child_id) {
-				if($child_id != $exclude_id)
-					wpfilebase_cat_seletion_tree($selected_id, $exclude_id, $child_id, $deepth + 1);
-			}
-		}
-	}
-}
 
 function wpfilebase_admin_table_sort_link($order)
 {

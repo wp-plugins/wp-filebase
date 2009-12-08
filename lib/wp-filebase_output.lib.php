@@ -202,25 +202,32 @@ function wpfilebase_file_browser(&$content)
 		$parent_cat_id = $cat->cat_parent;
 	}
 	
-	if($cat_id > 0)
-	{
-		if($parent_cat_id < 0 || !is_object($parent_cat = &WPFilebaseCategory::get_category($parent_cat_id))) {
-			$parent_cat = new WPFilebaseCategory();
-			$parent_cat->cat_files = count(WPFilebaseFile::get_files("WHERE file_category = 0"));
+	$drop_down = (wpfilebase_get_opt('cat_drop_down') == true);
+	
+	if($drop_down) {
+		$content .= wpfilebase_cat_url_table_js();
+		$content .= '<form name="wpfb_cats" action="">';
+		$content .= '<select name="wpfb_cat" id="wpfb_cat" class="wpfilebase-catselect" onchange="wpfilebase_catselect_changed(this)">'.wpfilebase_cat_selection_tree($cat_id).'</select>';
+		$content .= '</form>';
+	} else {
+		if($cat_id > 0)
+		{
+			if($parent_cat_id < 0 || !is_object($parent_cat = &WPFilebaseCategory::get_category($parent_cat_id))) {
+				$parent_cat = new WPFilebaseCategory();
+				$parent_cat->cat_files = count(WPFilebaseFile::get_files("WHERE file_category = 0"));
+			}
+			$parent_cat->cat_name = __('Go back');
+			$content .= $parent_cat->generate_template();
+		}	
+		$cats = &WPFilebaseCategory::get_categories("WHERE cat_parent = $cat_id ORDER BY cat_name " . (wpfilebase_get_opt('filelist_sorting_dir') ? 'DESC' : 'ASC'));	
+		foreach($cats as /* & PHP 4 compability */ $cat)
+		{
+			if($cat->current_user_can_access(true))
+				$content .= $cat->generate_template();
 		}
-		$parent_cat->cat_name = __('Go back');
-		$content .= $parent_cat->generate_template();
 	}
 	
-	$cats = &WPFilebaseCategory::get_categories("WHERE cat_parent = $cat_id ORDER BY cat_name " . (wpfilebase_get_opt('filelist_sorting_dir') ? 'DESC' : 'ASC'));
 	$files = &WPFilebaseFile::get_files("WHERE file_category = $cat_id " . wpfilebase_get_filelist_sorting_sql());
-	
-	foreach($cats as /* & PHP 4 compability */ $cat)
-	{
-		if($cat->current_user_can_access(true))
-			$content .= $cat->generate_template();
-	}
-	
 	foreach($files as /* & PHP 4 compability */ $file)
 	{
 		if($file->current_user_can_access(true))
@@ -306,6 +313,46 @@ function wpfilebase_filename2title($ft, $remove_ext=true)
 	$ft = str_replace(array('.', '_'), ' ', $ft);
 	$ft = ucwords($ft);
 	return $ft;
+}
+
+
+function wpfilebase_cat_selection_tree($selected_id = 0, $exclude_id = 0, $cat_id = 0, $deepth = 0)
+{
+	$out = '';
+	if($cat_id <= 0)
+	{
+		$out .= '<option value="0">' . __('None') . '</option>';
+		$cats = &WPFilebaseCategory::get_categories();
+		foreach($cats as $c) {
+			if($c->cat_parent <= 0 && $c->cat_id != $exclude_id)
+				$out .= wpfilebase_cat_selection_tree($selected_id, $exclude_id, $c->cat_id, 0);	
+		}
+	} else {
+		$cat = &WPFilebaseCategory::get_category($cat_id);	
+		$out .= '<option value="' . $cat_id . '"' . (($cat_id == $selected_id) ? ' selected="selected"' : '') . '>' . str_repeat('&nbsp;&nbsp; ', $deepth) . esc_attr($cat->cat_name) . '</option>';
+
+		if(isset($cat->cat_childs)) {
+			foreach($cat->cat_childs as $child_id) {
+				if($child_id != $exclude_id)
+					$out .= wpfilebase_cat_selection_tree($selected_id, $exclude_id, $child_id, $deepth + 1);
+			}
+		}
+	}
+	return $out;
+}
+
+
+function wpfilebase_cat_url_table_js() {
+	$out = '<script type="text/javascript"> var wpfb_cat_urls = [';
+	$nocat = new WPFilebaseCategory();
+	$out .= "{id:0,url:'".$nocat->get_url()."'},";
+	$cats = &WPFilebaseCategory::get_categories();
+	foreach($cats as $c) {	
+		$out .= "{id:$c->cat_id,url:'".$c->get_url()."'},";
+	}
+	
+	$out .= ']; </script>';
+	return $out;
 }
 
 ?>

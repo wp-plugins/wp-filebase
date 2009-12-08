@@ -374,7 +374,7 @@ function wpfilebase_admin_manage()
 				echo '<p>' . __('Filebase successfully synced.') . '</p>';
 			
 			if(empty($_GET['hash_sync']))
-				echo '<p><a href="' . $clean_uri . '&amp;action=sync&amp;hash_sync=1" class="button">' . __('Complete file sync') . '</a><br />' . __('Check files for changes, so more reliable but might take much longer. Do this if you uploaded/changed files with FTP.') . '</p>';			
+				echo '<p><a href="' . $clean_uri . '&amp;action=sync&amp;hash_sync=1" class="button">' . __('Complete file sync') . '</a><br /><br />' . __('Checks files for changes, so more reliable but might take much longer. Do this if you uploaded/changed files with FTP.') . '</p>';			
 			
 		break; // sync
 		
