@@ -295,7 +295,7 @@ function wpfilebase_send_file($file_path, $bandwidth = 0, $etag = null)
 	}
 	
 	if(!($fh = @fopen($file_path, 'rb')))
-		wp_die(__('Could not read file!'));
+		wp_die(__('Could not read file!', WPFB));
 		
 	$begin = 0;
 	$end = $size;

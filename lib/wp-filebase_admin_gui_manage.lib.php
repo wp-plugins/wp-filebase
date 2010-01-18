@@ -25,7 +25,7 @@ function wpfilebase_admin_manage()
 	
 	echo '<div class="wrap">';
 	if(!empty($_GET['action']))
-			echo '<p><a href="' . $clean_uri . '" class="button">' . __('Go back') . '</a></p>';
+			echo '<p><a href="' . $clean_uri . '" class="button">' . __('Go back'/*def*/) . '</a></p>';
 	
 	switch($action)
 	{
@@ -35,20 +35,20 @@ function wpfilebase_admin_manage()
 		case 'addcat':
 			$update = !empty($update);
 			if ( !current_user_can('manage_categories') )
-				wp_die(__('Cheatin&#8217; uh?'));
+				wp_die(__('Cheatin&#8217; uh?'/*def*/));
 			
 			$result = wpfilebase_insert_category(array_merge($_POST, $_FILES));
 			if(isset($result['error']) && $result['error']) {
 				$message = $result['error'];
 			} else {
-				$message = __($update?'Category updated.':'Category added.');
+				$message = $update?__('Category updated.'):__('Category added.');/*def*/
 			}
 			
 			//wp_redirect($clean_uri . '&action=manage_cats&message=' . urlencode($message));
 			
 		case 'manage_cats':		
 			if(!current_user_can('manage_categories'))
-				wp_die(__('Cheatin&#8217; uh?'));
+				wp_die(__('Cheatin&#8217; uh?'/*def*/));
 				
 			if(!empty($_POST['deleteit']))
 			{
@@ -59,9 +59,9 @@ function wpfilebase_admin_manage()
 			}
 ?>
 	<h2><?php
-	printf(__('Manage Categories (<a href="%s">add new</a>)'), '#addcat');
+	printf(__('Manage Categories (<a href="%s">add new</a>)', WPFB), '#addcat');
 	if ( isset($_GET['s']) && $_GET['s'] )
-		printf( '<span class="subtitle">' . __('Search results for &#8220;%s&#8221;') . '</span>', wp_specialchars(stripslashes($_GET['s'])));
+		printf( '<span class="subtitle">' . __('Search results for &#8220;%s&#8221;'/*def*/) . '</span>', wp_specialchars(stripslashes($_GET['s'])));
 	?></h2>
 
 	<?php if ( !empty($message) ) : ?><div id="message" class="updated fade"><p><?php echo $message; ?></p></div><?php endif; ?> 
@@ -69,9 +69,9 @@ function wpfilebase_admin_manage()
 	<form class="search-form topmargin" action="" method="get"><p class="search-box">
 		<input type="hidden" value="<?php esc_attr_e($_GET['page']); ?>" name="page" />
 		<input type="hidden" value="<?php esc_attr_e($_GET['action']); ?>" name="action" />
-		<label class="hidden" for="category-search-input"><?php _e('Search Categories'); ?>:</label>
+		<label class="hidden" for="category-search-input"><?php _e('Search Categories'/*def*/); ?>:</label>
 		<input type="text" class="search-input" id="category-search-input" name="s" value="<?php echo(isset($_GET['s']) ? esc_attr($_GET['s']) : ''); ?>" />
-		<input type="submit" value="<?php _e( 'Search Categories' ); ?>" class="button" />
+		<input type="submit" value="<?php _e( 'Search Categories'/*def*/); ?>" class="button" />
 	</p></form>	
 	
 	<br class="clear" />
@@ -116,10 +116,10 @@ function wpfilebase_admin_manage()
 			<thead>
 			<tr>
 				<th scope="col" class="check-column"><input type="checkbox" /></th>
-				<th scope="col"><a href="<?php echo wpfilebase_admin_table_sort_link('cat_name') ?>"><?php _e('Name') ?></a></th>
-				<th scope="col"><a href="<?php echo wpfilebase_admin_table_sort_link('cat_description') ?>"><?php _e('Description') ?></a></th>
-				<th scope="col" class="num"><a href="<?php echo wpfilebase_admin_table_sort_link('cat_files') ?>"><?php _e('Files') ?></th>
-				<th scope="col"><?php _e('Category Parent') ?></th>
+				<th scope="col"><a href="<?php echo wpfilebase_admin_table_sort_link('cat_name') ?>"><?php _e('Name'/*def*/) ?></a></th>
+				<th scope="col"><a href="<?php echo wpfilebase_admin_table_sort_link('cat_description') ?>"><?php _e('Description'/*def*/) ?></a></th>
+				<th scope="col" class="num"><a href="<?php echo wpfilebase_admin_table_sort_link('cat_files') ?>"><?php _e('Files', WPFB) ?></th>
+				<th scope="col"><?php _e('Category Parent'/*def*/) ?></th>
 			</tr>
 			</thead>
 			<tbody id="the-list" class="list:cat">
@@ -143,7 +143,7 @@ function wpfilebase_admin_manage()
 	<br class="clear" />
 	
 	<?php if ( current_user_can('manage_categories') ) : ?>
-		<p><?php _e('<strong>Note:</strong><br />Deleting a category does not delete the files in that category. Instead, files that were assigned to the deleted category are set to the parent category.') ?></p><?php
+		<p><?php _e('<strong>Note:</strong><br />Deleting a category does not delete the files in that category. Instead, files that were assigned to the deleted category are set to the parent category.', WPFB) ?></p><?php
 		wpfilebase_admin_form('cat');
 		endif;
 
@@ -182,7 +182,7 @@ function wpfilebase_admin_manage()
 			if(isset($result['error']) && $result['error']) {
 				$message = $result['error'];
 			} else {
-				$message = __($update?'File updated.':'File added.');
+				$message = $update?__('File updated.', WPFB):__('File added.', WPFB);
 			}
 
 		case 'manage_files':
@@ -198,17 +198,17 @@ function wpfilebase_admin_manage()
 			}
 ?>
 	<h2><?php
-	printf(__('Manage Files (<a href="%s">add new</a>)'), '#addfile');
+	printf(__('Manage Files (<a href="%s">add new</a>)', WPFB), '#addfile');
 	if ( isset($_GET['s']) && $_GET['s'] )
-		printf( '<span class="subtitle">' . __('Search results for &#8220;%s&#8221;') . '</span>', wp_specialchars(stripslashes($_GET['s'])));
+		printf( '<span class="subtitle">' . __('Search results for &#8220;%s&#8221;'/*def*/) . '</span>', wp_specialchars(stripslashes($_GET['s'])));
 	?></h2>
 	<?php if ( !empty($message) ) : ?><div id="message" class="updated fade"><p><?php echo $message; ?></p></div><?php endif; ?> 
 	<form class="search-form topmargin" action="" method="get"><p class="search-box">
 			<input type="hidden" value="<?php esc_attr_e($_GET['page']); ?>" name="page" />
 			<input type="hidden" value="<?php esc_attr_e($_GET['action']); ?>" name="action" />
-			<label class="hidden" for="file-search-input"><?php _e('Search Files'); ?>:</label>
+			<label class="hidden" for="file-search-input"><?php _e('Search Files', WPFB); ?>:</label>
 			<input type="text" class="search-input" id="file-search-input" name="s" value="<?php echo(isset($_GET['s']) ? esc_attr($_GET['s']) : ''); ?>" />
-			<input type="submit" value="<?php _e('Search Files'); ?>" class="button" />
+			<input type="submit" value="<?php _e('Search Files', WPFB); ?>" class="button" />
 	</p></form>
 	
 	<br class="clear" />
@@ -265,14 +265,14 @@ function wpfilebase_admin_manage()
 			<thead>
 			<tr>
 				<th scope="col" class="check-column"><input type="checkbox" /></th>
-				<th scope="col"><a href="<?php echo wpfilebase_admin_table_sort_link('file_display_name') ?>"><?php _e('Name') ?></th>	
-				<th scope="col"><a href="<?php echo wpfilebase_admin_table_sort_link('file_name') ?>"><?php _e('Filename') ?></th>    
-				<th scope="col"><a href="<?php echo wpfilebase_admin_table_sort_link('file_size') ?>"><?php _e('Size') ?></th>    		
-				<th scope="col"><a href="<?php echo wpfilebase_admin_table_sort_link('file_description') ?>"><?php _e('Description') ?></th>
-				<th scope="col"><a href="<?php echo wpfilebase_admin_table_sort_link('file_category') ?>"><?php _e('Category') ?></th>
-				<th scope="col" class="num"><a href="<?php echo wpfilebase_admin_table_sort_link('file_hits') ?>"><?php _e('Hits') ?></th>
-				<th scope="col"><a href="<?php echo wpfilebase_admin_table_sort_link('file_last_dl_time') ?>"><?php _e('Last download') ?></th>
-				<!-- TODO <th scope="col" class="num"><a href="<?php echo wpfilebase_admin_table_sort_link('file_') ?>"><?php _e('Rating') ?></th> -->
+				<th scope="col"><a href="<?php echo wpfilebase_admin_table_sort_link('file_display_name') ?>"><?php _e('Name'/*def*/) ?></th>	
+				<th scope="col"><a href="<?php echo wpfilebase_admin_table_sort_link('file_name') ?>"><?php _e('Filename', WPFB) ?></th>    
+				<th scope="col"><a href="<?php echo wpfilebase_admin_table_sort_link('file_size') ?>"><?php _e('Size'/*def*/) ?></th>    		
+				<th scope="col"><a href="<?php echo wpfilebase_admin_table_sort_link('file_description') ?>"><?php _e('Description'/*def*/) ?></th>
+				<th scope="col"><a href="<?php echo wpfilebase_admin_table_sort_link('file_category') ?>"><?php _e('Category'/*def*/) ?></th>
+				<th scope="col" class="num"><a href="<?php echo wpfilebase_admin_table_sort_link('file_hits') ?>"><?php _e('Hits', WPFB) ?></th>
+				<th scope="col"><a href="<?php echo wpfilebase_admin_table_sort_link('file_last_dl_time') ?>"><?php _e('Last download', WPFB) ?></th>
+				<!-- TODO <th scope="col" class="num"><a href="<?php echo wpfilebase_admin_table_sort_link('file_') ?>"><?php _e('Rating'/*def*/) ?></th> -->
 			</tr>
 			</thead>
 			<tbody id="the-list" class="list:file wpfilebase-list">
@@ -359,22 +359,22 @@ function wpfilebase_admin_manage()
 			
 			echo '<p>';
 			if($num_changed == 0 && $num_added == 0)
-				_e('Nothing changed!');
+				_e('Nothing changed!', WPFB);
 
 			if($num_changed > 0)
-				printf(__('Changed %d items.'), $num_changed);
+				printf(__('Changed %d items.', WPFB), $num_changed);
 				
 			if($num_added > 0) {
 				echo '<br />';
-				printf(__('Added %d files.'), $num_added);
+				printf(__('Added %d files.', WPFB), $num_added);
 			}
 			echo '</p>';
 			
 			if( $num_errors == 0)
-				echo '<p>' . __('Filebase successfully synced.') . '</p>';
+				echo '<p>' . __('Filebase successfully synced.', WPFB) . '</p>';
 			
 			if(empty($_GET['hash_sync']))
-				echo '<p><a href="' . $clean_uri . '&amp;action=sync&amp;hash_sync=1" class="button">' . __('Complete file sync') . '</a><br /><br />' . __('Checks files for changes, so more reliable but might take much longer. Do this if you uploaded/changed files with FTP.') . '</p>';			
+				echo '<p><a href="' . $clean_uri . '&amp;action=sync&amp;hash_sync=1" class="button">' . __('Complete file sync', WPFB) . '</a><br /><br />' . __('Checks files for changes, so more reliable but might take much longer. Do this if you uploaded/changed files with FTP.', WPFB) . '</p>';			
 			
 		break; // sync
 		
@@ -387,7 +387,7 @@ function wpfilebase_admin_manage()
 			
 			$exists = file_exists($css_path_edit) && is_file($css_path_edit);
 			if( ($exists && !is_writable($css_path_edit)) || (!$exists && !is_writable(dirname($css_path_edit))) ) {
-				?><div class="error default-password-nag"><p><?php printf(__('%s is not writable!'), $css_path_edit) ?></p></div><?php
+				?><div class="error default-password-nag"><p><?php printf(__('%s is not writable!', WPFB), $css_path_edit) ?></p></div><?php
 				break;
 			}
 			
@@ -415,8 +415,8 @@ function wpfilebase_admin_manage()
 		 <div><textarea cols="70" rows="25" name="newcontent" id="newcontent" tabindex="1" class="codepress css" style="width: 98%;"><?php echo $content ?></textarea>
 		 <input type="hidden" name="action" value="edit_css" />
 		<p class="submit">
-		<?php echo "<input type='submit' name='submit' class='button-primary' value='" . esc_attr__('Update File') . "' tabindex='2' />" ?>
-		<?php if($exists) { echo "<input type='submit' name='restore_default' class='button' value='" . esc_attr__('Restore Default') . "' tabindex='3' />"; } ?>
+		<?php echo "<input type='submit' name='submit' class='button-primary' value='" . esc_attr__('Update File', WPFB) . "' tabindex='2' />" ?>
+		<?php if($exists) { echo "<input type='submit' name='restore_default' class='button' value='" . esc_attr__('Restore Default', WPFB) . "' tabindex='3' />"; } ?>
 		</p>
 		</div>
 </form>
@@ -449,7 +449,7 @@ function wpfilebase_admin_manage()
 			if(!empty($tpls)) {
 			?>
 <p>Here you can add and edit your custom templates for file lists and single files embedded in your posts. When creating a template you can use file variables in the HTML code.
-<h2><?php _e('Edit Templates') ?></h2>
+<h2><?php _e('Edit Templates', WPFB) ?></h2>
 <form name="addtpl" id="addtpl" action="<?php echo $clean_uri ?>&amp;action=manage_tpls" method="post">
 			<?php
 				foreach($tpls as $tpl_tag => $tpl_src)
@@ -463,7 +463,7 @@ function wpfilebase_admin_manage()
 					<?php
 				}
 				?>
-	<p class="submit"><?php echo "<input type='submit' name='submit' class='button-primary' value='" . esc_attr__('Submit Template Changes') . "' tabindex='2' />" ?></p>
+	<p class="submit"><?php echo "<input type='submit' name='submit' class='button-primary' value='" . esc_attr__('Submit Template Changes', WPFB) . "' tabindex='2' />" ?></p>
 </form>
 				<?php
 			}			
@@ -472,13 +472,13 @@ function wpfilebase_admin_manage()
 			<h2><?php _e('Add Template') ?></h2>
 <form name="addtpl" id="addtpl" action="<?php echo $clean_uri ?>&amp;action=manage_tpls" method="post">
 	<p>
-		<?php _e('Template Tag (a single word to describe the template):') ?><br />
+		<?php _e('Template Tag (a single word to describe the template):', WPFB) ?><br />
 		<input type="text" name="newtpl_tag" value="" tabindex="1" maxlength="20" /><br />
-		<?php _e('Template Code:') ?><br />
+		<?php _e('Template Code:', WPFB) ?><br />
 		<textarea cols="70" wrap="off" rows="15" name="newtpl_src" tabindex="2" class="codepress html wpfilebase-tpledit"></textarea><br />
 		<?php echo wpfilebase_template_fields_select('newtpl_src') ?>
 	</p>
-	<p class="submit"><?php echo "<input type='submit' name='submit' class='button-primary' value='" . esc_attr__('Add Template') . "' tabindex='2' />" ?></p>
+	<p class="submit"><?php echo "<input type='submit' name='submit' class='button-primary' value='" . esc_attr__('Add Template', WPFB) . "' tabindex='2' />" ?></p>
 </form>
 		<?php		
 		break; // manage_tpls
@@ -494,30 +494,30 @@ function wpfilebase_admin_manage()
 				if(!is_dir($upload_dir)) {
 					$result = wpfilebase_mkdir($upload_dir);
 					if($result['error'])
-						$error_msg = sprintf(__('The upload directory <code>%s</code> does not exists. It could not be created automatically because the directory <code>%s</code> is not writable. Please create <code>%s</code> and make it writable for the webserver by executing the following FTP command: <code>%s</code>'), $upload_dir_rel, str_replace(ABSPATH, '', $result['parent']), $upload_dir_rel, $chmod_cmd);
+						$error_msg = sprintf(__('The upload directory <code>%s</code> does not exists. It could not be created automatically because the directory <code>%s</code> is not writable. Please create <code>%s</code> and make it writable for the webserver by executing the following FTP command: <code>%s</code>', WPFB), $upload_dir_rel, str_replace(ABSPATH, '', $result['parent']), $upload_dir_rel, $chmod_cmd);
 				} elseif(!is_writable($upload_dir)) {
-					$error_msg = sprintf(__('The upload directory <code>%s</code> is not writable. Please make it writable for PHP by executing the follwing FTP command: <code>%s</code>'), $upload_dir_rel, $chmod_cmd);
+					$error_msg = sprintf(__('The upload directory <code>%s</code> is not writable. Please make it writable for PHP by executing the follwing FTP command: <code>%s</code>', WPFB), $upload_dir_rel, $chmod_cmd);
 				}
 				
 				if(!empty($error_msg)) { ?><div class="error default-password-nag"><p><?php echo $error_msg ?></p></div><?php } ?>
 			<p>
 			<?php
 				$buttons = array(
-					array('title' => 'Manage Files',		'desc' => 'View uploaded files and edit them',				'capability' => 'upload_files',			'action' => 'manage_files'),
-					array('title' => 'Manage Categories',	'desc' => 'Manage existing categories and add new ones.',	'capability' => 'manage_categories',	'action' => 'manage_cats'),
-					array('title' => 'Sync Filebase',		'desc' => 'Synchronises the database with the file system. Use this to add FTP-uploaded files.',	'action' => 'sync'),
-					array('title' => 'Edit Stylesheet',		'desc' => 'Edit the CSS for the file template',				'capability' => 'edit_themes',			'action' => 'edit_css'),
-					array('title' => 'Manage Templates',	'desc' => 'Edit custom file list templates',				'capability' => 'edit_themes',			'action' => 'manage_tpls'),
+					array('title' => __('Manage Files', WPFB),		'desc' => __('View uploaded files and edit them', WPFB),				'capability' => 'upload_files',			'action' => 'manage_files'),
+					array('title' => __('Manage Categories', WPFB),	'desc' => __('Manage existing categories and add new ones.', WPFB),	'capability' => 'manage_categories',	'action' => 'manage_cats'),
+					array('title' => __('Sync Filebase', WPFB),		'desc' => __('Synchronises the database with the file system. Use this to add FTP-uploaded files.', WPFB),	'action' => 'sync'),
+					array('title' => __('Edit Stylesheet', WPFB),	'desc' => __('Edit the CSS for the file template', WPFB),				'capability' => 'edit_themes',			'action' => 'edit_css'),
+					array('title' => __('Manage Templates', WPFB),	'desc' => __('Edit custom file list templates', WPFB),				'capability' => 'edit_themes',			'action' => 'manage_tpls'),
 				);
 				foreach($buttons as $btn) {
 					if(empty($btn['capability']) || current_user_can($btn['capability'])) {
-						echo '<a href="' . $clean_uri . '&amp;action=' . $btn['action'] . '" class="button" title="' . $btn['desc'] . '">' . __($btn['title']) . '</a>'."\n";
+						echo '<a href="' . $clean_uri . '&amp;action=' . $btn['action'] . '" class="button" title="' . $btn['desc'] . '">' . $btn['title'] . '</a>'."\n";
 					}
 				}
 			?>
 			</p>
 			
-			<h2><?php _e('Traffic'); ?></h2>
+			<h2><?php _e('Traffic', WPFB); ?></h2>
 			<table class="form-table">
 			<?php
 				$traffic_stats = wpfilebase_get_traffic();					
@@ -525,7 +525,7 @@ function wpfilebase_admin_manage()
 				$limit_month = (wpfilebase_get_opt('traffic_month') * 1073741824);
 			?>
 			<tr>
-				<th scope="row"><?php _e('Today'); ?></th>
+				<th scope="row"><?php _e('Today', WPFB); ?></th>
 				<td><?php
 					if($limit_day > 0)
 						wpfilebase_progress_bar($traffic_stats['today'] / $limit_day, wpfilebase_format_filesize($traffic_stats['today']) . '/' . wpfilebase_format_filesize($limit_day));
@@ -534,7 +534,7 @@ function wpfilebase_admin_manage()
 				?></td>
 			</tr>
 			<tr>
-				<th scope="row"><?php _e('This Month'); ?></th>
+				<th scope="row"><?php _e('This Month', WPFB); ?></th>
 				<td><?php
 					if($limit_month > 0)
 						wpfilebase_progress_bar($traffic_stats['month'] / $limit_month, wpfilebase_format_filesize($traffic_stats['month']) . '/' . wpfilebase_format_filesize($limit_month));

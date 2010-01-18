@@ -18,7 +18,7 @@ function wpfilebase_parse_template($tpl)
 	"'\\'.(('.wpfilebase_parse_template_expression('$1').')?(\\''.wpfilebase_parse_template_ifblock('$2').'\\')).\\''", $tpl);
 	
 	// parse translation texts
-	$tpl = preg_replace('/([^\w])%\\\\\'(.+?)\\\\\'%([^\w])/', '$1\'.__(\'$2\').\'$3', $tpl);
+	$tpl = preg_replace('/([^\w])%\\\\\'(.+?)\\\\\'%([^\w])/', '$1\'.__(\'$2\', WPFB).\'$3', $tpl);
 	// parse variables
 	$tpl = preg_replace('/%([a-z0-9_]+?)%/i', '\'.$f->get_tpl_var(\'$1\').\'', $tpl);
 	

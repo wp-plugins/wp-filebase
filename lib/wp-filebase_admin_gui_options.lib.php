@@ -22,7 +22,7 @@ function wpfilebase_admin_options()
 	{
 		wpfilebase_inclib('setup');
 		wpfilebase_reset_options();
-		$messages[] = __('Settings reseted.');		
+		$messages[] = __('Settings reseted.', WPFB);		
 		$options = get_option(WPFB_OPT_NAME);
 	}
 	elseif(isset($_POST['submit']))
@@ -46,10 +46,10 @@ function wpfilebase_admin_options()
 		
 		$_POST['download_base'] = trim($_POST['download_base'], '/');
 		if(wpfilebase_wpcache_reject_uri($_POST['download_base'] . '/', $options['download_base'] . '/'))
-			$messages[] = sprintf(__('/%s/ added to rejected URIs list of WP Super Cache.'), $_POST['download_base']);
+			$messages[] = sprintf(__('/%s/ added to rejected URIs list of WP Super Cache.', WPFB), $_POST['download_base']);
 		
 		if(!empty($_POST['allow_srv_script_upload']))
-			$messages[] = __('WARNING: Script upload enabled!');
+			$messages[] = __('WARNING: Script upload enabled!', WPFB);
 		
 		$tpl_file = stripslashes($_POST['template_file']);
 		$tpl_cat = stripslashes($_POST['template_cat']);
@@ -61,9 +61,9 @@ function wpfilebase_admin_options()
 			
 			if(!$result['error']) {
 				$options['template_file_parsed'] = $tpl_file;
-				$messages[] = __('File template successfully parsed.');
+				$messages[] = __('File template successfully parsed.', WPFB);
 			} else {
-				$errors[] = sprintf(__('Could not parse template: error (%s) in line %s.'), $result['msg'], $result['line']);
+				$errors[] = sprintf(__('Could not parse template: error (%s) in line %s.', WPFB), $result['msg'], $result['line']);
 			}
 		}
 		
@@ -75,9 +75,9 @@ function wpfilebase_admin_options()
 			
 			if(!$result['error']) {
 				$options['template_cat_parsed'] = $tpl_cat;
-				$messages[] = __('Category template successfully parsed.');
+				$messages[] = __('Category template successfully parsed.', WPFB);
 			} else {
-				$errors[] = sprintf(__('Could not parse template: error (%s) in line %s.'), $result['msg'], $result['line']);
+				$errors[] = sprintf(__('Could not parse template: error (%s) in line %s.', WPFB), $result['msg'], $result['line']);
 			}
 		}
 		
@@ -106,7 +106,7 @@ function wpfilebase_admin_options()
 		wpfilebase_protect_upload_path();
 		
 		if(count($errors) == 0)
-			$messages[] = __('Settings updated.');
+			$messages[] = __('Settings updated.', WPFB);
 	}
 	
 	wpfilebase_flush_rewrite_rules();
@@ -131,13 +131,13 @@ function wpfilebase_admin_options()
 <?php endif; ?>
 
 <div class="wrap">
-<h2><?php echo WPFB_PLUGIN_NAME; echo ' '; _e("Settings"); ?></h2>
+<h2><?php echo WPFB_PLUGIN_NAME; echo ' '; _e("Settings"/*def*/); ?></h2>
 
 <form method="post" action="<?php echo $action_uri; ?>" name="wpfilebase-options">
 	<?php wp_nonce_field('update-options'); ?>
 	<p class="submit">
-	<input type="submit" name="submit" value="<?php _e('Save Changes') ?>" class="button-primary" />
-	<input type="submit" id="deletepost" name="reset" value="<?php _e('Reset options') ?>" onclick="return confirm('<?php _e('Are you sure?'); ?>')" class="button delete" />
+	<input type="submit" name="submit" value="<?php _e('Save Changes'/*def*/) ?>" class="button-primary" />
+	<input type="submit" id="deletepost" name="reset" value="<?php _e('Reset'/*def*/) ?>" onclick="return confirm('<?php _e('Are you sure you want to do that?'/*def*/); ?>')" class="button delete" />
 	</p>
 	<table class="form-table">	
 	<?php
@@ -208,7 +208,7 @@ function wpfilebase_admin_options()
 	<input type="hidden" name="page_options" value="<?php echo $page_option_list; ?>" />
 	<p class="submit">
 	<input type="submit" name="submit" value="<?php _e('Save Changes') ?>" class="button-primary" />
-	<input type="submit" id="deletepost" name="reset" class="button delete" value="<?php _e('Reset options') ?>" onclick="return confirm('<?php _e('Are you sure?'); ?>')" />
+	<input type="submit" id="deletepost" name="reset" class="button delete" value="<?php _e('Reset') ?>" onclick="return confirm('<?php _e('Are you sure you want to do that?'/*def*/); ?>')" />
 	</p>
 </form>
 </div>	<!-- wrap -->	

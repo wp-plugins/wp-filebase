@@ -69,14 +69,14 @@ function wpfilebase_widget_filelist_control()
 		</label></p>
 		
 		<p>
-			<label for="wpfilebase-filelist-order-by"><?php _e('Sort by:'); ?></label>
+			<label for="wpfilebase-filelist-order-by"><?php _e('Sort by:'/*def*/); ?></label>
 			<select type="text" id="wpfilebase-filelist-order-by" name="wpfilebase-filelist-order-by">
 			<?php
 				$order_by_options = array('file_id', 'file_name', 'file_size', 'file_date', 'file_display_name', 'file_hits', 'file_rating_sum', 'file_last_dl_time');
 				$field_descs = &wpfilebase_template_fields_desc();
 				foreach($order_by_options as $tag)
 				{
-					echo '<option value="' . esc_attr($tag) . '" title="' . esc_attr(__($field_descs[$tag])) . '"' . ( ($options['filelist_order_by'] == $tag) ? ' selected="selected"' : '' ) . '>' . __($tag) . '</option>';
+					echo '<option value="' . esc_attr($tag) . '" title="' . esc_attr($field_descs[$tag]) . '"' . ( ($options['filelist_order_by'] == $tag) ? ' selected="selected"' : '' ) . '>' . $tag . '</option>';
 				}
 			?>
 			</select><br />
@@ -84,12 +84,12 @@ function wpfilebase_widget_filelist_control()
 			<label for="wpfilebase-filelist-asc1"><input type="radio" name="wpfilebase-filelist-asc" id="wpfilebase-filelist-asc1" value="1"<?php echo ($options['filelist_asc'])?' checked="checked"':'' ?>/><?php _e('Ascending'); ?></label>
 		</p>
 		
-		<p><label for="wpfilebase-filelist-limit"><?php _e('Limit:'); ?>
+		<p><label for="wpfilebase-filelist-limit"><?php _e('Limit:', WPFB); ?>
 			<input type="text" id="wpfilebase-filelist-limit" name="wpfilebase-filelist-limit" size="4" maxlength="3" value="<?php echo $options['filelist_limit']; ?>" />
 		</label></p>
 		
 		<p>
-			<label for="wpfilebase-filelist-template"><?php _e('Template:'); ?><br /><input class="widefat" type="text" id="wpfilebase-filelist-template" name="wpfilebase-filelist-template" value="<?php echo esc_attr($options['filelist_template']); ?>" /></label>
+			<label for="wpfilebase-filelist-template"><?php _e('Template:', WPFB); ?><br /><input class="widefat" type="text" id="wpfilebase-filelist-template" name="wpfilebase-filelist-template" value="<?php echo esc_attr($options['filelist_template']); ?>" /></label>
 			<br />
 			<?php					
 				echo wpfilebase_template_fields_select('wpfilebase-filelist-template', true);

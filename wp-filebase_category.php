@@ -192,7 +192,7 @@ class WPFilebaseCategory extends WPFilebaseItem {
 		
 		// create cat dir
 		if (!wp_mkdir_p($this->get_path()))
-			return array( 'error' => sprintf( __( 'Unable to create directory %s. Is its parent directory writable by the server?' ), $dir ) );
+			return array( 'error' => sprintf( __( 'Unable to create directory %s. Is its parent directory writable by the server?'/*def*/), $dir ) );
 		// chmod
 		@chmod ($this->get_path(), octdec(WPFB_PERM_DIR));
 

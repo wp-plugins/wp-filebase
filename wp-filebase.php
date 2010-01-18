@@ -21,6 +21,7 @@ define('WPFB_PLUGIN_ROOT', str_replace('\\', '/', dirname(__FILE__)) . '/');
 define('WPFB_PLUGIN_URI', str_replace(str_replace('\\', '/', ABSPATH), get_option('siteurl') . '/', WPFB_PLUGIN_ROOT));
 define('WPFB_OPT_NAME', 'wpfilebase');
 define('WPFB_PLUGIN_NAME', 'WP-Filebase');
+define('WPFB', 'wp-fb');
 
 define('WPFB_PERM_FILE', 666);
 define('WPFB_PERM_DIR', 777);

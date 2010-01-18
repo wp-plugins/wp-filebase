@@ -337,7 +337,7 @@ class WPFilebaseFile extends WPFilebaseItem {
 		if(!is_dir(dirname($this->get_path())))
 		{
 			if ( !wp_mkdir_p(dirname($this->get_path())) )
-				return array( 'error' => sprintf( __( 'Unable to create directory %s. Is it\'s parent directory writable?' ), $this->get_path() ) );
+				return array( 'error' => sprintf( __( 'Unable to create directory %s. Is it\'s parent directory writable?'/*def*/), $this->get_path() ) );
 		}
 		
 		// move file

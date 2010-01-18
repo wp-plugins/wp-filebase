@@ -34,12 +34,12 @@ function wpfilebase_editor_file_list($cat_id = 0)
 	$num_total_files = WPFilebaseFile::get_num_files();
 	$files = is_object($cat) ? $cat->get_files() : WPFilebaseFile::get_files("WHERE file_category = 0");
 	if(count($files) > 0) {
-		$content .= '<h3>' . __('Uncategorized Files') . '</h3>';
+		$content .= '<h3>' . __('Uncategorized Files', WPFB) . '</h3>';
 		foreach($files as $file)
 			$content .= '<label><input type="radio" name="file" value="' . $file->file_id . '" title="' . esc_attr($file->file_display_name) . '" />' . wp_specialchars($file->file_display_name) . '</label><br />';
 	}
 	if(count($files) == 0 && $num_total_files == 0)
-		$content .= '<i>' . sprintf(__('You did not upload a file. <a href="%s" target="_parent">Click here to add one.</a>'), get_option('siteurl') . '/wp-admin/tools.php?page=wpfilebase&amp;action=manage_files#addfile') . '</i>';
+		$content .= '<i>' . sprintf(__('You did not upload a file. <a href="%s" target="_parent">Click here to add one.</a>', WPFB), get_option('siteurl') . '/wp-admin/tools.php?page=wpfilebase&amp;action=manage_files#addfile') . '</i>';
 		
 	return $content;
 }
@@ -216,7 +216,7 @@ if(!empty($_REQUEST['action']) && $_REQUEST['action'] == 'get_sub_items')
 			if(url)
 			{
 				var fileTitle = getSelectedRadio('file').title;
-				var linkText = prompt('<?php _e('Enter link text:') ?>', fileTitle);
+				var linkText = prompt('<?php _e('Enter link text:', WPFB) ?>', fileTitle);
 				if(!linkText || linkText == null || linkText == '')
 					return;
 				content += ']">' + linkText + '</a>';
@@ -241,9 +241,9 @@ if(!empty($_REQUEST['action']) && $_REQUEST['action'] == 'get_sub_items')
 
 <form onsubmit="doInsert(); return false;" action="#">
 	<div id="menu" class="mceActionPanel">
-		<input type="button" name="insfile" class="button" onclick="insertTypeBtnClicked(this);" value="<?php _e('Single file'); ?>" />
-		<input type="button" name="insfileurl" class="button" onclick="insertTypeBtnClicked(this);" value="<?php _e('File URL'); ?>" />
-		<input type="button" name="insfilelist" class="button" onclick="insertTypeBtnClicked(this);" value="<?php _e('File list'); ?>" />
+		<input type="button" name="insfile" class="button" onclick="insertTypeBtnClicked(this);" value="<?php _e('Single file', WPFB); ?>" />
+		<input type="button" name="insfileurl" class="button" onclick="insertTypeBtnClicked(this);" value="<?php _e('File URL', WPFB); ?>" />
+		<input type="button" name="insfilelist" class="button" onclick="insertTypeBtnClicked(this);" value="<?php _e('File list', WPFB); ?>" />
 	</div>
 	
 	<div style="height: 290px; overflow: auto;">
@@ -252,9 +252,9 @@ if(!empty($_REQUEST['action']) && $_REQUEST['action'] == 'get_sub_items')
 		<div id="filelist" style="display: none;"><?php echo wpfilebase_editor_file_list(); ?></div>
 		
 		<div id="insfilelist" style="display: none;">
-			<label><input type="radio" name="cat" value="all" /><i><?php _e('All Categories') ?></i></label><br />
-			<label><input type="radio" name="cat" value="0" /><i><?php _e('Uncategorized Files') ?></i></label><br />
-			<label><input type="radio" name="cat" value="attachments" /><i><?php _e('Attachments') ?></i></label><br />
+			<label><input type="radio" name="cat" value="all" /><i><?php _e('All Categories'/*def*/) ?></i></label><br />
+			<label><input type="radio" name="cat" value="0" /><i><?php _e('Uncategorized Files', WPFB) ?></i></label><br />
+			<label><input type="radio" name="cat" value="attachments" /><i><?php _e('Attachments', WPFB) ?></i></label><br />
 			<?php
 				$cats = WPFilebaseCategory::get_categories();
 				if(count($cats) > 0)
@@ -263,22 +263,22 @@ if(!empty($_REQUEST['action']) && $_REQUEST['action'] == 'get_sub_items')
 						echo '<label><input type="radio" name="cat" value="' . $cat->cat_id . '" title="' . esc_attr($cat->cat_name) . '" />' . wp_specialchars($cat->cat_name) . '</label><br />';
 				} else {
 					echo '<i>';
-					printf(__('You did not create a category. <a href="%s" target="_parent">Click here to create one.</a>'), get_option('siteurl') . '/wp-admin/tools.php?page=wpfilebase&amp;action=manage_cats#addcat');
+					printf(__('You did not create a category. <a href="%s" target="_parent">Click here to create one.</a>', WPFB), get_option('siteurl') . '/wp-admin/tools.php?page=wpfilebase&amp;action=manage_cats#addcat');
 					echo '</i>';
 				}
 			?>
 		</div>
 		
 		<div id="tpllist" style="display: none;">
-			<h2><?php _e('Select Template') ?></h2>
-			<label><input type="radio" name="tpl" value="" /><i><?php _e('Default Template') ?></i></label><br />
+			<h2><?php _e('Select Template', WPFB) ?></h2>
+			<label><input type="radio" name="tpl" value="" /><i><?php _e('Default Template', WPFB) ?></i></label><br />
 			<?php $tpls = get_option(WPFB_OPT_NAME . '_tpls');
 				if(!empty($tpls)) {
 					foreach($tpls as $tpl_tag => $tpl_src)
 						echo '<label><input type="radio" name="tpl" value="' . esc_attr($tpl_tag) . '" />' . wp_specialchars($tpl_tag) . '</label><br />';
 				} ?>
 			<br />
-			<i><a href="<?php echo get_option('siteurl') . '/wp-admin/tools.php?page=wpfilebase&amp;action=manage_tpls#addtpl' ?>" target="_parent"><?php _e('Add Template') ?></a></i>
+			<i><a href="<?php echo get_option('siteurl') . '/wp-admin/tools.php?page=wpfilebase&amp;action=manage_tpls#addtpl' ?>" target="_parent"><?php _e('Add Template', WPFB) ?></a></i>
 		</div>
 	</div>
 	

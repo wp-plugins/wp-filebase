@@ -6,50 +6,50 @@ include_once(WPFB_PLUGIN_ROOT . 'wp-filebase_item.php');
 
 function wpfilebase_options()
 {
-	$multiple_entries_desc = __('One entry per line. Seperate the title and a short tag (not longer than 8 characters) with \'|\'.<br />All lines beginning with \'*\' are selected by default.');
-	$multiple_line_desc = __('One entry per line.');
-	$bitrate_desc = __('Limits the maximum tranfer rate for downloads. 0 = unlimited');
-	$traffic_desc = __('Limits the maximum data traffic. 0 = unlimited');
+	$multiple_entries_desc = __('One entry per line. Seperate the title and a short tag (not longer than 8 characters) with \'|\'.<br />All lines beginning with \'*\' are selected by default.', WPFB);
+	$multiple_line_desc = __('One entry per line.', WPFB);
+	$bitrate_desc = __('Limits the maximum tranfer rate for downloads. 0 = unlimited', WPFB);
+	$traffic_desc = __('Limits the maximum data traffic. 0 = unlimited', WPFB);
 	
 	return array (	
-	'upload_path'			=> array('default' => str_replace(ABSPATH, '', get_option('upload_path')) . '/filebase', 'title' => __('Upload Path'), 'type' => 'text', 'class' => 'code', 'size' => 65),
+	'upload_path'			=> array('default' => str_replace(ABSPATH, '', get_option('upload_path')) . '/filebase', 'title' => __('Upload Path', WPFB), 'type' => 'text', 'class' => 'code', 'size' => 65),
 
 	'thumbnail_size'		=> array('default' => 120, 'title' => __('Thumbnail size'), 'type' => 'number', 'class' => 'num', 'size' => 8),
 	
-	'auto_attach_files' 	=> array('default' => true,'title' => __('Show attached files'), 'type' => 'checkbox', 'desc' => __('If enabled, all associated files are listed below an article')),
-	'filelist_sorting'		=> array('default' => 'file_display_name', 'title' => __('Default sorting'), 'type' => 'select', 'desc' => __('The file property lists are sorted by'), 'options' => wpfilebase_sorting_options()),
-	'filelist_sorting_dir'	=> array('default' => 0, 'title' => __('Sorting direction'), 'type' => 'select', 'desc' => __('The sorting direction of file lists'), 'options' => array(0 => __('Ascending'), 1 => __('Descending'))),
+	'auto_attach_files' 	=> array('default' => true,'title' => __('Show attached files', WPFB), 'type' => 'checkbox', 'desc' => __('If enabled, all associated files are listed below an article', WPFB)),
+	'filelist_sorting'		=> array('default' => 'file_display_name', 'title' => __('Default sorting', WPFB), 'type' => 'select', 'desc' => __('The file property lists are sorted by', WPFB), 'options' => wpfilebase_sorting_options()),
+	'filelist_sorting_dir'	=> array('default' => 0, 'title' => __('Sorting direction', WPFB), 'type' => 'select', 'desc' => __('The sorting direction of file lists', WPFB), 'options' => array(0 => __('Ascending'), 1 => __('Descending'))),
 
-	'bitrate_unregistered'	=> array('default' => 0, 'title' => __('Bit rate limit for guests'), 'type' => 'number', 'unit' => 'KiB/Sec', 'desc' => &$bitrate_desc),
-	'bitrate_registered'	=> array('default' => 0, 'title' => __('Bit rate limit for registered users'), 'type' => 'number', 'unit' => 'KiB/Sec', 'desc' => &$bitrate_desc),	
-	'traffic_day'			=> array('default' => 0, 'title' => __('Daily traffic limit'), 'type' => 'number', 'unit' => 'MiB', 'desc' => &$traffic_desc),
-	'traffic_month'			=> array('default' => 0, 'title' => __('Monthly traffic limit'), 'type' => 'number', 'unit' => 'GiB', 'desc' => &$traffic_desc),
-	'traffic_exceeded_msg'	=> array('default' => __('Traffic limit exceeded! Please try again later.'), 'title' => __('Traffic exceeded message'), 'type' => 'text', 'size' => 65),
-	'file_offline_msg'		=> array('default' => __('This file is currently offline.'), 'title' => __('File offline message'), 'type' => 'text', 'size' => 65),
+	'bitrate_unregistered'	=> array('default' => 0, 'title' => __('Bit rate limit for guests', WPFB), 'type' => 'number', 'unit' => 'KiB/Sec', 'desc' => &$bitrate_desc),
+	'bitrate_registered'	=> array('default' => 0, 'title' => __('Bit rate limit for registered users', WPFB), 'type' => 'number', 'unit' => 'KiB/Sec', 'desc' => &$bitrate_desc),	
+	'traffic_day'			=> array('default' => 0, 'title' => __('Daily traffic limit', WPFB), 'type' => 'number', 'unit' => 'MiB', 'desc' => &$traffic_desc),
+	'traffic_month'			=> array('default' => 0, 'title' => __('Monthly traffic limit', WPFB), 'type' => 'number', 'unit' => 'GiB', 'desc' => &$traffic_desc),
+	'traffic_exceeded_msg'	=> array('default' => __('Traffic limit exceeded! Please try again later.', WPFB), 'title' => __('Traffic exceeded message', WPFB), 'type' => 'text', 'size' => 65),
+	'file_offline_msg'		=> array('default' => __('This file is currently offline.', WPFB), 'title' => __('File offline message', WPFB), 'type' => 'text', 'size' => 65),
 	
-	'disable_permalinks'	=> array('default' => false, 'title' => __('Disable download permalinks'), 'type' => 'checkbox', 'desc' => __('Enable this if you have problems with permalinks.')),
-	'download_base'			=> array('default' => 'download', 'title' => __('Download URL base'), 'type' => 'text', 'desc' => sprintf(__('The url prefix for file download links. Example: <code>%s</code> (Only used when Permalinks are enabled.)'), get_option('home').'/%value%/category/file.zip')),
+	'disable_permalinks'	=> array('default' => false, 'title' => __('Disable download permalinks', WPFB), 'type' => 'checkbox', 'desc' => __('Enable this if you have problems with permalinks.', WPFB)),
+	'download_base'			=> array('default' => 'download', 'title' => __('Download URL base', WPFB), 'type' => 'text', 'desc' => sprintf(__('The url prefix for file download links. Example: <code>%s</code> (Only used when Permalinks are enabled.)', WPFB), get_option('home').'/%value%/category/file.zip')),
 	
-	'file_browser_post_id'	=> array('default' => '', 'title' => __('Post ID of the file browser'), 'type' => 'number', 'unit' => '<a href="javascript:;" class="button" onclick="openPostBrowser(\'file_browser_post_id\')">' . __('Browse...') . '</a>', 'desc' => 'Specify the ID of the post or page where the file browser should be placed. If you want to disable this feature leave the field blank.'),
-	'cat_drop_down'			=> array('default' => false, 'title' => __('Category drop down list'), 'type' => 'checkbox', 'desc' => __('Use category drop down list in the file browser instead of listing like files.')),
+	'file_browser_post_id'	=> array('default' => '', 'title' => __('Post ID of the file browser', WPFB), 'type' => 'number', 'unit' => '<a href="javascript:;" class="button" onclick="openPostBrowser(\'file_browser_post_id\')">' . __('Select') . '...</a>', 'desc' => __('Specify the ID of the post or page where the file browser should be placed. If you want to disable this feature leave the field blank.', WPFB)),
+	'cat_drop_down'			=> array('default' => false, 'title' => __('Category drop down list', WPFB), 'type' => 'checkbox', 'desc' => __('Use category drop down list in the file browser instead of listing like files.', WPFB)),
 
-	'force_download'		=> array('default' => false, 'title' => __('Always force download'), 'type' => 'checkbox', 'desc' => __('If enabled files that can be viewed in the browser (like images, PDF documents or videos) can only be downloaded (no streaming).')),
-	'ignore_admin_dls'		=> array('default' => true, 'title' => __('Ignore downloads by admins'), 'type' => 'checkbox'),
-	'hide_inaccessible'		=> array('default' => true, 'title' => __('Hide inaccessible files and categories'), 'type' => 'checkbox', 'desc' => __('If enabled files tagged <i>For members only</i> will not be listed for guests or users whith insufficient rights.')),
-	'inaccessible_msg'		=> array('default' => __('You are not allowed to access this file!'), 'title' => __('Inaccessible file message'), 'type' => 'text', 'size' => 65, 'desc' => __('This message will be displayed if users try to download a file they cannot access')),
-	'parse_tags_rss'		=> array('default' => true, 'title' => __('Parse template tags in RSS feeds'), 'type' => 'checkbox', 'desc' => __('If enabled WP-Filebase content tags are parsed in RSS feeds.')),
+	'force_download'		=> array('default' => false, 'title' => __('Always force download', WPFB), 'type' => 'checkbox', 'desc' => __('If enabled files that can be viewed in the browser (like images, PDF documents or videos) can only be downloaded (no streaming).', WPFB)),
+	'ignore_admin_dls'		=> array('default' => true, 'title' => __('Ignore downloads by admins', WPFB), 'type' => 'checkbox'),
+	'hide_inaccessible'		=> array('default' => true, 'title' => __('Hide inaccessible files and categories', WPFB), 'type' => 'checkbox', 'desc' => __('If enabled files tagged <i>For members only</i> will not be listed for guests or users whith insufficient rights.', WPFB)),
+	'inaccessible_msg'		=> array('default' => __('You are not allowed to access this file!', WPFB), 'title' => __('Inaccessible file message', WPFB), 'type' => 'text', 'size' => 65, 'desc' => __('This message will be displayed if users try to download a file they cannot access', WPFB)),
+	'parse_tags_rss'		=> array('default' => true, 'title' => __('Parse template tags in RSS feeds', WPFB), 'type' => 'checkbox', 'desc' => __('If enabled WP-Filebase content tags are parsed in RSS feeds.', WPFB)),
 	
-	'allow_srv_script_upload'	=> array('default' => false, 'title' => __('Allow script upload'), 'type' => 'checkbox', 'desc' => __('If you enable this, scripts like PHP or CGI can be uploaded. <b>WARNING:</b> Enabling script uploads is a <b>security risk</b>!')),
+	'allow_srv_script_upload'	=> array('default' => false, 'title' => __('Allow script upload', WPFB), 'type' => 'checkbox', 'desc' => __('If you enable this, scripts like PHP or CGI can be uploaded. <b>WARNING:</b> Enabling script uploads is a <b>security risk</b>!', WPFB)),
 	
-	'accept_empty_referers'	=> array('default' => true, 'title' => __('Accept empty referers'), 'type' => 'checkbox', 'desc' => 'If enabled, direct-link-protected files can be downloaded when the referer is empty (i.e. user entered file url in address bar or browser does not send referers)'),	
-	'allowed_referers' 		=> array('default' => '', 'title' => __('Allowed referers'), 'type' => 'textarea', 'desc' => 'Sites with matching URLs can link to files directly.<br />'.$multiple_line_desc),
+	'accept_empty_referers'	=> array('default' => true, 'title' => __('Accept empty referers', WPFB), 'type' => 'checkbox', 'desc' => __('If enabled, direct-link-protected files can be downloaded when the referer is empty (i.e. user entered file url in address bar or browser does not send referers)', WPFB)),	
+	'allowed_referers' 		=> array('default' => '', 'title' => __('Allowed referers', WPFB), 'type' => 'textarea', 'desc' => __('Sites with matching URLs can link to files directly.', WPFB).'<br />'.$multiple_line_desc),
 	
-	'decimal_size_format'	=> array('default' => false, 'title' => 'Decimal file size prefixes', 'type' => 'checkbox', 'desc' => 'Enable this if you want decimal prefixes (1 MB = 1000 KB = 1 000 000 B) instead of binary (1 MiB = 1024 KiB = 1 048 576 B)'),
+	'decimal_size_format'	=> array('default' => false, 'title' => __('Decimal file size prefixes', WPFB), 'type' => 'checkbox', 'desc' => 'Enable this if you want decimal prefixes (1 MB = 1000 KB = 1 000 000 B) instead of binary (1 MiB = 1024 KiB = 1 048 576 B)'),
 
 	'languages'				=> array('default' => "English|en\nDeutsch|de", 'title' => __('Languages'), 'type' => 'textarea', 'desc' => &$multiple_entries_desc),
-	'platforms'				=> array('default' => "Windows 95|win95\n*Windows 98|win98\n*Windows 2000|win2k\n*Windows XP|winxp\n*Windows Vista|vista\n*Windows 7|win7\nLinux|linux\nMac OS X|mac", 'title' => __('Platforms'), 'type' => 'textarea', 'desc' => &$multiple_entries_desc, 'nowrap' => true),	
-	'licenses'				=> array('default' => "*Freeware|free\nShareware|share\nGNU General Public License|gpl\nGNU Lesser General Public License|lgpl\nGNU Affero General Public License|agpl", 'title' => __('Licenses'), 'type' => 'textarea', 'desc' => &$multiple_entries_desc, 'nowrap' => true),
-	'requirements'			=> array('default' => ".NET Framework 2.0|.net2|http://www.microsoft.com/downloads/details.aspx?FamilyID=0856eacb-4362-4b0d-8edd-aab15c5e04f5\n.NET Framework 3.0|.net3|http://www.microsoft.com/downloads/details.aspx?FamilyID=10cc340b-f857-4a14-83f5-25634c3bf043\n.NET Framework 3.5|.net35|http://www.microsoft.com/downloads/details.aspx?FamilyID=333325fd-ae52-4e35-b531-508d977d32a6", 'title' => __('Requirements'), 'type' => 'textarea', 'desc' => $multiple_entries_desc . ' ' . __('You can optionally add |<i>URL</i> to each line to link to the required software/file.'), 'nowrap' => true),
+	'platforms'				=> array('default' => "Windows 95|win95\n*Windows 98|win98\n*Windows 2000|win2k\n*Windows XP|winxp\n*Windows Vista|vista\n*Windows 7|win7\nLinux|linux\nMac OS X|mac", 'title' => __('Platforms', WPFB), 'type' => 'textarea', 'desc' => &$multiple_entries_desc, 'nowrap' => true),	
+	'licenses'				=> array('default' => "*Freeware|free\nShareware|share\nGNU General Public License|gpl\nGNU Lesser General Public License|lgpl\nGNU Affero General Public License|agpl", 'title' => __('Licenses', WPFB), 'type' => 'textarea', 'desc' => &$multiple_entries_desc, 'nowrap' => true),
+	'requirements'			=> array('default' => ".NET Framework 2.0|.net2|http://www.microsoft.com/downloads/details.aspx?FamilyID=0856eacb-4362-4b0d-8edd-aab15c5e04f5\n.NET Framework 3.0|.net3|http://www.microsoft.com/downloads/details.aspx?FamilyID=10cc340b-f857-4a14-83f5-25634c3bf043\n.NET Framework 3.5|.net35|http://www.microsoft.com/downloads/details.aspx?FamilyID=333325fd-ae52-4e35-b531-508d977d32a6", 'title' => __('Requirements', WPFB), 'type' => 'textarea', 'desc' => $multiple_entries_desc . ' ' . __('You can optionally add |<i>URL</i> to each line to link to the required software/file.', WPFB), 'nowrap' => true),
 	
 	
 	'template_file'			=> array('default' =>
@@ -85,7 +85,7 @@ function wpfilebase_options()
  <div style="clear: both;"></div>
 </div>
 TPLFILE
-	, 'title' => __('Default File Template'), 'type' => 'textarea', 'desc' => (wpfilebase_template_fields_select('template_file') . '<br />' . __('The template for attachments')), 'class' => 'code'),
+	, 'title' => __('Default File Template', WPFB), 'type' => 'textarea', 'desc' => (wpfilebase_template_fields_select('template_file') . '<br />' . __('The template for attachments', WPFB)), 'class' => 'code'),
 
 	'template_cat'			=> array('default' =>
 <<<TPLCAT
@@ -100,7 +100,7 @@ TPLFILE
  <div style="clear: both;"></div>
 </div>
 TPLCAT
-	, 'title' => __('Category Template'), 'type' => 'textarea', 'desc' => (wpfilebase_template_fields_select('template_cat', false, true) . '<br />' . __('The template for category lists (used in the file browser)')), 'class' => 'code'),
+	, 'title' => __('Category Template', WPFB), 'type' => 'textarea', 'desc' => (wpfilebase_template_fields_select('template_cat', false, true) . '<br />' . __('The template for category lists (used in the file browser)', WPFB)), 'class' => 'code'),
 
 	'dlclick_js'			=> array('default' =>
 <<<JS
@@ -110,10 +110,10 @@ if(typeof pageTracker == 'object') {
 	urchinTracker(file_url); // old google analytics tracker
 }
 JS
-	, 'title' => __('Download JavaScript'), 'type' => 'textarea', 'desc' => __('Here you can enter JavaScript Code which is executed when a user clicks on file download link. The following variables can be used: <i>file_id</i>: the ID of the file, <i>file_url</i>: the clicked download url'), 'class' => 'code'),
+	, 'title' => __('Download JavaScript', WPFB), 'type' => 'textarea', 'desc' => __('Here you can enter JavaScript Code which is executed when a user clicks on file download link. The following variables can be used: <i>file_id</i>: the ID of the file, <i>file_url</i>: the clicked download url', WPFB), 'class' => 'code'),
 
-	//'max_dls_per_ip'			=> array('default' => 10, 'title' => __('Maximum downloads'), 'type' => 'number', 'unit' => 'per file, per IP Address', 'desc' => 'Maximum number of downloads of a file allowed for an IP Address. 0 = unlimited'),
-	//'archive_lister'			=> array('default' => false, 'title' => __('Archive lister'), 'type' => 'checkbox', 'desc' => __('Uploaded files are scanned for archives')),
+	//'max_dls_per_ip'			=> array('default' => 10, 'title' => __('Maximum downloads', WPFB), 'type' => 'number', 'unit' => 'per file, per IP Address', 'desc' => 'Maximum number of downloads of a file allowed for an IP Address. 0 = unlimited'),
+	//'archive_lister'			=> array('default' => false, 'title' => __('Archive lister', WPFB), 'type' => 'checkbox', 'desc' => __('Uploaded files are scanned for archives', WPFB)),
 	//'enable_ratings'			=> array('default' => false, 'title' => __('Ratings'), 'type' => 'checkbox', 'desc' => ''),
 	);
 }
@@ -123,86 +123,86 @@ function wpfilebase_template_fields_desc($for_cat=false)
 {
 	return ( $for_cat ?
 	array(	
-	'cat_name'				=> 'Name of the category',
-	'cat_description'		=> 'A short description',
+	'cat_name'				=> __('Name of the category', WPFB),
+	'cat_description'		=> __('A short description', WPFB),
 	
-	'cat_url'				=> 'The category URL',
-	'cat_path'				=> 'Category path (e.g cat1/cat2/)',
-	'cat_folder'			=> 'Just the category folder name, not the path',
+	'cat_url'				=> __('The category URL', WPFB),
+	'cat_path'				=> __('Category path (e.g cat1/cat2/)', WPFB),
+	'cat_folder'			=> __('Just the category folder name, not the path', WPFB),
 	
-	'cat_parent_name'		=> 'Name of the parent categories (empty if none)',
-	'cat_num_files'				=> 'Number of files in the category',
+	'cat_parent_name'		=> __('Name of the parent categories (empty if none)', WPFB),
+	'cat_num_files'			=> __('Number of files in the category', WPFB),
 	
-	'cat_required_level'	=> 'The minimum user level to view this category (-1 = guest, 0 = Subscriber ...)',
+	'cat_required_level'	=> __('The minimum user level to view this category (-1 = guest, 0 = Subscriber ...)', WPFB),
 	
-	'cat_id'				=> 'The category ID',
-	'uid'					=> 'A unique ID number to indetify elements within a template',
+	'cat_id'				=> __('The category ID', WPFB),
+	'uid'					=> __('A unique ID number to indetify elements within a template', WPFB),
 	):
 	array(	
-	'file_name'				=> 'Name of the file',
-	'file_size'				=> 'Formatted file size',
-	'file_date'				=> 'Formatted file date',
-	'file_thumbnail'		=> 'Name of the thumbnail file',
-	'file_display_name'		=> 'Title',
-	'file_description'		=> 'A short description',
-	'file_version'			=> 'File version',
-	'file_author'			=> 'Author',
-	'file_languages'		=> 'Supported languages',
-	'file_platforms'		=> 'Supported platforms (operating systems)',
-	'file_requirements'		=> 'Requirements to use this file',
-	'file_license'			=> 'License',
-	'file_required_level'	=> 'The minimum user level to download this file (-1 = guest, 0 = Subscriber ...)',
-	'file_offline'			=> '1 if file is offline, otherwise 0',
-	'file_direct_linking'	=> '1 if direct linking is allowed, otherwise 0',
-	'file_category'			=> 'The category name',
+	'file_name'				=> __('Name of the file', WPFB),
+	'file_size'				=> __('Formatted file size', WPFB),
+	'file_date'				=> __('Formatted file date', WPFB),
+	'file_thumbnail'		=> __('Name of the thumbnail file', WPFB),
+	'file_display_name'		=> __('Title', WPFB),
+	'file_description'		=> __('A short description', WPFB),
+	'file_version'			=> __('File version', WPFB),
+	'file_author'			=> __('Author'),
+	'file_languages'		=> __('Supported languages', WPFB),
+	'file_platforms'		=> __('Supported platforms (operating systems)', WPFB),
+	'file_requirements'		=> __('Requirements to use this file', WPFB),
+	'file_license'			=> __('License', WPFB),
+	'file_required_level'	=> __('The minimum user level to download this file (-1 = guest, 0 = Subscriber ...)', WPFB),
+	'file_offline'			=> __('1 if file is offline, otherwise 0', WPFB),
+	'file_direct_linking'	=> __('1 if direct linking is allowed, otherwise 0', WPFB),
+	'file_category'			=> __('The category name', WPFB),
 	//'file_update_of'		=>
-	'file_post_id'			=> 'ID of the post/page this file belongs to',
-	'file_added_by'			=> 'User ID of the uploader',
-	'file_hits'				=> 'How many times this file has been downloaded.',
+	'file_post_id'			=> __('ID of the post/page this file belongs to', WPFB),
+	'file_added_by'			=> __('User ID of the uploader', WPFB),
+	'file_hits'				=> __('How many times this file has been downloaded.', WPFB),
 	//'file_ratings'			=>
 	//'file_rating_sum'		=>
-	'file_last_dl_ip'		=> 'IP Address of the last downloader',
-	'file_last_dl_time'		=> 'Time of the last download',
+	'file_last_dl_ip'		=> __('IP Address of the last downloader', WPFB),
+	'file_last_dl_time'		=> __('Time of the last download', WPFB),
 	
-	'file_url'				=> 'Download URL',
-	'file_post_url'			=> 'URL of the post/page this file belongs to',
-	'file_icon_url'			=> 'URL of the thumbnail or icon',
-	'file_path'				=> 'Category path and file name (e.g cat1/cat2/file.ext)',
+	'file_url'				=> __('Download URL', WPFB),
+	'file_post_url'			=> __('URL of the post/page this file belongs to', WPFB),
+	'file_icon_url'			=> __('URL of the thumbnail or icon', WPFB),
+	'file_path'				=> __('Category path and file name (e.g cat1/cat2/file.ext)', WPFB),
 	
-	'file_id'				=> 'The file ID',
+	'file_id'				=> __('The file ID', WPFB),
 	
-	'uid'					=> 'A unique ID number to indetify elements within a template',
+	'uid'					=> __('A unique ID number to indetify elements within a template', WPFB),
 	));
 }
 
 function wpfilebase_sorting_options()
 {
 	return array(	
-	'file_name'				=> 'Name of the file',
-	'file_size'				=> 'Formatted file size',
-	'file_date'				=> 'Formatted file date',
-	'file_display_name'		=> 'Title',
-	'file_description'		=> 'Short description',
-	'file_version'			=> 'File version',
-	'file_author'			=> 'Author',
-	'file_license'			=> 'License',
-	'file_required_level'	=> 'The minimum user level to download this file (-1 = guest, 0 = Subscriber ...)',
-	'file_offline'			=> 'Offline > Online',
-	'file_direct_linking'	=> 'Direct linking > redirect to post',
-	'file_category'			=> 'Category',
-	'file_post_id'			=> 'ID of the post/page this file belongs to',
-	'file_added_by'			=> 'User ID of the uploader',
-	'file_hits'				=> 'How many times this file has been downloaded.',
-	'file_last_dl_time'		=> 'Time of the last download',
+	'file_name'				=> __('Name of the file', WPFB),
+	'file_size'				=> __('Formatted file size', WPFB),
+	'file_date'				=> __('Formatted file date', WPFB),
+	'file_display_name'		=> __('Title', WPFB),
+	'file_description'		=> __('Short description', WPFB),
+	'file_version'			=> __('File version', WPFB),
+	'file_author'			=> __('Author', WPFB),
+	'file_license'			=> __('License', WPFB),
+	'file_required_level'	=> __('The minimum user level to download this file (-1 = guest, 0 = Subscriber ...)', WPFB),
+	'file_offline'			=> __('Offline > Online', WPFB),
+	'file_direct_linking'	=> __('Direct linking > redirect to post', WPFB),
+	'file_category'			=> __('Category', WPFB),
+	'file_post_id'			=> __('ID of the post/page this file belongs to', WPFB),
+	'file_added_by'			=> __('User ID of the uploader', WPFB),
+	'file_hits'				=> __('How many times this file has been downloaded.', WPFB),
+	'file_last_dl_time'		=> __('Time of the last download', WPFB),
 	);
 }
 
 function wpfilebase_template_fields_select($input, $short=false, $for_cat=false)
 {
-	$out = __('Add template variable:') . ' <select name="_wpfb_tpl_fields" onchange="wpfilebaseAddTplField(this, \'' . $input . '\')"><option value=""></option>';	
+	$out = __('Add template variable:', WPFB) . ' <select name="_wpfb_tpl_fields" onchange="wpfilebaseAddTplField(this, \'' . $input . '\')"><option value=""></option>';	
 	foreach(wpfilebase_template_fields_desc($for_cat) as $tag => $desc)
 	{
-		$out .= '<option value="' . $tag . '" title="'.$desc.'">' . $tag . ($short ? '' : ' (' . __($desc) . ')') . '</option>';
+		$out .= '<option value="'.$tag.'" title="'.$desc.'">'.$tag.($short ? '' : ' ('.$desc.')').'</option>';
 	}
 	$out .= '</select>';
 	return $out;
@@ -233,7 +233,7 @@ function wpfilebase_insert_category($catarr)
 	$new_path = $cat->get_path();
 	
 	if (empty($cat->cat_name) && empty($cat->cat_folder))
-		return array( 'error' => __('You must enter a category name or a folder name.') );
+		return array( 'error' => __('You must enter a category name or a folder name.', WPFB) );
 		
 	if (empty($cat->cat_name))
 		$cat->cat_name = wpfilebase_filename2title($cat->cat_folder, false);
@@ -242,13 +242,13 @@ function wpfilebase_insert_category($catarr)
 	
 	$cat->cat_folder = preg_replace('/\s/', ' ', $cat->cat_folder);
 	if(!preg_match('/^[0-9a-z-_.+,\s]+$/i', $cat->cat_folder))
-		return array( 'error' => __('The category folder name contains invalid characters.') );
+		return array( 'error' => __('The category folder name contains invalid characters.', WPFB) );
 	
 	// move existing dir
 	if($update && !empty($old_path) && $old_path != $new_path && is_dir($old_path)) {
 		//die($old_path.'=>'.$new_path);
 		if (!wp_mkdir_p($new_path))
-			return array( 'error' => sprintf( __( 'Unable to create directory %s. Is its parent directory writable by the server?' ), $new_path) );
+			return array( 'error' => sprintf( __('Unable to create directory %s. Is its parent directory writable by the server?'/*def*/), $new_path) );
 		wpfilebase_inclib('file');
 		wpfilebase_move_dir($old_path, $new_path);
 	}
@@ -287,7 +287,7 @@ function wpfilebase_insert_category($catarr)
 		$cat->cat_parent = $cat_parent;
 		if( @file_exists($cat->get_path()))
 		{			
-			return array( 'error' => sprintf( __( 'The directory %s already exists!' ), $cat->get_path() ) );
+			return array( 'error' => sprintf( __( 'The directory %s already exists!', WPFB), $cat->get_path() ) );
 		}
 		$cat->cat_parent = $prev_parent;
 	} elseif($add_existing)
@@ -310,7 +310,7 @@ function wpfilebase_insert_category($catarr)
 				@unlink($cat->get_thumbnail_path());
 			$cat->cat_icon = '_caticon.'.$ext;
 			if(!@move_uploaded_file($cat_icon['tmp_name'], $cat->get_thumbnail_path()))
-				return array( 'error' => __( 'Unable to move category icon!' ));	
+				return array( 'error' => __( 'Unable to move category icon!', WPFB));	
 			@chmod($cat->get_thumbnail_path(), octdec(WPFB_PERM_FILE));
 		}
 	}
@@ -349,7 +349,7 @@ function wpfilebase_insert_file($filedata)
 	if($upload || $add_existing) {
 		if(!wpfilebase_extension_is_allowed($upload ? $file_upload['name'] : $file_path)) {
 			@unlink($file_src_path);
-			return array( 'error' => sprintf( __( 'The file extension of the file <b>%s</b> is forbidden!' ), $upload ? $file_upload['name'] : $file_path ) );
+			return array( 'error' => sprintf( __( 'The file extension of the file <b>%s</b> is forbidden!', WPFB), $upload ? $file_upload['name'] : $file_path ) );
 		}
 	}
 	
@@ -385,13 +385,13 @@ function wpfilebase_insert_file($filedata)
 	if($upload) {
 		// if create new and file already exists, cancel
 		if(!$update && @file_exists($file->get_path()))	
-			return array( 'error' => sprintf( __( 'File %s already exists. You have to delete it first!' ), $file->get_path() ) );
+			return array( 'error' => sprintf( __( 'File %s already exists. You have to delete it first!', WPFB), $file->get_path() ) );
 
 		// move uploaded file to the right place
 		if(!@move_uploaded_file($file_src_path, $file->get_path()) || !@file_exists($file->get_path()))
-			return array( 'error' => sprintf( __( 'Unable to move file %s! Is the upload directory writeable?' ), $file->file_name ) );		
+			return array( 'error' => sprintf( __( 'Unable to move file %s! Is the upload directory writeable?', WPFB), $file->file_name ) );		
 	} elseif(!$add_existing && !$update) {
-		return array( 'error' => __('No file was uploaded.') );
+		return array( 'error' => __('No file was uploaded.', WPFB) );
 	}
 	
 	if($upload || $add_existing) {
@@ -445,7 +445,7 @@ function wpfilebase_insert_file($filedata)
 	// set the user id	
 	$current_user = wp_get_current_user();
 	if(empty($current_user->ID))
-		return array( 'error' => __('Could not get user id!') );	
+		return array( 'error' => __('Could not get user id!', WPFB) );	
 	if(!$update)
 		$file->file_added_by = $current_user->ID;	
 
@@ -546,7 +546,7 @@ function wpfilebase_sync($hash_sync=false)
 		{
 			@chmod ($file_paths[$i], octdec(WPFB_PERM_FILE));
 			if(!is_writable($file_paths[$i]) && !is_writable(dirname($file_paths[$i])))
-				$result['warnings'][] = sprintf(__('File <b>%s</b> is not writable!'), substr($file_paths[$i], $upload_dir_len));
+				$result['warnings'][] = sprintf(__('File <b>%s</b> is not writable!', WPFB), substr($file_paths[$i], $upload_dir_len));
 		}
 	}	
 	
