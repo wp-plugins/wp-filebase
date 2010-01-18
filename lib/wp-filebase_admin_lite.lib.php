@@ -19,26 +19,15 @@ function wpfilebase_admin_menu()
 }
 add_action('admin_menu', 'wpfilebase_admin_menu');
 
-function wpfilebase_mce_plugins($plugins)
-{
-	$plugins[WPFB_OPT_NAME] = WPFB_PLUGIN_URI . 'mce/editor_plugin.js';
+function wpfilebase_mce_plugins($plugins) {
+	$plugins['wpfilebase'] = WPFB_PLUGIN_URI . '/tinymce/editor_plugin.js';
 	return $plugins;
 }
 
 function wpfilebase_mce_buttons($buttons) {
-	array_push($buttons, 'separator', WPFB_OPT_NAME);
+	array_push($buttons, 'separator', 'wpfbInsertTag');
 	return $buttons;
 }
-
-function wpfilebase_mce_addbuttons()
-{
-	if (!current_user_can('edit_posts') && !current_user_can('edit_pages'))
-		return;
-	 
-	add_filter('mce_external_plugins', 'wpfilebase_mce_plugins');
-	add_filter('mce_buttons', 'wpfilebase_mce_buttons');
-}
-add_action('init', 'wpfilebase_mce_addbuttons');
 
 function _wpfilebase_admin_options()
 {

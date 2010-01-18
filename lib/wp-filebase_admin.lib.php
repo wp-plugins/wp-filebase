@@ -37,6 +37,7 @@ function wpfilebase_options()
 	'ignore_admin_dls'		=> array('default' => true, 'title' => __('Ignore downloads by admins'), 'type' => 'checkbox'),
 	'hide_inaccessible'		=> array('default' => true, 'title' => __('Hide inaccessible files and categories'), 'type' => 'checkbox', 'desc' => __('If enabled files tagged <i>For members only</i> will not be listed for guests or users whith insufficient rights.')),
 	'inaccessible_msg'		=> array('default' => __('You are not allowed to access this file!'), 'title' => __('Inaccessible file message'), 'type' => 'text', 'size' => 65, 'desc' => __('This message will be displayed if users try to download a file they cannot access')),
+	'parse_tags_rss'		=> array('default' => true, 'title' => __('Parse template tags in RSS feeds'), 'type' => 'checkbox', 'desc' => __('If enabled WP-Filebase content tags are parsed in RSS feeds.')),
 	
 	'allow_srv_script_upload'	=> array('default' => false, 'title' => __('Allow script upload'), 'type' => 'checkbox', 'desc' => __('If you enable this, scripts like PHP or CGI can be uploaded. <b>WARNING:</b> Enabling script uploads is a <b>security risk</b>!')),
 	

@@ -383,7 +383,7 @@ class WPFilebaseFile extends WPFilebaseItem {
 		$f = &$this;
 		$template = @eval('return (' . $template . ');');
 		
-		if(!$js_printed)
+		if(!$js_printed && !is_feed())
 		{
 			$js = wpfilebase_get_opt('dlclick_js');
 			if(!empty($js))

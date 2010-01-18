@@ -20,6 +20,7 @@ Some more features:
 *   Insert file lists in posts and pages (with Editor Button)
 *	Flexible content tags
 *   Automatically creates thumbnails of images (JPEG, PNG, GIF, BMP)
+*   Category Icons
 *   Upload files with your browser or FTP client
 *   Powerful template engine (variables, IF-Blocks)
 *   Associate files to posts and automatically attach them to the content
@@ -76,6 +77,11 @@ Since Version 0.1.2.0 you can create your custom templates for individual file l
 3. The Editor Button to insert tags for filelists and download urls
 
 == Changelog ==
+
+= 0.1.3.0 =
+* Added option *Parse template tags in RSS feeds*
+* Editor Button code changes
+* Changed default file permissions from 777 to 666
 
 = 0.1.2.4 =
 * New option *Category drop down list* for the file browser

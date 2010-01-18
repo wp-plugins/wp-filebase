@@ -69,12 +69,14 @@ function wpfilebase_ext2type_filter($arr) {
 
 add_filter('the_content',	'wpfilebase_content_filter', 9); // must be lower than 11 (before do_shortcode)
 add_filter('the_excerpt',	'wpfilebase_content_filter', 9);
+add_filter('the_content_rss',	'wpfilebase_content_filter', 9);
+add_filter('the_excerpt_rss ',	'wpfilebase_content_filter', 9);
 function wpfilebase_content_filter($content)
 {
-	global $id;
+	global $id;	
+	if(!wpfilebase_get_opt('parse_tags_rss') && is_feed())
+		return $content;	
 	
-	if(is_feed())
-		return $content;		
 		
 	// all tags start with '[filebase'
 	if(strpos($content, '[filebase') !== false)
@@ -124,5 +126,14 @@ function wpfilebase_queryvars($qvars){
 	$qvars[] = 'wpfb_dl';
     return $qvars;
 }
+
+function wpfilebase_mce_addbuttons() {
+	if (!current_user_can('edit_posts') && !current_user_can('edit_pages'))
+		return;
+	wpfilebase_inclib('admin_lite');
+	add_filter('mce_external_plugins', 'wpfilebase_mce_plugins');
+	add_filter('mce_buttons', 'wpfilebase_mce_buttons');
+}
+add_action('init', 'wpfilebase_mce_addbuttons');
 
 ?>
