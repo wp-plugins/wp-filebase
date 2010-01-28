@@ -18,19 +18,21 @@ if(isset($wpdb))
 }
 
 define('WPFB_PLUGIN_ROOT', str_replace('\\', '/', dirname(__FILE__)) . '/');
-define('WPFB_PLUGIN_URI', str_replace(str_replace('\\', '/', ABSPATH), get_option('siteurl') . '/', WPFB_PLUGIN_ROOT));
+define('WPFB_PLUGIN_URI', str_replace(str_replace('\\', '/', ABSPATH), get_option('siteurl').'/', WPFB_PLUGIN_ROOT));
 define('WPFB_OPT_NAME', 'wpfilebase');
 define('WPFB_PLUGIN_NAME', 'WP-Filebase');
-define('WPFB', 'wp-fb');
+define('WPFB', 'wpfb');
 
 define('WPFB_PERM_FILE', 666);
 define('WPFB_PERM_DIR', 777);
 
 if(!function_exists('wpfilebase_inclib')) {
 	function wpfilebase_inclib($lib) {
-		$res = @include_once(WPFB_PLUGIN_ROOT . 'lib/wp-filebase_' . $lib . '.lib.php');
-		if($res === false)
+		$res = @include_once(WPFB_PLUGIN_ROOT . 'lib/wpfb_'.$lib.'.lib.php');
+		if($res === false) {
 			echo("<p>WP-Filebase Error: Could not include library <b>'$lib'</b>!</p>");
+			return false;
+		}
 		return true;
 	}
 }

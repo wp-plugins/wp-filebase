@@ -67,8 +67,8 @@ function wpfilebase_admin_manage()
 	<?php if ( !empty($message) ) : ?><div id="message" class="updated fade"><p><?php echo $message; ?></p></div><?php endif; ?> 
 
 	<form class="search-form topmargin" action="" method="get"><p class="search-box">
-		<input type="hidden" value="<?php esc_attr_e($_GET['page']); ?>" name="page" />
-		<input type="hidden" value="<?php esc_attr_e($_GET['action']); ?>" name="action" />
+		<input type="hidden" value="<?php echo esc_attr($_GET['page']); ?>" name="page" />
+		<input type="hidden" value="<?php echo esc_attr($_GET['action']); ?>" name="action" />
 		<label class="hidden" for="category-search-input"><?php _e('Search Categories'/*def*/); ?>:</label>
 		<input type="text" class="search-input" id="category-search-input" name="s" value="<?php echo(isset($_GET['s']) ? esc_attr($_GET['s']) : ''); ?>" />
 		<input type="submit" value="<?php _e( 'Search Categories'/*def*/); ?>" class="button" />
@@ -130,7 +130,7 @@ function wpfilebase_admin_manage()
 			?>
 			<tr id="cat-<?php echo $cat_id; ?>">
 				<th scope="row" class="check-column"><input type="checkbox" name="delete[]" value="<?php echo $cat_id; ?>" /></th>
-				<td><a class="row-title" href="<?php echo $clean_uri; ?>&amp;action=editcat&amp;cat_id=<?php echo $cat_id; ?>" title="&quot;<?php esc_attr_e($cat->cat_name); ?>&quot; bearbeiten"><?php esc_attr_e($cat->cat_name); ?></a></td>
+				<td><a class="row-title" href="<?php echo $clean_uri; ?>&amp;action=editcat&amp;cat_id=<?php echo $cat_id; ?>" title="&quot;<?php echo esc_attr($cat->cat_name); ?>&quot; bearbeiten"><?php echo esc_attr($cat->cat_name); ?></a></td>
 				<td><?php echo wp_specialchars($cat->cat_description) ?></td>
 				<td class="num"><?php echo $cat->cat_files ?></td>
 				<td><?php echo wp_specialchars($parent_cat->cat_name) ?></td>
@@ -153,30 +153,25 @@ function wpfilebase_admin_manage()
 			$file_id = (int)$_POST['file_id'];
 			$update = true;			
 		case 'addfile':
-		
-			if(empty($update))
-				$update = false;
+			$update = !empty($update);
+			
 			if ( !current_user_can('upload_files') )
-				wp_die(__('Cheatin&#8217; uh?'));				
-		
+				wp_die(__('Cheatin&#8217; uh?'));
+				
+			/* // this was causing some trouble...
 			foreach ( array('aa', 'mm', 'jj', 'hh', 'mn') as $timeunit ) {
 				if ( !empty($_POST['hidden_' . $timeunit] ) && $_POST['hidden_' . $timeunit] != $_POST[$timeunit] ) {
 					$edit_date = true;
 					break;
 				}
-			}
+			}*/
 			
-			if(!empty($edit_date)) {
-				extract($_POST);
-				$jj = ($jj > 31 ) ? 31 : $jj;
-				$hh = ($hh > 23 ) ? $hh -24 : $hh;
-				$mn = ($mn > 59 ) ? $mn -60 : $mn;
-				$ss = ($ss > 59 ) ? $ss -60 : $ss;
-				$_POST['file_date'] =  sprintf( "%04d-%02d-%02d %02d:%02d:%02d", $aa, $mm, $jj, $hh, $mn, $ss );
-			} elseif(!$update) {
-				// if new and not date take current time
-				$_POST['file_date'] =  current_time('mysql');
-			}
+			extract($_POST);
+			$jj = ($jj > 31 ) ? 31 : $jj;
+			$hh = ($hh > 23 ) ? $hh -24 : $hh;
+			$mn = ($mn > 59 ) ? $mn -60 : $mn;
+			$ss = ($ss > 59 ) ? $ss -60 : $ss;
+			$_POST['file_date'] =  sprintf( "%04d-%02d-%02d %02d:%02d:%02d", $aa, $mm, $jj, $hh, $mn, $ss );
 			
 			$result = wpfilebase_insert_file(array_merge($_POST, $_FILES));
 			if(isset($result['error']) && $result['error']) {
@@ -204,8 +199,8 @@ function wpfilebase_admin_manage()
 	?></h2>
 	<?php if ( !empty($message) ) : ?><div id="message" class="updated fade"><p><?php echo $message; ?></p></div><?php endif; ?> 
 	<form class="search-form topmargin" action="" method="get"><p class="search-box">
-			<input type="hidden" value="<?php esc_attr_e($_GET['page']); ?>" name="page" />
-			<input type="hidden" value="<?php esc_attr_e($_GET['action']); ?>" name="action" />
+			<input type="hidden" value="<?php echo esc_attr($_GET['page']); ?>" name="page" />
+			<input type="hidden" value="<?php echo esc_attr($_GET['action']); ?>" name="action" />
 			<label class="hidden" for="file-search-input"><?php _e('Search Files', WPFB); ?>:</label>
 			<input type="text" class="search-input" id="file-search-input" name="s" value="<?php echo(isset($_GET['s']) ? esc_attr($_GET['s']) : ''); ?>" />
 			<input type="submit" value="<?php _e('Search Files', WPFB); ?>" class="button" />
@@ -288,13 +283,13 @@ function wpfilebase_admin_manage()
 				?>
 				<tr id='file-<?php echo $file_id ?>'<?php if($file->file_offline) { echo " class='offline'"; } ?>>
 						   <th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $file_id ?>' /></th>
-							<td><a class='row-title' href='<?php echo $clean_uri; ?>&amp;action=editfile&amp;file_id=<?php echo $file_id; ?>' title='&quot;<?php esc_attr_e($file->file_display_name); ?>&quot; bearbeiten'><?php echo wp_specialchars($file->file_display_name); ?></a></td>
+							<td><a class='row-title' href='<?php echo $clean_uri; ?>&amp;action=editfile&amp;file_id=<?php echo $file_id; ?>' title='&quot;<?php echo esc_attr($file->file_display_name); ?>&quot; bearbeiten'><?php echo wp_specialchars($file->file_display_name); ?></a></td>
 							<td><?php echo wp_specialchars($file->file_name); ?></td>
 							<td><?php echo wpfilebase_format_filesize($file->file_size); ?></td>
 							<td><?php echo wp_specialchars($file->file_description); ?></td>
 							<td><?php echo wp_specialchars($cat->cat_name); ?></td>
 							<td class='num'><?php echo $file->file_hits; ?></td>
-							<td><?php echo mysql2date(get_option('date_format'), $file->file_last_dl_time) ?></td>
+							<td><?php echo ( (!empty($file->file_last_dl_time) && $file->file_last_dl_time > 0) ? mysql2date(get_option('date_format'), $file->file_last_dl_time) : '-') ?></td>
 							<!-- TODO <td class='num'><?php echo $rating ?></td> -->
 							
 				</tr>
@@ -320,7 +315,7 @@ function wpfilebase_admin_manage()
 				wp_die(__('Cheatin&#8217; uh?'));
 			$file_id = intval($_GET['file_id']);
 			$file = &WPFilebaseFile::get_file($file_id);
-			wpfilebase_admin_form('file', &$file);
+			wpfilebase_admin_form('file', $file);
 			break;			
 			
 		case 'editcat':
@@ -329,7 +324,7 @@ function wpfilebase_admin_manage()
 				
 			$cat_id = (int)$_GET['cat_id'];
 			$file_category = &WPFilebaseCategory::get_category($cat_id);
-			wpfilebase_admin_form('cat', &$file_category);
+			wpfilebase_admin_form('cat', $file_category);
 			break;
 			
 			
@@ -456,8 +451,8 @@ function wpfilebase_admin_manage()
 				{
 					?>
 					<div style="margin: 10px 0 25px 0;">
-						<b><?php esc_attr_e($tpl_tag) ?></b> <a href="<?php echo $clean_uri ?>&amp;action=manage_tpls&amp;deltpl=<?php esc_attr_e($tpl_tag) ?>" class="button delete"><?php _e('Delete') ?></a>
-						<textarea cols="70" rows="<?php echo (substr_count($tpl_src, "\n") + 2); ?>" wrap="off" name="tplsrc_<?php esc_attr_e($tpl_tag) ?>" tabindex="1" class="codepress html wpfilebase-tpledit" style="margin-top: 5px;"><?php echo htmlspecialchars($tpl_src) ?></textarea><br />
+						<b><?php echo esc_attr($tpl_tag) ?></b> <a href="<?php echo $clean_uri ?>&amp;action=manage_tpls&amp;deltpl=<?php echo esc_attr($tpl_tag) ?>" class="button delete"><?php _e('Delete') ?></a>
+						<textarea cols="70" rows="<?php echo (substr_count($tpl_src, "\n") + 2); ?>" wrap="off" name="tplsrc_<?php echo esc_attr($tpl_tag) ?>" tabindex="1" class="codepress html wpfilebase-tpledit" style="margin-top: 5px;"><?php echo htmlspecialchars($tpl_src) ?></textarea><br />
 						<?php echo wpfilebase_template_fields_select('tplsrc_'.$tpl_tag) ?>
 					</div>
 					<?php
@@ -482,6 +477,38 @@ function wpfilebase_admin_manage()
 </form>
 		<?php		
 		break; // manage_tpls
+		
+		
+		case 'donate':
+		
+		$lang = 'en_US';
+		$supported_langs = array('en_US', 'de_DE', 'fr_FR', 'es_ES', 'it_IT', 'ja_JP', 'pl_PL', 'nl_NL');
+		
+		if(defined('WPLANG') && WPLANG && WPLANG != '') {
+			if(in_array(WPLANG, $supported_langs))
+				$lang = WPLANG;
+			else {
+				$l = strtolower(substr(WPLANG, 0, strpos(WPLANG, '_')));
+				foreach($supported_langs as $sl) {
+					$pos = strpos($sl,$l);
+					if($pos !== false && $pos == 0) {
+						$lang = $sl;
+					}
+				}
+			}
+		}
+?>
+<div id="wpfilebase-donate">
+<p><?php _e('If you like WP-Filebase I would appreciate a small donation to support my work. You can additionally add an idea to make WP-Filebase even better. Just click the button below. Thank you!', WPFB) ?></p>
+<form action="https://www.paypal.com/cgi-bin/webscr" method="post">
+<input type="hidden" name="cmd" value="_s-xclick">
+<input type="hidden" name="hosted_button_id" value="AF6TBLTYLUMD2">
+<input type="image" src="https://www.paypal.com/<?php echo $lang ?>/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+<img alt="" border="0" src="https://www.paypal.com/<?php echo $lang ?>/i/scr/pixel.gif" width="1" height="1">
+</form>	
+</div>
+<?php  
+		break;
 			
 		default:
 			$clean_uri = remove_query_arg('pagenum', $clean_uri);
@@ -500,7 +527,7 @@ function wpfilebase_admin_manage()
 				}
 				
 				if(!empty($error_msg)) { ?><div class="error default-password-nag"><p><?php echo $error_msg ?></p></div><?php } ?>
-			<p>
+			<div id="wpfilebase-managebtns">
 			<?php
 				$buttons = array(
 					array('title' => __('Manage Files', WPFB),		'desc' => __('View uploaded files and edit them', WPFB),				'capability' => 'upload_files',			'action' => 'manage_files'),
@@ -508,6 +535,7 @@ function wpfilebase_admin_manage()
 					array('title' => __('Sync Filebase', WPFB),		'desc' => __('Synchronises the database with the file system. Use this to add FTP-uploaded files.', WPFB),	'action' => 'sync'),
 					array('title' => __('Edit Stylesheet', WPFB),	'desc' => __('Edit the CSS for the file template', WPFB),				'capability' => 'edit_themes',			'action' => 'edit_css'),
 					array('title' => __('Manage Templates', WPFB),	'desc' => __('Edit custom file list templates', WPFB),				'capability' => 'edit_themes',			'action' => 'manage_tpls'),
+					array('title' => __('Donate &amp; Feature Request', WPFB), 'desc' => __('If you like this plugin and want to support my work, please donate. You can also post your ideas making the plugin better.', WPFB), 'action' => 'donate'),
 				);
 				foreach($buttons as $btn) {
 					if(empty($btn['capability']) || current_user_can($btn['capability'])) {
@@ -515,7 +543,7 @@ function wpfilebase_admin_manage()
 					}
 				}
 			?>
-			</p>
+			</div>
 			
 			<h2><?php _e('Traffic', WPFB); ?></h2>
 			<table class="form-table">

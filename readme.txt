@@ -3,7 +3,7 @@ Contributors: fabifott
 Donate link: http://fabi.me/donate/
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, traffic, widget, filelist, list, thumb, thumbnail, attachment, attachments, category, categories, media, template, ftp, http
 Requires at least: 2.2.0
-Tested up to: 2.8.6
+Tested up to: 2.9.1
 Stable tag: 0.1.2.4
 
 Adds a powerful download manager supporting file categories, thumbnails, traffic/bandwidth limits and more to your WordPress blog.
@@ -80,8 +80,15 @@ Since Version 0.1.2.0 you can create your custom templates for individual file l
 
 = 0.1.3.0 =
 * Added option *Parse template tags in RSS feeds*
+* Settings are organized in tabs now
+* Conditional loading of WP-Filebase's JS
+* Automatic login redirect
+* Validated template output
+* Added localization support
+* German translation
 * Editor Button code changes
 * Changed default file permissions from 777 to 666
+* Fixed file date bug causing a reset of the date
 
 = 0.1.2.4 =
 * New option *Category drop down list* for the file browser

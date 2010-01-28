@@ -65,3 +65,8 @@ function elementShowHide(el, show)
 		newCs = newCs.substring(0, newCs.length - 1)
 	el.className = newCs;
 }
+
+/* Option tabs */
+jQuery(document).ready( function() {
+	jQuery('#wpfilebaseopttabs').tabs();
+});

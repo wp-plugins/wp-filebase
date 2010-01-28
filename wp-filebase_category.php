@@ -249,7 +249,9 @@ class WPFilebaseCategory extends WPFilebaseItem {
 	
 	/*public (PHP 4 compatibility) */ function generate_template()
 	{
-		global $wpfb_cat_tpl_uid;
+		global $wpfb_cat_tpl_uid, $wpfb_load_js;
+		
+		$wpfb_load_js = true;
 		
 		$_tpl = wpfilebase_get_opt('template_cat_parsed');
 		if(empty($_tpl))

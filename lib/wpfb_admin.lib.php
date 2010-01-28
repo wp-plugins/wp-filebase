@@ -11,15 +11,18 @@ function wpfilebase_options()
 	$bitrate_desc = __('Limits the maximum tranfer rate for downloads. 0 = unlimited', WPFB);
 	$traffic_desc = __('Limits the maximum data traffic. 0 = unlimited', WPFB);
 	
-	return array (	
+	return array (
+	
+	// common
 	'upload_path'			=> array('default' => str_replace(ABSPATH, '', get_option('upload_path')) . '/filebase', 'title' => __('Upload Path', WPFB), 'type' => 'text', 'class' => 'code', 'size' => 65),
-
 	'thumbnail_size'		=> array('default' => 120, 'title' => __('Thumbnail size'), 'type' => 'number', 'class' => 'num', 'size' => 8),
 	
+	// display
 	'auto_attach_files' 	=> array('default' => true,'title' => __('Show attached files', WPFB), 'type' => 'checkbox', 'desc' => __('If enabled, all associated files are listed below an article', WPFB)),
 	'filelist_sorting'		=> array('default' => 'file_display_name', 'title' => __('Default sorting', WPFB), 'type' => 'select', 'desc' => __('The file property lists are sorted by', WPFB), 'options' => wpfilebase_sorting_options()),
 	'filelist_sorting_dir'	=> array('default' => 0, 'title' => __('Sorting direction', WPFB), 'type' => 'select', 'desc' => __('The sorting direction of file lists', WPFB), 'options' => array(0 => __('Ascending'), 1 => __('Descending'))),
 
+	// limits
 	'bitrate_unregistered'	=> array('default' => 0, 'title' => __('Bit rate limit for guests', WPFB), 'type' => 'number', 'unit' => 'KiB/Sec', 'desc' => &$bitrate_desc),
 	'bitrate_registered'	=> array('default' => 0, 'title' => __('Bit rate limit for registered users', WPFB), 'type' => 'number', 'unit' => 'KiB/Sec', 'desc' => &$bitrate_desc),	
 	'traffic_day'			=> array('default' => 0, 'title' => __('Daily traffic limit', WPFB), 'type' => 'number', 'unit' => 'MiB', 'desc' => &$traffic_desc),
@@ -37,6 +40,8 @@ function wpfilebase_options()
 	'ignore_admin_dls'		=> array('default' => true, 'title' => __('Ignore downloads by admins', WPFB), 'type' => 'checkbox'),
 	'hide_inaccessible'		=> array('default' => true, 'title' => __('Hide inaccessible files and categories', WPFB), 'type' => 'checkbox', 'desc' => __('If enabled files tagged <i>For members only</i> will not be listed for guests or users whith insufficient rights.', WPFB)),
 	'inaccessible_msg'		=> array('default' => __('You are not allowed to access this file!', WPFB), 'title' => __('Inaccessible file message', WPFB), 'type' => 'text', 'size' => 65, 'desc' => __('This message will be displayed if users try to download a file they cannot access', WPFB)),
+	'inaccessible_redirect'	=> array('default' => false, 'title' => __('Redirect to login', WPFB), 'type' => 'checkbox', 'desc' => __('Guests trying to download inaccessible files are redirected to the login page if this option is enabled.', WPFB)),
+	
 	'parse_tags_rss'		=> array('default' => true, 'title' => __('Parse template tags in RSS feeds', WPFB), 'type' => 'checkbox', 'desc' => __('If enabled WP-Filebase content tags are parsed in RSS feeds.', WPFB)),
 	
 	'allow_srv_script_upload'	=> array('default' => false, 'title' => __('Allow script upload', WPFB), 'type' => 'checkbox', 'desc' => __('If you enable this, scripts like PHP or CGI can be uploaded. <b>WARNING:</b> Enabling script uploads is a <b>security risk</b>!', WPFB)),
@@ -44,7 +49,7 @@ function wpfilebase_options()
 	'accept_empty_referers'	=> array('default' => true, 'title' => __('Accept empty referers', WPFB), 'type' => 'checkbox', 'desc' => __('If enabled, direct-link-protected files can be downloaded when the referer is empty (i.e. user entered file url in address bar or browser does not send referers)', WPFB)),	
 	'allowed_referers' 		=> array('default' => '', 'title' => __('Allowed referers', WPFB), 'type' => 'textarea', 'desc' => __('Sites with matching URLs can link to files directly.', WPFB).'<br />'.$multiple_line_desc),
 	
-	'decimal_size_format'	=> array('default' => false, 'title' => __('Decimal file size prefixes', WPFB), 'type' => 'checkbox', 'desc' => 'Enable this if you want decimal prefixes (1 MB = 1000 KB = 1 000 000 B) instead of binary (1 MiB = 1024 KiB = 1 048 576 B)'),
+	'decimal_size_format'	=> array('default' => false, 'title' => __('Decimal file size prefixes', WPFB), 'type' => 'checkbox', 'desc' => __('Enable this if you want decimal prefixes (1 MB = 1000 KB = 1 000 000 B) instead of binary (1 MiB = 1024 KiB = 1 048 576 B)', WPFB)),
 
 	'languages'				=> array('default' => "English|en\nDeutsch|de", 'title' => __('Languages'), 'type' => 'textarea', 'desc' => &$multiple_entries_desc),
 	'platforms'				=> array('default' => "Windows 95|win95\n*Windows 98|win98\n*Windows 2000|win2k\n*Windows XP|winxp\n*Windows Vista|vista\n*Windows 7|win7\nLinux|linux\nMac OS X|mac", 'title' => __('Platforms', WPFB), 'type' => 'textarea', 'desc' => &$multiple_entries_desc, 'nowrap' => true),	
@@ -55,16 +60,16 @@ function wpfilebase_options()
 	'template_file'			=> array('default' =>
 <<<TPLFILE
 <div class="wpfilebase-attachment">
- <div class="wpfilebase-fileicon"><a href="%file_url%" title="Download %file_display_name%"><img align="middle" src="%file_icon_url%" /></a></div>
+ <div class="wpfilebase-fileicon"><a href="%file_url%" title="Download %file_display_name%"><img align="middle" src="%file_icon_url%" alt="%file_display_name%" /></a></div>
  <div class="wpfilebase-rightcol">
   <div class="wpfilebase-filetitle">
-   <a href="%file_url%" title="Download %file_display_name%">%file_display_name%</a>
-   %file_name%
-   <!-- IF %file_version% -->%'Version:'% %file_version%
-   <!-- ENDIF --><!-- IF %file_post_id% AND get_the_ID() != %file_post_id% --><a href="%file_post_url%" class="wpfilebase-postlink">%'View post'%</a><!-- ENDIF -->
+   <a href="%file_url%" title="Download %file_display_name%">%file_display_name%</a><br />
+   %file_name%<br />
+   <!-- IF %file_version% -->%'Version:'% %file_version%<br /><!-- ENDIF -->
+   <!-- IF %file_post_id% AND get_the_ID() != %file_post_id% --><a href="%file_post_url%" class="wpfilebase-postlink">%'View post'%</a><!-- ENDIF -->
   </div>
   <div class="wpfilebase-filedetails" id="wpfilebase-filedetails%uid%" style="display: none;">
-  %file_description%
+  <p>%file_description%</p>
   <table border="0">
    <!-- IF %file_languages% --><tr><th>%'Languages'%:</th><td>%file_languages%</td></tr><!-- ENDIF -->
    <!-- IF %file_author% --><tr><th>%'Author'%:</th><td>%file_author%</td></tr><!-- ENDIF -->
@@ -78,8 +83,8 @@ function wpfilebase_options()
   </div>
  </div>
  <div class="wpfilebase-fileinfo">
-  %file_size%
-  %file_hits% %'Downloads'%
+  %file_size%<br />
+  %file_hits% %'Downloads'%<br />
   <a href="#" onclick="return wpfilebase_filedetails(%uid%);">%'Details'%...</a>
  </div>
  <div style="clear: both;"></div>
@@ -90,7 +95,7 @@ TPLFILE
 	'template_cat'			=> array('default' =>
 <<<TPLCAT
 <div class="wpfilebase-attachment-cat">
- <div class="wpfilebase-fileicon"><a href="%cat_url%" title="Goto %cat_name%"><img align="middle" src="%cat_icon_url%" /></a></div>
+ <div class="wpfilebase-fileicon"><a href="%cat_url%" title="Goto %cat_name%"><img align="middle" src="%cat_icon_url%" alt="%cat_name%" /></a></div>
  <div class="wpfilebase-rightcol">
   <div class="wpfilebase-filetitle">
    <p><a href="%cat_url%" title="Goto category %cat_name%">%cat_name%</a></p>
@@ -123,8 +128,8 @@ function wpfilebase_template_fields_desc($for_cat=false)
 {
 	return ( $for_cat ?
 	array(	
-	'cat_name'				=> __('Name of the category', WPFB),
-	'cat_description'		=> __('A short description', WPFB),
+	'cat_name'				=> __('The category name', WPFB),
+	'cat_description'		=> __('Short description', WPFB),
 	
 	'cat_url'				=> __('The category URL', WPFB),
 	'cat_path'				=> __('Category path (e.g cat1/cat2/)', WPFB),
@@ -144,7 +149,7 @@ function wpfilebase_template_fields_desc($for_cat=false)
 	'file_date'				=> __('Formatted file date', WPFB),
 	'file_thumbnail'		=> __('Name of the thumbnail file', WPFB),
 	'file_display_name'		=> __('Title', WPFB),
-	'file_description'		=> __('A short description', WPFB),
+	'file_description'		=> __('Short description', WPFB),
 	'file_version'			=> __('File version', WPFB),
 	'file_author'			=> __('Author'),
 	'file_languages'		=> __('Supported languages', WPFB),
@@ -709,7 +714,7 @@ function wpfilebase_progress_bar($progress, $label)
 
 function wpfilebase_admin_form($name, $item=null, $exform=false)
 {
-	include(WPFB_PLUGIN_ROOT . 'lib/wp-filebase_form_' . $name . '.php');
+	include(WPFB_PLUGIN_ROOT . 'lib/wpfb_form_' . $name . '.php');
 }
 
 function wpfilebase_mkdir($dir)

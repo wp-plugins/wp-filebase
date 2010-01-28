@@ -1,5 +1,19 @@
 <?php
 
+function wpfilebase_init() {
+	$lang_dir = basename(WPFB_PLUGIN_ROOT).'/languages';
+	load_plugin_textdomain(WPFB, 'wp-content/plugins/'.$lang_dir, $lang_dir);
+	
+	wp_register_style('wpfb', WPFB_PLUGIN_URI.'wp-filebase_css.php', array(), WPFB_VERSION, 'all' );
+	wp_register_script('wpfb', WPFB_PLUGIN_URI.'wp-filebase.js', array('jquery'), WPFB_VERSION);
+	
+	wp_enqueue_style('wpfb');
+	
+	// for admin
+	if (current_user_can('edit_posts') || current_user_can('edit_pages'))
+		wpfilebase_mce_addbuttons();
+}
+add_action('init', 'wpfilebase_init');
 
 function wpfilebase_get_opt($name = null)
 {
@@ -53,13 +67,6 @@ function wpfilebase_redirect()
 	}
 }
 
-
-// add filters
-add_filter('wp_head',		'wpfilebase_head');
-function wpfilebase_head() {
-	echo "\n".'<link rel="stylesheet" type="text/css" href="' . WPFB_PLUGIN_URI . 'wp-filebase_css.php" />' . "\n";
-}
-
 add_filter('ext2type',		'wpfilebase_ext2type_filter');
 function wpfilebase_ext2type_filter($arr) {
 	$arr['interactive'][] = 'exe';
@@ -67,22 +74,46 @@ function wpfilebase_ext2type_filter($arr) {
 	return $arr;
 }
 
-add_filter('the_content',	'wpfilebase_content_filter', 9); // must be lower than 11 (before do_shortcode)
-add_filter('the_excerpt',	'wpfilebase_content_filter', 9);
-add_filter('the_content_rss',	'wpfilebase_content_filter', 9);
-add_filter('the_excerpt_rss ',	'wpfilebase_content_filter', 9);
+
+/*
+// conditionally loading
+add_filter('the_posts', 'wpfilebase_posts_filter');
+function wpfilebase_posts_filter($posts) {
+	global $id, $wpfb_loaded_output;
+	print_r($posts);
+	if(!empty($wpfb_loaded_output) || empty($posts))
+		return $posts;
+	$fb_id = wpfilebase_get_opt('file_browser_post_id');
+	if($id > 0 && $id == $fb_id) {
+		wpfilebase_load_output_scripts();
+	} else {		
+		foreach($posts as $post) {
+		if(strpos($post->post_content, '[filebase') !== false || $post->id == $fb_id) {
+				wpfilebase_load_output_scripts();
+				break;
+			}
+		}
+	}
+	return $posts;
+} */
+
+
+add_filter('the_content',	'wpfilebase_content_filter', 10); // must be lower than 11 (before do_shortcode) and after wpautop (>9)
+add_filter('the_excerpt',	'wpfilebase_content_filter', 10);
+add_filter('the_content_rss',	'wpfilebase_content_filter', 10);
+add_filter('the_excerpt_rss ',	'wpfilebase_content_filter', 10);
 function wpfilebase_content_filter($content)
 {
-	global $id;	
+	global $id;
+	
 	if(!wpfilebase_get_opt('parse_tags_rss') && is_feed())
 		return $content;	
-	
 		
 	// all tags start with '[filebase'
 	if(strpos($content, '[filebase') !== false)
 	{
 		wpfilebase_inclib('output');
-		wpfilebase_parse_content_tags(&$content);
+		wpfilebase_parse_content_tags($content);
 	}	
 	
 	if(!empty($id) && $id > 0 && (is_single() || is_page()))
@@ -90,23 +121,26 @@ function wpfilebase_content_filter($content)
 		if($id == wpfilebase_get_opt('file_browser_post_id'))
 		{
 			wpfilebase_inclib('output');
-			wpfilebase_file_browser(&$content);
+			wpfilebase_file_browser($content);
 		}
 	
 		if(wpfilebase_get_opt('auto_attach_files'))
 		{
 			wpfilebase_inclib('output');
-			wpfilebase_get_post_attachments(&$content, true);
+			wpfilebase_get_post_attachments($content, true);
 		}
 	}
 
     return $content;
 }
 
-wp_enqueue_script('wpfilebasejs', '/wp-content/plugins/wp-filebase/wp-filebase.js');
-
-if(is_admin()) {
-	wpfilebase_inclib('admin_lite');
+add_action('wp_footer', 'wpfilebase_footer');
+function wpfilebase_footer() {
+	global $wpfb_load_js;
+	
+	if($wpfb_load_js) {
+		wp_print_scripts('wpfb');
+	}
 }
 
 add_action('generate_rewrite_rules', 'wpfilebase_add_rewrite_rules');
@@ -128,12 +162,12 @@ function wpfilebase_queryvars($qvars){
 }
 
 function wpfilebase_mce_addbuttons() {
-	if (!current_user_can('edit_posts') && !current_user_can('edit_pages'))
-		return;
 	wpfilebase_inclib('admin_lite');
 	add_filter('mce_external_plugins', 'wpfilebase_mce_plugins');
 	add_filter('mce_buttons', 'wpfilebase_mce_buttons');
 }
-add_action('init', 'wpfilebase_mce_addbuttons');
+
+
+if(is_admin()) {wpfilebase_inclib('admin_lite');}
 
 ?>

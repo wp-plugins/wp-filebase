@@ -359,10 +359,13 @@ class WPFilebaseFile extends WPFilebaseItem {
 		return array( 'error' => false);
 	}
 	
-	/*public (PHP 4 compatibility) */ function generate_template($template='')
+	/*public (PHP 4 compatibility) */ function generate_template($template='', $widget=false)
 	{
 		static $js_printed = false;
-		global $wpfb_file_tpl_uid;
+		global $wpfb_file_tpl_uid, $wpfb_load_js;
+		
+		if(!$widget && empty($wpfb_load_js))
+			$wpfb_load_js = true;
 		
 		if(empty($template))
 		{
@@ -446,6 +449,8 @@ JS;
 		
 		// check user level
 		if(!$this->current_user_can_access()) {
+			if(wpfilebase_get_opt('inaccessible_redirect') && !is_user_logged_in())
+				auth_redirect();
 			$msg = wpfilebase_get_opt('inaccessible_msg');
 			wp_die(empty($msg) ? __('Cheatin&#8217; uh?') : $msg);
 		}

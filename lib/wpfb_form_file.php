@@ -4,9 +4,9 @@ if($update) {
 	$file = &$item;
 	$exform = true;
 } else
-	$file = null;
+	$file = new stdClass();
 $action = ($update ? 'updatefile' : 'addfile');
-$title = $update ? __('Edit File') : __('Upload File');
+$title = $update ? __('Edit File', WPFB) : __('Upload File', WPFB);
 
 $file_members_only = ($file->file_required_level > 0);
 ?>
@@ -70,7 +70,7 @@ $file_members_only = ($file->file_required_level > 0);
 
 	<tr class="form-field">
 		<th scope="row" valign="top"><label for="file_post_id"><?php _e('Post') ?> ID</label></th>
-		<td><input type="text" name="file_post_id" class="small-text" id="file_post_id" value="<?php echo esc_attr($file->file_post_id); ?>" /> <a href="javascript:;" class="button" onclick="openPostBrowser('file_post_id');"><?php _e('Browse...') ?></a></td>
+		<td><input type="text" name="file_post_id" class="small-text" id="file_post_id" value="<?php echo esc_attr($file->file_post_id); ?>" /> <a href="javascript:;" class="button" onclick="openPostBrowser('file_post_id');"><?php _e('Browse') ?>...</a></td>
 		<?php if($exform) { ?>
 		<th scope="row" valign="top"><label for="file_hits"><?php _e('Download Counter', WPFB) ?></label></th>
 		<td><input type="text" name="file_hits" class="small-text" id="file_hits" value="<?php echo (int)$file->file_hits; ?>" /></td>
@@ -94,8 +94,8 @@ $file_members_only = ($file->file_required_level > 0);
 		<th scope="row" valign="top"><label for="file_direct_linking"><?php _e('Direct linking', WPFB) ?></label></th>
 		<td>
 			<fieldset><legend class="hidden"><?php _e('Direct linking') ?></legend>
-				<label title="<?php _e('Yes') ?>"><input type="radio" name="file_direct_linking" value="1" <?php checked('1', $file->file_direct_linking); ?>/> <?php _e('Allow direct linking') ?></label><br />
-				<label title="<?php _e('No') ?>"><input type="radio" name="file_direct_linking" value="0" <?php checked('0', $file->file_direct_linking); ?>/> <?php _e('Redirect to post') ?></label>
+				<label title="<?php _e('Yes') ?>"><input type="radio" name="file_direct_linking" value="1" <?php checked('1', $file->file_direct_linking); ?>/> <?php _e('Allow direct linking', WPFB) ?></label><br />
+				<label title="<?php _e('No') ?>"><input type="radio" name="file_direct_linking" value="0" <?php checked('0', $file->file_direct_linking); ?>/> <?php _e('Redirect to post', WPFB) ?></label>
 			</fieldset>
 		</td>
 		<?php } ?>

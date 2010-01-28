@@ -32,9 +32,9 @@ function wpfilebase_widget_filelist($args)
 	}
 	
 	echo '<ul>';
-	foreach($files as $file)
-	{
-		echo '<li>' . $file->generate_template($options['filelist_template_parsed']) . '</li>';
+	foreach($files as $file){
+		if($file->current_user_can_access(true))
+			echo '<li>' . $file->generate_template($options['filelist_template_parsed'], true) . '</li>';
 	}
 	echo '</ul>';
 	

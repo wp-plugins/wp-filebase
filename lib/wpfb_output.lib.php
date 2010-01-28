@@ -54,7 +54,7 @@ function wpfilebase_parse_content_tags(&$content)
 					break;
 
 				case 'file':
-					if(isset($args['file']) && is_object($file = WPFilebaseFile::get_file($args['file']))) {
+					if(isset($args['file']) && is_object($file = WPFilebaseFile::get_file($args['file'])) && $file->current_user_can_access(true)) {
 						if(empty($args['tpl']))
 							$tag_content = $file->generate_template();
 						else

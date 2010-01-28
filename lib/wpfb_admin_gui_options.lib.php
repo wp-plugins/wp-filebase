@@ -139,71 +139,96 @@ function wpfilebase_admin_options()
 	<input type="submit" name="submit" value="<?php _e('Save Changes'/*def*/) ?>" class="button-primary" />
 	<input type="submit" id="deletepost" name="reset" value="<?php _e('Reset'/*def*/) ?>" onclick="return confirm('<?php _e('Are you sure you want to do that?'/*def*/); ?>')" class="button delete" />
 	</p>
-	<table class="form-table">	
 	<?php
-	$page_option_list = '';
 	
-	foreach($option_fields as $opt_tag => $field_data)
-	{	
-		$opt_val = $options[$opt_tag];
-		echo "\n".'<tr valign="top">'."\n".'<th scope="row">' . $field_data['title']. '</th>'."\n".'<td>';
-		$style_class = '';
-		if(!empty($field_data['class']))
-			$style_class .= ' class="'.$field_data['class'].'"';
-		if(!empty($field_data['style']))
-			$style_class .= ' style="'.$field_data['style'].'"';
-		switch($field_data['type'])
+	$option_categories = array(
+		__('Common', WPFB)					=> array('upload_path', 'thumbnail_size', 'file_browser_post_id', 'cat_drop_down'),
+		__('Display', WPFB)					=> array('auto_attach_files', 'filelist_sorting', 'filelist_sorting_dir', 'parse_tags_rss', 'decimal_size_format'),
+		__('Download', WPFB)				=> array('disable_permalinks', 'download_base', 'force_download', 'ignore_admin_dls', 'accept_empty_referers','allowed_referers'),
+		__('Form Presets', WPFB)			=> array('languages', 'platforms', 'licenses', 'requirements'),
+		__('Limits', WPFB)					=> array('bitrate_unregistered', 'bitrate_registered', 'traffic_day', 'traffic_month', 'traffic_exceeded_msg', 'file_offline_msg'),
+		__('Security', WPFB)				=> array('allow_srv_script_upload', 'hide_inaccessible', 'inaccessible_msg', 'inaccessible_redirect'),
+		__('Templates and Scripts', WPFB)	=> array('template_file', 'template_cat', 'dlclick_js')
+	);
+	?>
+	<div id="wpfilebaseopttabs">
+		<ul class="wpfilebase-optmenu">
+			<?php foreach ( $option_categories as $key => $val ) {
+				echo '<li><a href="#'.sanitize_title($key).'">'.wp_specialchars($key).'</a></li>';
+			} ?>
+		</ul>
+	<?php
+	$page_option_list = '';	
+	$n = 0;
+	foreach($option_categories as $opt_cat => $opt_cat_fields) {
+		//echo "\n".'<h3>'.$opt_cat.'</h3>';	
+		echo "\n\n".'<div id="'. sanitize_title($opt_cat) .'" class="wpfilebase-opttab"><table class="form-table">';
+		foreach($opt_cat_fields as $opt_tag)
 		{
-			case 'text':
-			case 'number':
-			case 'checkbox':
-				echo '<input name="' . $opt_tag . '" type="' . $field_data['type'] . '" id="' . $opt_tag . '"';
-				echo ((!empty($field_data['class'])) ? ' class="' . $field_data['class'] . '"' : '');
-				if($field_data['type'] == 'checkbox') {
-					echo ' value="1" ';
-					checked('1', $opt_val);
-				} elseif($field_data['type'] == 'number')
-					echo ' value="' . intval($opt_val) . '" size="5"';
-				else {
-					echo ' value="' . esc_attr($opt_val) . '"';
-					if(isset($field_data['size']))
-						echo ' size="' . (int)$field_data['size'] . '"';
-				}
-				echo $style_class . ' />';
-				break;
+			
+			$field_data = $option_fields[$opt_tag];
+			$opt_val = $options[$opt_tag];
+			echo "\n".'<tr valign="top">'."\n".'<th scope="row">' . $field_data['title']. '</th>'."\n".'<td>';
+			$style_class = '';
+			if(!empty($field_data['class']))
+				$style_class .= ' class="'.$field_data['class'].'"';
+			if(!empty($field_data['style']))
+				$style_class .= ' style="'.$field_data['style'].'"';
+			switch($field_data['type'])
+			{
+				case 'text':
+				case 'number':
+				case 'checkbox':
+					echo '<input name="' . $opt_tag . '" type="' . $field_data['type'] . '" id="' . $opt_tag . '"';
+					echo ((!empty($field_data['class'])) ? ' class="' . $field_data['class'] . '"' : '');
+					if($field_data['type'] == 'checkbox') {
+						echo ' value="1" ';
+						checked('1', $opt_val);
+					} elseif($field_data['type'] == 'number')
+						echo ' value="' . intval($opt_val) . '" size="5"';
+					else {
+						echo ' value="' . esc_attr($opt_val) . '"';
+						if(isset($field_data['size']))
+							echo ' size="' . (int)$field_data['size'] . '"';
+					}
+					echo $style_class . ' />';
+					break;
+					
+				case 'textarea':
+					$code_edit = (strpos($opt_tag, 'template_') !== false || (isset($field_data['class']) && strpos($field_data['class'], 'code') !== false));
+					$nowrap = !empty($field_data['nowrap']);
+					echo '<textarea name="' . $opt_tag . '" id="' . $opt_tag . '"';
+					if($nowrap || $code_edit) {
+						echo ' cols="100" wrap="off" style="width: 100%;' . ($code_edit ?  'font-size: 9px;' : '') . '"';
+					} else
+						echo ' cols="50"';
+					echo ' rows="' . ($code_edit ? 20 : 5) . '"';
+					echo $style_class;
+					echo '>';
+					echo wp_specialchars($opt_val);
+					echo '</textarea>';
+					break;
+				case 'select':
+					echo '<select name="' . $opt_tag . '" id="' . $opt_tag . '">';
+					foreach($field_data['options'] as $opt_v => $opt_n)
+						echo '<option value="' . esc_attr($opt_v) . '"' . (($opt_v == $opt_val) ? ' selected="selected" ' : '') . $style_class . '>' . (!is_numeric($opt_v) ? (wp_specialchars($opt_v) . ': ') : '') . wp_specialchars($opt_n) . '</option>';
+					echo '</select>';
+					break;
+			}
+			
+			if(!empty($field_data['unit']))
+				echo ' ' . $field_data['unit'];
 				
-			case 'textarea':
-				$code_edit = (strpos($opt_tag, 'template_') !== false || (isset($field_data['class']) && strpos($field_data['class'], 'code') !== false));
-				$nowrap = !empty($field_data['nowrap']);
-				echo '<textarea name="' . $opt_tag . '" id="' . $opt_tag . '"';
-				if($nowrap || $code_edit) {
-					echo ' cols="100" wrap="off" style="width: 100%;' . ($code_edit ?  'font-size: 9px;' : '') . '"';
-				} else
-					echo ' cols="50"';
-				echo ' rows="' . ($code_edit ? 20 : 5) . '"';
-				echo $style_class;
-				echo '>';
-				echo wp_specialchars($opt_val);
-				echo '</textarea>';
-				break;
-			case 'select':
-				echo '<select name="' . $opt_tag . '" id="' . $opt_tag . '">';
-				foreach($field_data['options'] as $opt_v => $opt_n)
-					echo '<option value="' . esc_attr($opt_v) . '"' . (($opt_v == $opt_val) ? ' selected="selected" ' : '') . $style_class . '>' . (!is_numeric($opt_v) ? (wp_specialchars($opt_v) . ': ') : '') . wp_specialchars($opt_n) . '</option>';
-				echo '</select>';
-				break;
+			if(!empty($field_data['desc']))
+				echo "\n".'<br />' . str_replace('%value%', $opt_val, $field_data['desc']);
+			echo "\n</td>\n</tr>";		
+			$page_option_list .= $opt_tag . ',';
 		}
 		
-		if(!empty($field_data['unit']))
-			echo ' ' . $field_data['unit'];
-			
-		if(!empty($field_data['desc']))
-			echo "\n".'<br />' . str_replace('%value%', $opt_val, $field_data['desc']);
-		echo "\n</td>\n</tr>";		
-		$page_option_list .= $opt_tag . ',';
+		echo '</table></div>'."\n";
 	}
 	?>
-	</table>
+</div> <!--wpfilebase-opttabs-->
 	<input type="hidden" name="action" value="update" />
 	<input type="hidden" name="page_options" value="<?php echo $page_option_list; ?>" />
 	<p class="submit">

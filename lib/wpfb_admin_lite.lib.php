@@ -1,19 +1,24 @@
 <?php
 
-function wpfilebase_admin_header()
-{
-	wpfilebase_head();
-	?>
-	<link rel="stylesheet" type="text/css" href="<?php echo WPFB_PLUGIN_URI ?>wp-filebase_admin.css" />
-	<script type="text/javascript" src="<?php echo WPFB_PLUGIN_URI ?>wp-filebase_admin.js?ver=<?php echo WPFB_VERSION ?>"></script>
-	<?php
+function wpfilebase_admin_init() {
+	wp_register_style('wpfb-admin', WPFB_PLUGIN_URI.'wp-filebase_admin.css', array(), WPFB_VERSION, 'all' );
+	wp_register_script('wpfb-admin', WPFB_PLUGIN_URI.'wp-filebase_admin.js', array('jquery'), WPFB_VERSION);
+	
+	if(!empty($_GET['page']) && $_GET['page'] == 'wpfilebase') {
+		wp_enqueue_script('jquery-ui-tabs');
+		wp_enqueue_script('jquery-cookie');
+		wp_enqueue_script('wpfb-admin');	
+		wp_enqueue_script('wpfb');
+		wp_enqueue_style('wpfb');		
+		wp_enqueue_style ('wpfb-admin');
+	}
+		
 	wpfilebase_version_update_check();
 }
-add_action('admin_head', 'wpfilebase_admin_header', 10);
+add_action('admin_init', 'wpfilebase_admin_init', 10);
 
 
-function wpfilebase_admin_menu()
-{	
+function wpfilebase_admin_menu() {	
 	add_options_page(WPFB_PLUGIN_NAME, WPFB_PLUGIN_NAME, 'manage_options', 'wpfilebase', '_wpfilebase_admin_options' );	
 	add_management_page(WPFB_PLUGIN_NAME, WPFB_PLUGIN_NAME, 'manage_categories', 'wpfilebase', '_wpfilebase_admin_manage' );
 }
@@ -51,8 +56,7 @@ wp_register_widget_control(WPFB_PLUGIN_NAME, WPFB_PLUGIN_NAME, '_wpfilebase_widg
 function wpfilebase_version_update_check()
 {
 	$ver = wpfilebase_get_opt('version');
-	if($ver != WPFB_VERSION)
-	{
+	if($ver != WPFB_VERSION) {
 		wpfilebase_activate();
 		echo '<!-- WPFilebase: version changed -->';
 	}
