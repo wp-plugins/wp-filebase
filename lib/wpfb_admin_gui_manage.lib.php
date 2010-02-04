@@ -576,7 +576,7 @@ function wpfilebase_admin_manage()
 			
 			<h2><?php _e('Copyright'); ?></h2>
 			<p>
-			<?php echo WPFB_PLUGIN_NAME . ' ' . WPFB_VERSION ?> Copyright &copy; 2009 by Fabian Schlieper <a href="http://fabi.me/">
+			<?php echo WPFB_PLUGIN_NAME . ' ' . WPFB_VERSION ?> Copyright &copy; 2010 by Fabian Schlieper <a href="http://fabi.me/">
 			<?php if(strpos($_SERVER['SERVER_PROTOCOL'], 'HTTPS') === false) { ?><img src="http://fabi.me/misc/wpfb_icon.gif" alt="" /><?php } ?> fabi.me</a><br/>
 			Includes code of the thumbnail generator <a href="http://phpthumb.sourceforge.net">phpThumb()</a> by James Heinrich
 			</p><?

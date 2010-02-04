@@ -1,10 +1,10 @@
 === WP-Filebase ===
 Contributors: fabifott
-Donate link: http://fabi.me/donate/
+Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=money%40fabi-s%2ede&item_name=WP-Filebase&no_shipping=0&no_note=1&tax=0&currency_code=USD&lc=US&bn=PP%2dDonationsBF&charset=UTF%2d8
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, traffic, widget, filelist, list, thumb, thumbnail, attachment, attachments, category, categories, media, template, ftp, http
 Requires at least: 2.2.0
 Tested up to: 2.9.1
-Stable tag: 0.1.2.4
+Stable tag: 0.1.3.0
 
 Adds a powerful download manager supporting file categories, thumbnails, traffic/bandwidth limits and more to your WordPress blog.
 
@@ -40,7 +40,9 @@ Some more features:
 
 You can see a [live demo on my Website](http://fabi.me/ "WP-Filebase demo")
 
-**If you want to report a bug or have any problems with this Plugin please post your WordPress and PHP Version!**
+**Since Version 0.1.3.0 the plugin supports localization.** If you want to translate WP-Filebase in your language, open `wp-filebase/languages/template.po` with [Poedit](http://www.poedit.net/download.php) and save as `wpfb-xx_YY.po` (`xx` is your language code, `YY` your country). Poedit will create the file `wpfb-xx_YY.po`. Put this file in `wp-filebase/languages` and share it if you like (attach it to an email or post it on my blog).
+
+If you want to report a bug or have any problems with this Plugin please post your WordPress and PHP Version!
 
 **Note:** If you only want to limit traffic or bandwidth of media files you should take a look at my [Traffic Limiter](http://wordpress.org/extend/plugins/traffic-limiter/ "Traffic Limiter").
 
@@ -80,10 +82,11 @@ Since Version 0.1.2.0 you can create your custom templates for individual file l
 
 = 0.1.3.0 =
 * Added option *Parse template tags in RSS feeds*
+* New Widget: Category list
 * Settings are organized in tabs now
 * Conditional loading of WP-Filebase's JS
 * Automatic login redirect
-* Validated template output
+* Validated template output (**Note**: line breaks are not converted to HTML anymore, so please add <br />'s or reset your settings to load the default template)
 * Added localization support
 * German translation
 * Editor Button code changes

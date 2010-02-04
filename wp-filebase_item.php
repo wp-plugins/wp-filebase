@@ -160,7 +160,6 @@ class WPFilebaseItem {
 	{
 		if($for_tpl && !wpfilebase_get_opt('hide_inaccessible'))
 			return true;
-		return false;
 		$level = intval($this->is_file ? $this->file_required_level : $this->cat_required_level) - 1;
 		return ($level < 0 || current_user_can('level_'.$level));
 	}

@@ -1,19 +1,30 @@
 <?php
 
 function wpfilebase_init() {
-	$lang_dir = basename(WPFB_PLUGIN_ROOT).'/languages';
-	load_plugin_textdomain(WPFB, 'wp-content/plugins/'.$lang_dir, $lang_dir);
+	wpfilebase_load_lang();
 	
 	wp_register_style('wpfb', WPFB_PLUGIN_URI.'wp-filebase_css.php', array(), WPFB_VERSION, 'all' );
 	wp_register_script('wpfb', WPFB_PLUGIN_URI.'wp-filebase.js', array('jquery'), WPFB_VERSION);
 	
 	wp_enqueue_style('wpfb');
-	
+	// widgets
+	wp_register_sidebar_widget(WPFB_PLUGIN_NAME, WPFB_PLUGIN_NAME .' '. __('File list', WPFB), '_wpfilebase_widget_filelist', array('description' => __('Lists the latest or most popular files', WPFB)));
+	wp_register_sidebar_widget(WPFB_PLUGIN_NAME.'_cats', WPFB_PLUGIN_NAME.' ' . __('Category list', WPFB), '_wpfilebase_widget_catlist', array('description' => __('Simple listing of file categories', WPFB)));
+
 	// for admin
 	if (current_user_can('edit_posts') || current_user_can('edit_pages'))
 		wpfilebase_mce_addbuttons();
 }
 add_action('init', 'wpfilebase_init');
+
+function wpfilebase_load_lang() {
+	static $loaded = false;
+	if(!$loaded) {
+		$lang_dir = basename(WPFB_PLUGIN_ROOT).'/languages';
+		load_plugin_textdomain(WPFB, 'wp-content/plugins/'.$lang_dir, $lang_dir);
+		$loaded = true;
+	}
+}
 
 function wpfilebase_get_opt($name = null)
 {
@@ -24,11 +35,13 @@ function wpfilebase_get_opt($name = null)
 		return isset($options[$name]) ? $options[$name] : null;
 }
 
-wp_register_sidebar_widget(WPFB_PLUGIN_NAME, WPFB_PLUGIN_NAME, '_wpfilebase_widget_filelist');
-function _wpfilebase_widget_filelist($args)
-{
+function _wpfilebase_widget_filelist($args) {
 	wpfilebase_inclib('widget');
 	return wpfilebase_widget_filelist($args);
+}
+function _wpfilebase_widget_catlist($args) {
+	wpfilebase_inclib('widget');
+	return wpfilebase_widget_catlist($args);
 }
 
 add_action('template_redirect',	'wpfilebase_redirect');

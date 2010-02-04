@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: WP-Filebase 0.1.3.0\n"
 "Report-Msgid-Bugs-To: http://wordpress.org/tag/wp-filebase\n"
 "POT-Creation-Date: 2010-01-18 23:16+0000\n"
-"PO-Revision-Date: 2010-01-28 17:12+0100\n"
+"PO-Revision-Date: 2010-01-28 18:46+0100\n"
 "Last-Translator: Fabian Schlieper <fabian@fabi.me>\n"
 "Language-Team: Fabian Schlieper <fabian@fabi.me>\n"
 "MIME-Version: 1.0\n"
@@ -42,6 +42,9 @@ msgstr "Datei URL"
 #: editor_plugin.php:246
 msgid "File list"
 msgstr "Dateiliste"
+
+msgid "Category list"
+msgstr "Kategorieliste"
 
 #: editor_plugin.php:255
 msgid "All Categories"
@@ -780,7 +783,7 @@ msgstr "Offline"
 
 #: lib/wp-filebase_widget.lib.php:87
 msgid "Limit:"
-msgstr "Dateilimit:"
+msgstr "Limit:"
 
 #: lib/wp-filebase_widget.lib.php:92
 msgid "Template:"
@@ -833,6 +836,15 @@ msgstr "Sicherheit"
 
 msgid "Templates and Scripts"
 msgstr "Templates und Skripte"
+
+msgid "Lists the latest or most popular files"
+msgstr "Listet die neusten oder beliebtesten Dateien auf"
+
+msgid "Simple listing of file categories"
+msgstr "Einfaches Auflisten von Dateikategorien"
+
+msgid "Before you can use this widget, please set a Post ID for the file browser in WP-Filebase settings."
+msgstr "Bevor du dieses Widget benutzen kannst, musst du in den WP-Filebase Einstellungen die Artikel-ID für den Dateibrowser setzen."
 
 msgid "If you like WP-Filebase I would appreciate a small donation to support my work. You can additionally add an idea to make WP-Filebase even better. Just click the button below. Thank you!"
 msgstr "Wenn dir WP-Filebase gefällt, würde ich mich über eine kleine Spende als Anerkennung und Unterstützung meiner Arbeit freuen. Du kannst deiner Spende eine Idee zur Verbesserung von WP-Filebase hinzufügen. Klicke einfach den unteren Button. Vielen Dank!"

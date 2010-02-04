@@ -48,10 +48,18 @@ function _wpfilebase_admin_manage()
 
 function _wpfilebase_widget_filelist_control()
 {
+	wpfilebase_load_lang();
 	wpfilebase_inclib('widget');
 	wpfilebase_widget_filelist_control();
 }
-wp_register_widget_control(WPFB_PLUGIN_NAME, WPFB_PLUGIN_NAME, '_wpfilebase_widget_filelist_control');
+function _wpfilebase_widget_catlist_control()
+{
+	wpfilebase_load_lang();
+	wpfilebase_inclib('widget');
+	wpfilebase_widget_catlist_control();
+}
+wp_register_widget_control(WPFB_PLUGIN_NAME, WPFB_PLUGIN_NAME .' '. __('File list'), '_wpfilebase_widget_filelist_control', array('description' => __('Lists the latest or most popular files', WPFB)));
+wp_register_widget_control(WPFB_PLUGIN_NAME.'_cats', WPFB_PLUGIN_NAME.' ' . __('Category list'), '_wpfilebase_widget_catlist_control', array('description' => __('Simple listing of file categories', WPFB)));
 
 function wpfilebase_version_update_check()
 {
