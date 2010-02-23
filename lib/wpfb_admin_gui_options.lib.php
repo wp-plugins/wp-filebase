@@ -185,7 +185,7 @@ function wpfilebase_admin_options()
 						echo ' value="1" ';
 						checked('1', $opt_val);
 					} elseif($field_data['type'] == 'number')
-						echo ' value="' . intval($opt_val) . '" size="5"';
+						echo ' value="' . intval($opt_val) . '" size="5" style="text-align: right"';
 					else {
 						echo ' value="' . esc_attr($opt_val) . '"';
 						if(isset($field_data['size']))

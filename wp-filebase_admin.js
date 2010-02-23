@@ -68,5 +68,6 @@ function elementShowHide(el, show)
 
 /* Option tabs */
 jQuery(document).ready( function() {
-	jQuery('#wpfilebaseopttabs').tabs();
+	try { jQuery('#wpfilebaseopttabs').tabs(); }
+	catch(ex) {}
 });

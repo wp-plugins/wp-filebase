@@ -148,40 +148,43 @@ class WPFilebaseFile extends WPFilebaseItem {
 	
 	/*public (PHP 4 compatibility) */ function get_icon_url()
 	{	
-		if(!empty($this->file_thumbnail))
+		if(!empty($this->file_thumbnail) && file_exists($this->get_thumbnail_path()))
 		{
 			return WPFB_PLUGIN_URI . 'wp-filebase_thumb.php?fid=' . $this->file_id;
 		}
 				
 		$type = $this->get_type();
 		$ext = substr($this->get_extension(), 1);
-
-		$images_path = ABSPATH . WPINC . '/images/';
-		$url = get_option('siteurl').'/'. WPINC .'/images/';
+		
+		$img_path = ABSPATH . WPINC . '/images/';
+		$img_url = get_option('siteurl').'/'. WPINC .'/images/';
+		$custom_folder = '/images/fileicons/';
+		
+		// check for custom icons
+		if(file_exists(WP_CONTENT_DIR.$custom_folder.$ext.'.png'))
+			return WP_CONTENT_URL.$custom_folder.$ext.'.png';		
+		if(file_exists(WP_CONTENT_DIR.$custom_folder.$type.'.png'))
+			return WP_CONTENT_URL.$custom_folder.$type.'.png';
 		
 
-		if(file_exists($images_path . 'crystal/' . $type . '.png'))
-			return $url . 'crystal/' . $type . '.png';		
-		if(file_exists($images_path . $type . '.png'))
-			return $url . $type . '.png';
-		
-		if($type != $ext)
-		{
-			if(file_exists($images_path . 'crystal/' . $ext . '.png'))
-				return $url . 'crystal/' . $ext . '.png';		
-			if(file_exists($images_path . $ext . '.png'))
-				return $url . $ext . '.png';
-		}
+		if(file_exists($img_path . 'crystal/' . $ext . '.png'))
+			return $img_url . 'crystal/' . $ext . '.png';
+		if(file_exists($img_path . 'crystal/' . $type . '.png'))
+			return $img_url . 'crystal/' . $type . '.png';	
+				
+		if(file_exists($img_path . $ext . '.png'))
+			return $img_url . $ext . '.png';
+		if(file_exists($img_path . $type . '.png'))
+			return $img_url . $type . '.png';
 		
 		// fallback to default
-		if(file_exists($images_path . 'crystal/default.png'))
-			return $url . 'crystal/default.png';
-		
-		if(file_exists($images_path . 'default.png'))
-			return $url . 'default.png';
+		if(file_exists($img_path . 'crystal/default.png'))
+			return $img_url . 'crystal/default.png';		
+		if(file_exists($img_path . 'default.png'))
+			return $img_url . 'default.png';
 		
 		// fallback to blank :(
-		return $url . 'blank.gif';
+		return $img_url . 'blank.gif';
 	}
 	
 	/*public (PHP 4 compatibility) */ function create_thumbnail($src_image='')
@@ -450,11 +453,15 @@ JS;
 	
 	/*public (PHP 4 compatibility) */ function download()
 	{
-		global $wpdb, $user_ID;
+		global $wpdb, $current_user, $user_ID;
 		
 		@error_reporting(0);
-		
 		wpfilebase_inclib('download');
+		$downloader_ip = preg_replace( '/[^0-9a-fA-F:., ]/', '', $_SERVER['REMOTE_ADDR']);
+		get_currentuserinfo();
+		$logged_in = (!empty($user_ID));
+		$user_role = $logged_in ? array_shift($current_user->roles) : null; // get user's highest role (like in user-eidt.php)
+		$is_admin = current_user_can('level_8') && $user_role == 'administrator'; 
 		
 		// check user level
 		if(!$this->current_user_can_access())
@@ -471,35 +478,29 @@ JS;
 				wp_redirect(wpfilebase_get_post_url($this->file_post_id));
 				exit;
 			}
-		}	
-		
-		$downloader_ip = preg_replace( '/[^0-9a-fA-F:., ]/', '', $_SERVER['REMOTE_ADDR']);
+		}
 		
 		// check traffic
-		if(!wpfilebase_check_traffic($this->file_size))
-		{
+		if(!wpfilebase_check_traffic($this->file_size)) {
 			header('HTTP/1.x 503 Service Unavailable');
 			wp_die(wpfilebase_get_opt('traffic_exceeded_msg'));
 		}
 
-		get_currentuserinfo();
-		$logged_in = (!empty($user_ID));
-		$is_admin = current_user_can('level_8'); 
-		
+		// check daily user limit
 		if(!$is_admin && wpfilebase_get_opt('daily_user_limits')) {
 			if(!$logged_in)
 				$this->download_denied('inaccessible_msg');
 			
-			$usr_dls_today = intval(get_user_option(WPFB_OPT_NAME . '_dls_today'));
 			$today = intval(date('z'));
+			$usr_dls_today = intval(get_user_option(WPFB_OPT_NAME . '_dls_today'));
 			$usr_last_dl_day = intval(date('z', intval(get_user_option(WPFB_OPT_NAME . '_last_dl'))));
 			if($today != $usr_last_dl_day)
 				$usr_dls_today = 0;
 			
 			// check for limit
-			
-			if(!$logged_in)
-				$this->download_denied('daily_limit_exceeded_msg');			
+			$dl_limit = intval(wpfilebase_get_opt('daily_limit_'.$user_role));
+			if($usr_dls_today >= $dl_limit)
+				$this->download_denied(($dl_limit > 0) ? sprintf(wpfilebase_get_opt('daily_limit_exceeded_msg'), $dl_limit) : 'inaccessible_msg');			
 			
 			$usr_dls_today++;
 			update_user_option($user_ID, WPFB_OPT_NAME . '_dls_today', $usr_dls_today);
@@ -507,13 +508,10 @@ JS;
 		}			
 		
 		// count download
-		if(!$is_admin || !wpfilebase_get_opt('ignore_admin_dls'))
-		{
-
+		if(!$is_admin || !wpfilebase_get_opt('ignore_admin_dls')) {
 			$last_dl_time = mysql2date('U', $file->last_dl_time , false);
 			if(empty($this->file_last_dl_ip) || $this->file_last_dl_ip != $downloader_ip || ((time() - $last_dl_time) > 86400))
 				$wpdb->query("UPDATE " . $wpdb->wpfilebase_files . " SET file_hits = file_hits + 1, file_last_dl_ip = '" . $downloader_ip . "', file_last_dl_time = '" . current_time('mysql') . "' WHERE file_id = " . (int)$this->file_id);
-			
 		}
 		
 		wpfilebase_send_file($this->get_path(), wpfilebase_get_opt('bitrate_' . ($logged_in?'registered':'unregistered')), $this->file_hash);

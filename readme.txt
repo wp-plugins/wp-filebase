@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=money
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, traffic, widget, filelist, list, thumb, thumbnail, attachment, attachments, category, categories, media, template, ftp, http
 Requires at least: 2.2.0
 Tested up to: 2.9.1
-Stable tag: 0.1.3.0
+Stable tag: 0.1.3.1
 
 Adds a powerful download manager supporting file categories, thumbnails, traffic/bandwidth limits and more to your WordPress blog.
 
@@ -18,7 +18,7 @@ Some more features:
 
 *   Powerful filemanger to arrange files in categories and sub-categories
 *   Insert file lists in posts and pages (with Editor Button)
-*	Flexible content tags
+*   Flexible content tags
 *   Automatically creates thumbnails of images (JPEG, PNG, GIF, BMP)
 *   Category Icons
 *   Upload files with your browser or FTP client
@@ -30,7 +30,7 @@ Some more features:
 *   Hotlinking protection
 *   Daily and monthly traffic limits
 *   Download speed limiter for registered users and anonymous
-*   Traffic limits
+*   Traffic and download limits
 *   Range download (allows users to pause downloads and continue them later)
 *   Works with permalink structure (nice download URIs)
 *   Download counter which ignores multiple downloads from the same client
@@ -38,7 +38,7 @@ Some more features:
 *   Custom JavaScript code which is executed when a download link is clicked (e.g. to track downloads with Google Analytics)
 *   Works with WP Super Cache
 
-You can see a [live demo on my Website](http://fabi.me/ "WP-Filebase demo")
+You can see a [live demo on my Website](http://fabi.me/downloads/ "WP-Filebase demo")
 
 **Since Version 0.1.3.0 the plugin supports localization.** If you want to translate WP-Filebase in your language, open `wp-filebase/languages/template.po` with [Poedit](http://www.poedit.net/download.php) and save as `wpfb-xx_YY.po` (`xx` is your language code, `YY` your country). Poedit will create the file `wpfb-xx_YY.po`. Put this file in `wp-filebase/languages` and share it if you like (attach it to an email or post it on my blog).
 
@@ -50,7 +50,7 @@ If you want to report a bug or have any problems with this Plugin please post yo
 
 1. Upload the `wp-filebase` folder with all it's files to `wp-content/plugins/`
 2. Create the directory `/wp-content/uploads/filebase` and make it writable (FTP command: `CHMOD 777 wp-content/uploads/filebase`)
-3. Activate the Plugin and customize the settings under `Settings->WP-Filebase`
+3. Activate the Plugin and customize the settings under *Settings->WP-Filebase*
 
 == Frequently Asked Questions ==
 
@@ -72,6 +72,9 @@ Upload all files you want to add to the WP-Filebase upload directory (default is
 You can change the HTML template under WP-Admin -> Settings -> WP-Filebase. To edit the stylesheet goto WP-Admin -> Tools -> WP-Filebase and click *Edit Stylesheet*.
 Since Version 0.1.2.0 you can create your custom templates for individual file lists. You can manage the templates under WP-Admin -> Tools -> WP-Filebase -> Manage templates. When adding a tag to a post/page you can now select the template.
 
+= How can I use custom file type/extension icons? =
+
+WP-Filebase uses WordPress' default file type icons in `wp-includes/images/crystal` for files without a thumbnail. To use custom icons copy the icon files in PNG format named like `pdf.png` or `audio.png` to `wp-content/images/fileicons` (you have to create that folder first).
 == Screenshots ==
 
 1. Example of three auto-attached files
@@ -80,13 +83,18 @@ Since Version 0.1.2.0 you can create your custom templates for individual file l
 
 == Changelog ==
 
+= 0.1.3.1 =
+* Added daily user download limits
+* JavaScript errors caused by jQuery tabs function are suppressed if not supported by the browser
+* Added support for custom file type icons. Copy your icons to `wp-content/images/fileicons` (see FAQ).
+
 = 0.1.3.0 =
 * Added option *Parse template tags in RSS feeds*
 * New Widget: Category list
 * Settings are organized in tabs now
 * Conditional loading of WP-Filebase's JS
 * Automatic login redirect
-* Validated template output (**Note**: line breaks are not converted to HTML anymore, so please add <br />'s or reset your settings to load the default template)
+* Validated template output (**Note**: line breaks are not converted to HTML anymore, so please add &lt;br /&gt;'s or reset your settings to load the default template)
 * Added localization support
 * German translation
 * Editor Button code changes
