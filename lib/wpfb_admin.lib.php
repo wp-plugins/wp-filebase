@@ -10,6 +10,8 @@ function wpfilebase_options()
 	$multiple_line_desc = __('One entry per line.', WPFB);
 	$bitrate_desc = __('Limits the maximum tranfer rate for downloads. 0 = unlimited', WPFB);
 	$traffic_desc = __('Limits the maximum data traffic. 0 = unlimited', WPFB);
+	$dls_per_day = __('downloads per day', WPFB);
+	$daily_limit_for = __('Daily limit for %s', WPFB);
 	
 	return array (
 	
@@ -29,6 +31,14 @@ function wpfilebase_options()
 	'traffic_month'			=> array('default' => 0, 'title' => __('Monthly traffic limit', WPFB), 'type' => 'number', 'unit' => 'GiB', 'desc' => &$traffic_desc),
 	'traffic_exceeded_msg'	=> array('default' => __('Traffic limit exceeded! Please try again later.', WPFB), 'title' => __('Traffic exceeded message', WPFB), 'type' => 'text', 'size' => 65),
 	'file_offline_msg'		=> array('default' => __('This file is currently offline.', WPFB), 'title' => __('File offline message', WPFB), 'type' => 'text', 'size' => 65),
+		
+	'daily_user_limits'		=> array('default' => false, 'title' => __('Daily user download limits', WPFB), 'type' => 'checkbox', 'desc' => __('If enabled, unregistered users cannot download any files. You can set different limits for each user role below.', WPFB)), 	
+	'daily_limit_subscriber'	=> array('default' => 0, 'title' => sprintf($daily_limit_for, _x('Subscriber', 'User role')), 'type' => 'number', 'unit' => &$dls_per_day),
+	'daily_limit_contributor'	=> array('default' => 0, 'title' => sprintf($daily_limit_for, _x('Contributor', 'User role')), 'type' => 'number', 'unit' => &$dls_per_day),
+	'daily_limit_author'		=> array('default' => 0, 'title' => sprintf($daily_limit_for, _x('Author', 'User role')), 'type' => 'number', 'unit' => &$dls_per_day),
+	'daily_limit_editor'		=> array('default' => 0, 'title' => sprintf($daily_limit_for, _x('Editor', 'User role')), 'type' => 'number', 'unit' => &$dls_per_day),
+	'daily_limit_exceeded_msg'	=> array('default' => __('You can only download %d files per day.', WPFB), 'title' => __('Daily limit exceeded message', WPFB), 'type' => 'text', 'size' => 65),
+	
 	
 	'disable_permalinks'	=> array('default' => false, 'title' => __('Disable download permalinks', WPFB), 'type' => 'checkbox', 'desc' => __('Enable this if you have problems with permalinks.', WPFB)),
 	'download_base'			=> array('default' => 'download', 'title' => __('Download URL base', WPFB), 'type' => 'text', 'desc' => sprintf(__('The url prefix for file download links. Example: <code>%s</code> (Only used when Permalinks are enabled.)', WPFB), get_option('home').'/%value%/category/file.zip')),
@@ -686,7 +696,7 @@ function wpfilebase_protect_upload_path()
 
 function wpfilebase_extension_is_allowed($ext)
 {
-	static $srv_script_exts = array('php', 'php3', 'php4', 'php5', 'phtml', 'cgi', 'pl', 'asp', 'py', 'aspx');	
+	static $srv_script_exts = array('php', 'php3', 'php4', 'php5', 'phtml', 'cgi', 'pl', 'asp', 'py', 'aspx', 'jsp', 'jhtml', 'jhtm');	
 	
 	if(wpfilebase_get_opt('allow_srv_script_upload'))
 		return true;
@@ -704,6 +714,7 @@ function wpfilebase_uninstall()
 	wpfilebase_inclib('setup');
 	wpfilebase_remove_options();
 	wpfilebase_drop_tables();
+	// TODO: remove user opt
 }
 
 function wpfilebase_progress_bar($progress, $label)

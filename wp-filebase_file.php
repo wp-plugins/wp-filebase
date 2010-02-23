@@ -439,6 +439,15 @@ JS;
 		return in_array($name, $no_esc) ? $this->_get_tpl_var($name) : htmlspecialchars($this->_get_tpl_var($name));
 	}
 	
+	function download_denied($msg_id) {
+		if(wpfilebase_get_opt('inaccessible_redirect') && !is_user_logged_in())
+			auth_redirect();
+		$msg = wpfilebase_get_opt($msg_id);
+		if(!$msg) $msg = $msg_id;
+		wp_die(empty($msg) ? __('Cheatin&#8217; uh?') : $msg);
+		exit;
+	}
+	
 	/*public (PHP 4 compatibility) */ function download()
 	{
 		global $wpdb, $user_ID;
@@ -448,12 +457,8 @@ JS;
 		wpfilebase_inclib('download');
 		
 		// check user level
-		if(!$this->current_user_can_access()) {
-			if(wpfilebase_get_opt('inaccessible_redirect') && !is_user_logged_in())
-				auth_redirect();
-			$msg = wpfilebase_get_opt('inaccessible_msg');
-			wp_die(empty($msg) ? __('Cheatin&#8217; uh?') : $msg);
-		}
+		if(!$this->current_user_can_access())
+			$this->download_denied('inaccessible_msg');
 		
 		// check offline
 		if($this->file_offline)
@@ -481,12 +486,34 @@ JS;
 		$logged_in = (!empty($user_ID));
 		$is_admin = current_user_can('level_8'); 
 		
+		if(!$is_admin && wpfilebase_get_opt('daily_user_limits')) {
+			if(!$logged_in)
+				$this->download_denied('inaccessible_msg');
+			
+			$usr_dls_today = intval(get_user_option(WPFB_OPT_NAME . '_dls_today'));
+			$today = intval(date('z'));
+			$usr_last_dl_day = intval(date('z', intval(get_user_option(WPFB_OPT_NAME . '_last_dl'))));
+			if($today != $usr_last_dl_day)
+				$usr_dls_today = 0;
+			
+			// check for limit
+			
+			if(!$logged_in)
+				$this->download_denied('daily_limit_exceeded_msg');			
+			
+			$usr_dls_today++;
+			update_user_option($user_ID, WPFB_OPT_NAME . '_dls_today', $usr_dls_today);
+			update_user_option($user_ID, WPFB_OPT_NAME . '_last_dl', time());
+		}			
+		
 		// count download
 		if(!$is_admin || !wpfilebase_get_opt('ignore_admin_dls'))
 		{
+
 			$last_dl_time = mysql2date('U', $file->last_dl_time , false);
 			if(empty($this->file_last_dl_ip) || $this->file_last_dl_ip != $downloader_ip || ((time() - $last_dl_time) > 86400))
 				$wpdb->query("UPDATE " . $wpdb->wpfilebase_files . " SET file_hits = file_hits + 1, file_last_dl_ip = '" . $downloader_ip . "', file_last_dl_time = '" . current_time('mysql') . "' WHERE file_id = " . (int)$this->file_id);
+			
 		}
 		
 		wpfilebase_send_file($this->get_path(), wpfilebase_get_opt('bitrate_' . ($logged_in?'registered':'unregistered')), $this->file_hash);
