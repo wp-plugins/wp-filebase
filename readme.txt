@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=money
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, traffic, widget, filelist, list, thumb, thumbnail, attachment, attachments, category, categories, media, template, ftp, http
 Requires at least: 2.2.0
 Tested up to: 2.9.1
-Stable tag: 0.1.3.1
+Stable tag: 0.1.3.2
 
 Adds a powerful download manager supporting file categories, thumbnails, traffic/bandwidth limits and more to your WordPress blog.
 
@@ -83,7 +83,7 @@ WP-Filebase uses WordPress' default file type icons in `wp-includes/images/cryst
 
 == Changelog ==
 
-= 0.1.3.1 =
+= 0.1.3.2 =
 * Added daily user download limits
 * JavaScript errors caused by jQuery tabs function are suppressed if not supported by the browser
 * Added support for custom file type icons. Copy your icons to `wp-content/images/fileicons` (see FAQ).

@@ -82,6 +82,10 @@ if(!empty($_REQUEST['action']) && $_REQUEST['action'] == 'get_sub_items')
 			text-align: center;
 		}
 		
+		#menu .button {
+			width: 120px;
+		}
+		
 		#filelist, #insfilelist {
 			margin: 5px;
 		}
