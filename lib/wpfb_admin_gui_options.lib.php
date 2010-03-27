@@ -48,9 +48,6 @@ function wpfilebase_admin_options()
 		if(wpfilebase_wpcache_reject_uri($_POST['download_base'] . '/', $options['download_base'] . '/'))
 			$messages[] = sprintf(__('/%s/ added to rejected URIs list of WP Super Cache.', WPFB), $_POST['download_base']);
 		
-		if(!empty($_POST['allow_srv_script_upload']))
-			$messages[] = __('WARNING: Script upload enabled!', WPFB);
-		
 		$tpl_file = stripslashes($_POST['template_file']);
 		$tpl_cat = stripslashes($_POST['template_cat']);
 		if(!empty($tpl_file) && (empty($options['template_file_parsed']) || $tpl_file != $options['template_file']))
@@ -108,6 +105,13 @@ function wpfilebase_admin_options()
 		if(count($errors) == 0)
 			$messages[] = __('Settings updated.', WPFB);
 	}
+	
+	if(wpfilebase_get_opt('allow_srv_script_upload'))
+		$messages[] = __('WARNING: Script upload enabled!', WPFB);
+		
+	$upload_path = wpfilebase_get_opt('upload_path');
+	if(substr($upload_path, 0, 1) == '/')
+		$messages[] = __(sprintf('NOTICE: The upload path <code>%s</code> is rooted to the filesystem. You should remove the leading slash if you want to use a folder inside your Wordpress directory (i.e: <code>%s</code>)', $upload_path, trim($upload_path, '/')), WPFB);
 	
 	wpfilebase_flush_rewrite_rules();
 	

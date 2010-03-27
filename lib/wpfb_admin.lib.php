@@ -13,10 +13,14 @@ function wpfilebase_options()
 	$dls_per_day = __('downloads per day', WPFB);
 	$daily_limit_for = __('Daily limit for %s', WPFB);
 	
+	$upload_path_base = str_replace(ABSPATH, '', get_option('upload_path'));
+	if($upload_path_base == '' || $upload_path_base == '/')
+		$upload_path_base = 'wp-content/uploads';
+	
 	return array (
 	
 	// common
-	'upload_path'			=> array('default' => str_replace(ABSPATH, '', get_option('upload_path')) . '/filebase', 'title' => __('Upload Path', WPFB), 'type' => 'text', 'class' => 'code', 'size' => 65),
+	'upload_path'			=> array('default' => $upload_path_base . '/filebase', 'title' => __('Upload Path', WPFB), 'type' => 'text', 'class' => 'code', 'size' => 65),
 	'thumbnail_size'		=> array('default' => 120, 'title' => __('Thumbnail size'), 'type' => 'number', 'class' => 'num', 'size' => 8),
 	
 	// display
@@ -731,7 +735,7 @@ function wpfilebase_admin_form($name, $item=null, $exform=false)
 function wpfilebase_mkdir($dir)
 {
 	$parent = trim(dirname($dir), '.');
-	if($parent != '' && !is_dir($parent)) {
+	if(trim($parent,'/') != '' && !is_dir($parent)) {
 		$result = wpfilebase_mkdir($parent);
 		if($result['error'])
 			return $result;

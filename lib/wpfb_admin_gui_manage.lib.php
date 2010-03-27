@@ -522,6 +522,8 @@ function wpfilebase_admin_manage()
 					$result = wpfilebase_mkdir($upload_dir);
 					if($result['error'])
 						$error_msg = sprintf(__('The upload directory <code>%s</code> does not exists. It could not be created automatically because the directory <code>%s</code> is not writable. Please create <code>%s</code> and make it writable for the webserver by executing the following FTP command: <code>%s</code>', WPFB), $upload_dir_rel, str_replace(ABSPATH, '', $result['parent']), $upload_dir_rel, $chmod_cmd);
+					else
+						wpfilebase_protect_upload_path();
 				} elseif(!is_writable($upload_dir)) {
 					$error_msg = sprintf(__('The upload directory <code>%s</code> is not writable. Please make it writable for PHP by executing the follwing FTP command: <code>%s</code>', WPFB), $upload_dir_rel, $chmod_cmd);
 				}
