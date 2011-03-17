@@ -1,4 +1,4 @@
-=== WP-Filebase ===
+﻿=== WP-Filebase ===
 Contributors: fabifott
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=money%40fabi-s%2ede&item_name=WP-Filebase&no_shipping=0&no_note=1&tax=0&currency_code=USD&lc=US&bn=PP%2dDonationsBF&charset=UTF%2d8
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, traffic, widget, filelist, list, thumb, thumbnail, attachment, attachments, category, categories, media, template, ftp, http
@@ -94,7 +94,7 @@ Goto WP-Filebase Settings and disable Permalinks under "Download". Try to disabl
 * WP Search integration (search includes post attachments)
 * Categories can be exluded from file browser
 * Improved Widgets (you can specify a category for the file list now)
-* Swedish translation by H�kan
+* Swedish translation by Håkan
 * Russian translation by [L4NiK](http://lavo4nik.ru/plagin-zagruzki-fajlov-dlya-wordpress-wp-filebase-na-russkom/)
 * Added context menu to file links for direct editing and deletion
 * New Admin Menu Bar integration
