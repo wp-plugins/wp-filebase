@@ -2,53 +2,52 @@
 Contributors: fabifott
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=money%40fabi-s%2ede&item_name=WP-Filebase&no_shipping=0&no_note=1&tax=0&currency_code=USD&lc=US&bn=PP%2dDonationsBF&charset=UTF%2d8
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, traffic, widget, filelist, list, thumb, thumbnail, attachment, attachments, category, categories, media, template, ftp, http
-Requires at least: 2.2.0
-Tested up to: 2.9.1
-Stable tag: 0.1.3.4
+Requires at least: 3.1
+Tested up to: 3.1
+Stable tag: 0.2.0
 
 Adds a powerful download manager supporting file categories, thumbnails, traffic/bandwidth limits and more to your WordPress blog.
 
 == Description ==
 
-WP-Filebase is a powerful download manager supporting file categories, thumbnails and more.
-Uploaded files can be associated with a post or page so the download URL, thumbnail and other file information are appended automatically to the content.
-Additionally the downloadmanager offers options to limit traffic and download speed.
+WP-Filebase is an allround file manager for Wordpress.
+It keeps files structed in categories, offers a template system to create sortable, paginated file lists and can sideload files from other websites.
 
 Some more features:
 
-*   Powerful filemanger to arrange files in categories and sub-categories
-*   Insert file lists in posts and pages (with Editor Button)
-*   Flexible content tags
-*   Automatically creates thumbnails of images (JPEG, PNG, GIF, BMP)
-*   Category Icons
-*   Upload files with your browser or FTP client
-*   Powerful template engine (variables, IF-Blocks)
-*   Associate files to posts and automatically attach them to the content
-*   Customisable file list widget
-*   Multiple custom templates for filelists
-*   Access control for categories and files (e.g. to make files accessible for members only)
-*   Hotlinking protection
-*   Daily and monthly traffic limits
-*   Download speed limiter for registered users and anonymous
-*   Traffic and download limits
-*   Range download (allows users to pause downloads and continue them later)
-*   Works with permalink structure (nice download URIs)
-*   Download counter which ignores multiple downloads from the same client
-*   Many file properties like author, version, supported languages, platforms and license
-*   Custom JavaScript code which is executed when a download link is clicked (e.g. to track downloads with Google Analytics)
-*   Works with WP Super Cache
+*	Category / child category / file taxonomy
+*	Automatic thumbnail
+*	Built-in download counter
+*	File List Widget
+*	Ajax file tree browser
+*	Customizable template system
+*	Insert flexible shortcodes with the Visual Editor Plugin
+*	Sortable paginated file lists
+*	Associate files to posts and automatically attach them to the content
+*	User level restrictions
+*	Upload files in your browser, with FTP or from URL (sideloading)
+*	Traffic limits and bandwidth throttle
+*	Permalink structure
+*	Hotlinking protection
+*	Range download (allows users to pause downloads and continue them later)
+*	Custom JavaScript download tracking (e.g. Google Analytics)
+*	Many file properties like author, version, supported languages, platforms and license
+*	Search integration
+
 
 You can see a [live demo on my Website](http://fabi.me/downloads/ "WP-Filebase demo")
+For support, please [leave a message on my blog](http://fabi.me/wordpress-plugins/wp-filebase-file-download-manager/#postcomment "Post comment"). When having trouble don't forget to post PHP and Wordpress version! Any ideas/feature requests are welcome.
 
-**Since Version 0.1.3.0 the plugin supports localization.** If you want to translate WP-Filebase in your language, open `wp-filebase/languages/template.po` with [Poedit](http://www.poedit.net/download.php) and save as `wpfb-xx_YY.po` (`xx` is your language code, `YY` your country). Poedit will create the file `wpfb-xx_YY.po`. Put this file in `wp-filebase/languages` and share it if you like (attach it to an email or post it on my blog).
+**Note when updating to 0.2.0:** Since 0.2.0 WP-Filebase uses a different shortcode format. Old tags can be easily converted with the built-in converter. Please backup your database and run the converter right after the update. You should also run a filebase sync!
+**Important:** Don't upgrade to 0.2.0 if you are still running old PHP 4! WP-Filebase 0.2.0 only runs on PHP 5 and later!
 
-If you want to report a bug or have any problems with this Plugin please post your WordPress and PHP Version!
+If you want to translate WP-Filebase in your language, open `wp-filebase/languages/template.po` with [Poedit](http://www.poedit.net/download.php) and save as `wpfb-xx_YY.po` (`xx` is your language code, `YY` your country). Poedit will create the file `wpfb-xx_YY.po`. Put this file in `wp-filebase/languages` and share it if you like (attach it to an email or post it on my blog).
 
-**Note:** If you only want to limit traffic or bandwidth of media files you should take a look at my [Traffic Limiter](http://wordpress.org/extend/plugins/traffic-limiter/ "Traffic Limiter").
+**Note:** If you only want to limit traffic or bandwidth of media files you should take a look at my [Traffic Limiter Plugin](http://wordpress.org/extend/plugins/traffic-limiter/ "Traffic Limiter").
 
 == Installation ==
 
-1. Upload the `wp-filebase` folder with all it's files to `wp-content/plugins/`
+1. Upload the `wp-filebase` folder with all it's files to `wp-content/plugins`
 2. Create the directory `/wp-content/uploads/filebase` and make it writable (FTP command: `CHMOD 777 wp-content/uploads/filebase`)
 3. Activate the Plugin and customize the settings under *Settings->WP-Filebase*
 
@@ -69,19 +68,49 @@ Upload all files you want to add to the WP-Filebase upload directory (default is
 
 = How do I customize the appearance of filelists and attached files? =
 
-You can change the HTML template under WP-Admin -> Settings -> WP-Filebase. To edit the stylesheet goto WP-Admin -> Tools -> WP-Filebase and click *Edit Stylesheet*.
+You can change the HTML template under WP-Filebase -> Settings. To edit the stylesheet goto WP-Admin -> Tools -> WP-Filebase and click *Edit Stylesheet*.
 Since Version 0.1.2.0 you can create your custom templates for individual file lists. You can manage the templates under WP-Admin -> Tools -> WP-Filebase -> Manage templates. When adding a tag to a post/page you can now select the template.
 
 = How can I use custom file type/extension icons? =
 
 WP-Filebase uses WordPress' default file type icons in `wp-includes/images/crystal` for files without a thumbnail. To use custom icons copy the icon files in PNG format named like `pdf.png` or `audio.png` to `wp-content/images/fileicons` (you have to create that folder first).
+
+= What to do when downloading files does not work? =
+
+Goto WP-Filebase Settings and disable Permalinks under "Download". Try to disable other plugins. Disable WP_CACHE. Enable WP_DEBUG to get more info about possible errors.
+
 == Screenshots ==
 
-1. Example of three auto-attached files
-2. The WP-Filebase Widget
-3. The Editor Button to insert tags for filelists and download urls
+1. Example of an embedded download box with the default template
+2. The WP-Filebase Widgets
+3. AJAX file tree view
+4. The Editor Button to insert tags for filelists and download urls
 
 == Changelog ==
+
+= 0.2.0 =
+* Sortable, paginated file lists
+* New tree view post browser
+* WP Search integration (search includes post attachments)
+* Categories can be exluded from file browser
+* Improved Widgets (you can specify a category for the file list now)
+* Swedish translation by Håkan
+* Russian translation by [L4NiK](http://lavo4nik.ru/plagin-zagruzki-fajlov-dlya-wordpress-wp-filebase-na-russkom/)
+* Added context menu to file links for direct editing and deletion
+* New Admin Menu Bar integration
+* Admin Dashboard Widget
+* Improved editor plugin
+* New tree view file browser
+* New Option *Hide download links*
+* Added support for remote files (sideload and redirect)
+* Template preview
+* Removed deprecated user level system, using Roles for file and category permissions now
+* New TPL vars `%post_id%`, `%file_type%`, `%file_extension%`
+* Output buffering fix to trim any interfering output when downloading
+* File name version detection (i.e: `sample-v1.2.ext`)
+* Small thumbnails in admin file list
+* Added RAR file type
+* Fixes, fixes and new bugs ;)
 
 = 0.1.3.4 =
 * Fixed blank tools page caused by empty Wordpress upload path
@@ -146,7 +175,7 @@ WP-Filebase uses WordPress' default file type icons in `wp-includes/images/cryst
 = 0.1.1.5 =
 * Added CSS Editor
 * Added max upload size display
-* Fixed settings error `Missing argument 1 for WPFilebaseItem::WPFilebaseItem()`
+* Fixed settings error `Missing argument 1 for WPFB_Item::WPFB_Item()`
 * Fixed widget control
 * Fixed an issue with browser caching and hotlink protection
 
@@ -204,3 +233,8 @@ WP-Filebase uses WordPress' default file type icons in `wp-includes/images/cryst
 
 = 0.1.0.0 =
 * First version
+
+== Upgrade Notice ==
+
+= 0.2.0 =
+PHP 5 or later required! This is a big upgrade with lots of new features. You have to convert old content tags to new shortcodes. Go to WP-Filebase management page and you should see a yellow box with the converter notice (backup the Database before!). And sync the filebase after that!

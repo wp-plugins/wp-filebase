@@ -353,7 +353,7 @@ msgstr "Die Kategorie-ID"
 
 #: lib/wp-filebase_admin.lib.php:139
 #: lib/wp-filebase_admin.lib.php:174
-msgid "A unique ID number to indetify elements within a template"
+msgid "A unique ID number to identify elements within a template"
 msgstr "Eine eindeutige ID, um Elemente innerhalb eines Templates zu identifizieren"
 
 #: lib/wp-filebase_admin.lib.php:142
@@ -761,6 +761,10 @@ msgstr "Datei hochladen"
 #: lib/wp-filebase_form_file.php:15
 msgid "Simple Form"
 msgstr "Einfaches Formular"
+
+#: lib/wp-filebase_form_file.php:15
+msgid "Extended Form"
+msgstr "Erweitertes Formular"
 
 #: lib/wp-filebase_form_file.php:22
 msgid "Choose File"

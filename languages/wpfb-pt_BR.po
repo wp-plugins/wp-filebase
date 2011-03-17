@@ -331,7 +331,7 @@ msgstr "O ID da categoria"
 
 #: lib/wp-filebase_admin.lib.php:139
 #: lib/wp-filebase_admin.lib.php:174
-msgid "A unique ID number to indetify elements within a template"
+msgid "A unique ID number to identify elements within a template"
 msgstr "Um número único para identificar elementos em um template"
 
 #: lib/wp-filebase_admin.lib.php:142

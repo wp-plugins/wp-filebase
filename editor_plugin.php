@@ -1,301 +1,421 @@
 <?php
 
-require('../../../wp-config.php');
+define('WPFB_EDITOR_PLUGIN', 1);
+
+require_once(dirname(__FILE__).'/../../../wp-load.php');
+// disable error reporting
+error_reporting(0);
+@require_once(dirname(__FILE__).'/../../../wp-admin/admin.php');
+// enable error reporting again
+wp_debug_mode();
 
 // anti hack
 if(!current_user_can('publish_posts') && !current_user_can('edit_posts') && !current_user_can('edit_pages'))
 	wp_die(__('Cheatin&#8217; uh?'));
 
-wpfilebase_inclib('common');
-include_once(WPFB_PLUGIN_ROOT . 'wp-filebase_item.php');
+@header('Content-Type: ' . get_option('html_type') . '; charset=' . get_option('blog_charset'));
 
-$path = dirname(__FILE__);
+wpfb_loadclass('File', 'Category', 'Admin', 'ListTpl');
 
-function wpfilebase_editor_file_list($cat_id = 0)
-{
-	$content = '';
-	
-	$cat = ($cat_id != 0) ? WPFilebaseCategory::get_category($cat_id) : null;
-	
-	// back link
-	if($cat)
-		$content .= '<a href="javascript:;" onclick="getSubItems(' . $cat->cat_parent . ');" class="catlink">&lt;- ' . __('Go back') . '</a><br />';
-	
-	// sub cats
-	$cats = $cat ? $cat->get_child_categories() : WPFilebaseCategory::get_categories();
-	if(count($cats) > 0)
-	{
-		$content .= '<h3>' . __('Categories') . '</h3>';
-		foreach($cats as $c)
-			$content .= '<a href="javascript:;" onclick="getSubItems(' . $c->cat_id . ');" class="catlink">' . wp_specialchars($c->cat_name) . '</a><br />';
-	}
+$action = empty($_REQUEST['action']) ? '' : $_REQUEST['action'];
+$post_id = empty($_REQUEST['post_id']) ? 0 : intval($_REQUEST['post_id']);
+$file_id = empty($_REQUEST['file_id']) ? 0 : intval($_REQUEST['file_id']);
+$file = ($file_id > 0) ? WPFB_File::GetFile($file_id) : null;
 
-	// files
-	$num_total_files = WPFilebaseFile::get_num_files();
-	$files = is_object($cat) ? $cat->get_files() : WPFilebaseFile::get_files("WHERE file_category = 0");
-	if(count($files) > 0) {
-		$content .= '<h3>' . __('Uncategorized Files', WPFB) . '</h3>';
-		foreach($files as $file)
-			$content .= '<label><input type="radio" name="file" value="' . $file->file_id . '" title="' . esc_attr($file->file_display_name) . '" />' . wp_specialchars($file->file_display_name) . '</label><br />';
-	}
-	if(count($files) == 0 && $num_total_files == 0)
-		$content .= '<i>' . sprintf(__('You did not upload a file. <a href="%s" target="_parent">Click here to add one.</a>', WPFB), get_option('siteurl') . '/wp-admin/tools.php?page=wpfilebase&amp;action=manage_files#addfile') . '</i>';
-		
-	return $content;
+$manage_attachments = !empty($_REQUEST['manage_attachments']);
+
+switch($action){
+case 'rmfile':
+	if($file && $file->file_post_id == $post_id) $file->SetPostId(0);
+	$file = null;
+	break;
+	
+case 'delfile':
+	if($file) $file->remove();
+	$file = null;
+	break;
+	
+case 'addfile':
+	if ( !current_user_can('upload_files') ) wp_die(__('Cheatin&#8217; uh?'));
+	break;
 }
 
-if(!empty($_REQUEST['action']) && $_REQUEST['action'] == 'get_sub_items')
-{
-	echo wpfilebase_editor_file_list(intval($_REQUEST['cat']));
-	exit;
-}
-
+$post_attachments = ($post_id > 0) ? WPFB_File::GetPostAttachments($post_id) : array();
 
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"  dir="ltr" lang="en-US">
+<html xmlns="http://www.w3.org/1999/xhtml" <?php do_action('admin_xml_ns'); ?> <?php language_attributes(); ?>>
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-	<title><?php echo WPFB_PLUGIN_NAME; ?></title>
-	<?php wp_enqueue_script('tinymce-popup', '/wp-includes/js/tinymce/tiny_mce_popup.js'); ?>
-	<?php wp_enqueue_script('jquery'); ?>
-	<?php wp_head(); ?>
-	<style type="text/css">
-	<!--
-		h2{
-			margin: 5px 0 5px 0;
-			font-size: 12px;
-			padding: 0 0 4px 0;
-			border-bottom: 1px #BAC3CA solid;
-		}
-		
-		h3{
-			font-size: 10px;
-			margin-left: -4px;
-		}
-		
-		a{
-			color: #00457A;
-		}
-		
-		#menu {
-			text-align: center;
-		}
-		
-		#menu .button {
-			width: 120px;
-		}
-		
-		#filelist, #insfilelist {
-			margin: 5px;
-		}
-		
-		#tpllist {
-			margin-top: 10px;
-		}
-	-->
-	</style>
-	<script type="text/javascript">	
-	var currentContainer = '';
-	var panelVisible = false;
-	
-	function insertTypeBtnClicked(btn)
-	{
-		var el_fl = document.getElementById('filelist');
-		var el_ifl = document.getElementById('insfilelist');
-		var el_tpls = document.getElementById('tpllist');
-		
-		if(btn.name == 'insfilelist')
-		{
-			el_fl.style.display = 'none';
-			el_ifl.style.display = 'block';
-		} else {
-			el_ifl.style.display = 'none';
-			el_fl.style.display = 'block';
-		}
-		
-		el_tpls.style.display = (btn.name == 'insfileurl') ? 'none' : 'block';
-		
-		document.getElementById('containertitle').innerHTML = btn.value;
-		
-		currentContainer = btn.name;
-		
-		if(!panelVisible) {
-			document.getElementById('mceActionPanel').style.display = 'block';
-			panelVisible = true;
-		}
+<meta http-equiv="Content-Type" content="<?php bloginfo('html_type'); ?>; charset=<?php echo get_option('blog_charset'); ?>" />
+<title><?php echo WPFB_PLUGIN_NAME ?></title>
+
+<?php
+//wp_enqueue_script('tiny-mce-popup', site_url().'/'.WPINC.'/js/tinymce/tiny_mce_popup.js');
+wp_enqueue_script('jquery');
+wp_enqueue_script('jquery-treeview-async');
+
+wp_enqueue_style( 'global' );
+wp_enqueue_style( 'wp-admin' );
+wp_enqueue_style( 'colors' );
+wp_enqueue_style( 'media' );
+wp_enqueue_style( 'ie' );
+wp_enqueue_style('jquery-treeview');
+
+do_action('admin_enqueue_scripts', 'media-upload-popup');
+do_action('admin_print_styles-media-upload-popup');
+do_action('admin_print_styles');
+do_action('admin_print_scripts-media-upload-popup');
+do_action('admin_print_scripts');
+do_action('admin_head-media-upload-popup');
+do_action('admin_head');
+?>
+
+<style type="text/css">
+<!--
+	h2{
+		margin: 8px 0 5px 0;
+		font-size: 12px;
+		padding: 0 0 4px 0;
+		border-bottom: 1px #BAC3CA solid;
 	}
 	
+	h3{
+		font-size: 10px;
+		margin-left: -4px;
+	}
 	
-	function getSubItems(cat)
-	{
-		jQuery('body').css('cursor', 'wait');
-			
-		var response = jQuery.ajax({
-			type: 'POST',
-			url: '<?php echo basename($_SERVER['PHP_SELF']); ?>',
-			data: 'action=get_sub_items&cat=' + cat,
-			async: false
-		}).responseText;
-		
-		jQuery('body').css('cursor', 'default');
-		
-		document.getElementById('filelist').innerHTML = response;
+	a {color: #00457A; }
+	
+	#menu {
+		text-align: center;
+	}
+	
+	#menu .button {
+		width: 120px;
+	}
+	
+	#filelist, #insfilelist {
+		margin: 5px;
+	}
+	
+	#tpllist {
+		margin-top: 10px;
+	}
+	
+	.media-item a {
+		margin-top: 10px;
+	}
+	
+	form, .container {
+		padding: 0;
+		margin: 10px;
+	}
+	
+-->
+</style>
 
+<script type="text/javascript">
+//<![CDATA[ 
+
+var theEditor;
+var currentTab;
+var selectedCats = [];
+
+jQuery(document).ready( function()
+{
+	jQuery(".media-item a").hide();
+	jQuery(".media-item").hover(
+		function(){jQuery("a",this).show();}, 
+		function(){jQuery("a",this).hide();}
+	);
+	
+<?php if(!$manage_attachments) { ?>
+	var win = window.dialogArguments || opener || parent || top;
+	if(win && win.tinymce) theEditor = win.tinymce.EditorManager.activeEditor;
+	else theEditor = null;
+
+	tabclick(jQuery("a", jQuery('#sidemenu')).get(0));
+	refreshTrees();
+
+	<?php if(!WPFB_Core::GetOpt('auto_attach_files')) { ?>
+	if (theEditor && theEditor.getContent().search(/\[wpfilebase\s+tag\s*=\s*['"]attachments['"]/) != -1)
+		jQuery('#no-auto-attach-note').hide(); 	// no notice if attachments tag is in
+<?php }
+} ?>
+});
+
+function refreshTrees() {
+<?php if(!$manage_attachments) { ?>
+	jQuery("#filebrowser").empty().treeview({
+		url: "<?php echo WPFB_PLUGIN_URI."wpfb-ajax.php" ?>",
+		ajax: {	data: { action: "tree", fileselect: true, onselect: 'selectFile(%d, \'%s\')' }, type: "post" },
+		animated: "medium"
+	});
+	jQuery("#catbrowser").empty().treeview({
+		url: "<?php echo WPFB_PLUGIN_URI."wpfb-ajax.php" ?>",
+		ajax: {	data: { action: "tree", catselect: true, onselect: 'selectCat(%d, \'%s\')', cat_id_fmt: 'catsel-cat-%d' }, type: "post" },
+		animated: "medium"
+	});
+<?php } ?>
+}
+
+function tabclick(a)
+{
+	var tabLinks = jQuery("a", a.parentNode.parentNode).toArray();
+	var h,tl,tab;
+	for(var i = 0; i < tabLinks.length; i++)
+	{
+		h = tabLinks[i].href;
+		h = h.substr(h.indexOf('#'));
+		tab = jQuery(h);
+		tl = jQuery(tabLinks[i]);
+		if(a.href == tabLinks[i].href) {
+			tl.addClass('current');
+			tab.show();
+		} else {
+			tl.removeClass('current');
+			tab.hide();				
+		}
+	}
+
+	currentTab = a.href.substr(a.href.indexOf('#')+1);
+
+	var showEls = {
+		'fileselect': (currentTab == 'file' || currentTab == 'fileurl'),
+		'filetplselect': (currentTab == 'file'),
+		'catselect': (currentTab == 'list'),
+		'listtplselect': (currentTab == 'list')
+	};
+
+	for(var id in showEls) {
+		if(showEls[id]) jQuery('#'+id).show();
+		else  jQuery('#'+id).hide();
+	}
+	
+	return false;
+}
+
+function selectFile(id, name)
+{
+	var tag = {tag:currentTab, id:id};
+	if(currentTab == 'fileurl') {
+		var linkText = prompt('<?php _e('Enter link text:', WPFB) ?>', name);
+		if(!linkText || linkText == null || linkText == '')	return;
+		tag.linktext = linkText;
+	} else {
+		var tpl = jQuery('input[name=filetpl]:checked', '#filetplselect').val();
+		if(tpl && tpl != '' && tpl != 'default') tag.tpl = tpl;
+	}
+	insertTag(tag);
+}
+
+function selectCat(id, name)
+{
+	var selected = false;
+	var el = jQuery('span.folder','#catsel-cat-'+id).first();
+
+	for(var i=0; i<selectedCats.length; i++) {
+		if (selectedCats[i] == id) {
+			selected = true;
+			selectedCats.splice(i, 1);
+			break;
+		}
+	}
+	if(!selected) selectedCats.push(id);	
+	el.css('background-image', selected?'':'url(<?php echo admin_url( 'images/yes.png' ) ?>)');
+}
+
+function editorInsert(str, close)
+{
+	var win = window.dialogArguments || opener || parent || top;
+	if(win && win.send_to_editor) {
+		win.send_to_editor(str);
+		if(typeof close != 'undefined' && close)
+			win.tinymce.EditorManager.activeEditor.windowManager.close(window);
 		return true;
 	}
-	
-	/*
-	function getFileUrl(file)
-	{
-		jQuery('body').css('cursor', 'wait');			
-		var response = jQuery.ajax({
-			type: 'POST',
-			url: '<?php echo basename($_SERVER['PHP_SELF']); ?>',
-			data: 'action=get_file_url&file=' + file,
-			async: false
-		}).responseText;		
-		jQuery('body').css('cursor', 'default');
-		return response;
-	}
-	*/
-	
-	function getSelectedRadio(name)
-	{
-		if(!document.forms[0] || !document.forms[0].elements)
-			return null;
-			
-		var els = document.forms[0].elements[name];		
-		if(typeof(els.length) != 'undefined') {		
-			for(var i = 0; i < els.length; ++i) {
-				if(els[i].checked)
-					return els[i];
-			}
-		} else if(typeof(els.checked) != 'undefined' && els.checked) {
-			return els;
-		}
-		
-		return null;
-	}
-	
-	function getSelectedRadioValue(name) {
-		var el = getSelectedRadio(name);
-		if(el != null && typeof(el.value) != 'undefined')
-			return el.value;
-		return '';
-	}
-	
-	function doInsert()
-	{
-		var form = document.forms[0];	
-		var url = (currentContainer == 'insfileurl');
-		var content = '';
-		
-		if(url)
-			content += '<a href="';		
-		content += '[filebase:';
-		
-		if(currentContainer == 'insfilelist')
-		{
-			var cat = getSelectedRadioValue('cat');	
-			if(cat.length == 0)
-				return;
-			if(cat == 'attachments') {
-				content += 'attachments';
-			} else {
-				content += 'filelist';
-				if(cat != null && cat.length > 0 && cat != 'all')
-					content += ':cat=' + cat;
-			}
-		} else {
-			content += 'file';
-			if(url)
-				content += 'url';
-			var file = getSelectedRadioValue('file');
-			if(file.length == 0)
-				return
-			content += ':file=' + file;
+	return false;
+}
 
-		
-			if(url)
-			{
-				var fileTitle = getSelectedRadio('file').title;
-				var linkText = prompt('<?php _e('Enter link text:', WPFB) ?>', fileTitle);
-				if(!linkText || linkText == null || linkText == '')
-					return;
-				content += ']">' + linkText + '</a>';
-			}
-		}
-		
-		if(!url) {
-			var tpl = getSelectedRadioValue('tpl');
-			if(tpl.length != 0) {
-				content += ':tpl=' + tpl;
-			}
-			content += ']';
-		}
-		
-		tinyMCEPopup.execCommand("mceInsertContent", false, content);
-		tinyMCEPopup.close();
+function insertTag(tagObj)
+{
+	var str = '[wpfilebase';
+
+	if(tagObj.tag == 'fileurl' && tagObj.linktext) {
+		str = '<a href="'+str;
 	}
-	</script>
 	
+	for(var t in tagObj) {
+		if(tagObj[t] != '' && t != 'linktext')
+			str += ' '+t+"='"+tagObj[t]+"'";
+	}
+	str+=']';
+
+	if(tagObj.tag == 'fileurl' && tagObj.linktext)
+		str += '">'+tagObj.linktext+'</a>';
+	return editorInsert(str, true);
+}
+
+function insAttachTag()
+{
+	editorInsert("[wpfilebase tag='attachments']", false);
+	jQuery('#no-auto-attach-note').hide();
+}
+
+function insListTag() {
+	/*if(selectedCats.length == 0) {
+		alert('Please select at least one category!');
+		return;
+	}*/
+	var tag = {tag:currentTab, id:selectedCats.join(',')};
+		
+	var tpl = jQuery('input[name=listtpl]:checked', '#listtplselect').val();
+	if(tpl && tpl != '' && tpl != 'default') tag.tpl = tpl;
+	
+	var sortby = jQuery('#list-sort-by').val();	
+	if(sortby && sortby != '') {
+		var order = jQuery('input[name=list-sort-order]:checked', '#list').val();
+		if(order == 'desc') sortby = '&gt;'+sortby;
+		else if(order == 'asc') sortby = '&lt;'+sortby;
+		tag.sort = sortby;
+	}
+	
+	var showcats = !!jQuery('#list-show-cats:checked').val()
+	if(showcats) tag.showcats = 1;
+	
+	var num = parseInt(jQuery('#list-num').val());
+	if(num != 0) tag.num = num; 
+	
+	insertTag(tag);
+}
+//]]>
+</script>
+
 </head>
-<body>
+<body id="media-upload">
 
-<form onsubmit="doInsert(); return false;" action="#">
-	<div id="menu" class="mceActionPanel">
-		<input type="button" name="insfile" class="button" onclick="insertTypeBtnClicked(this);" value="<?php _e('Single file', WPFB); ?>" />
-		<input type="button" name="insfileurl" class="button" onclick="insertTypeBtnClicked(this);" value="<?php _e('File URL', WPFB); ?>" />
-		<input type="button" name="insfilelist" class="button" onclick="insertTypeBtnClicked(this);" value="<?php _e('File list', WPFB); ?>" />
-	</div>
-	
-	<div style="height: 290px; overflow: auto;">
-		<h2 id="containertitle"></h2>
-		
-		<div id="filelist" style="display: none;"><?php echo wpfilebase_editor_file_list(); ?></div>
-		
-		<div id="insfilelist" style="display: none;">
-			<label><input type="radio" name="cat" value="all" /><i><?php _e('All Categories'/*def*/) ?></i></label><br />
-			<label><input type="radio" name="cat" value="0" /><i><?php _e('Uncategorized Files', WPFB) ?></i></label><br />
-			<label><input type="radio" name="cat" value="attachments" /><i><?php _e('Attachments', WPFB) ?></i></label><br />
-			<?php
-				$cats = WPFilebaseCategory::get_categories();
-				if(count($cats) > 0)
-				{
-					foreach($cats as $cat)
-						echo '<label><input type="radio" name="cat" value="' . $cat->cat_id . '" title="' . esc_attr($cat->cat_name) . '" />' . wp_specialchars($cat->cat_name) . '</label><br />';
-				} else {
-					echo '<i>';
-					printf(__('You did not create a category. <a href="%s" target="_parent">Click here to create one.</a>', WPFB), get_option('siteurl') . '/wp-admin/tools.php?page=wpfilebase&amp;action=manage_cats#addcat');
-					echo '</i>';
-				}
-			?>
-		</div>
-		
-		<div id="tpllist" style="display: none;">
-			<h2><?php _e('Select Template', WPFB) ?></h2>
-			<label><input type="radio" name="tpl" value="" /><i><?php _e('Default Template', WPFB) ?></i></label><br />
-			<?php $tpls = get_option(WPFB_OPT_NAME . '_tpls');
-				if(!empty($tpls)) {
-					foreach($tpls as $tpl_tag => $tpl_src)
-						echo '<label><input type="radio" name="tpl" value="' . esc_attr($tpl_tag) . '" />' . wp_specialchars($tpl_tag) . '</label><br />';
-				} ?>
-			<br />
-			<i><a href="<?php echo get_option('siteurl') . '/wp-admin/tools.php?page=wpfilebase&amp;action=manage_tpls#addtpl' ?>" target="_parent"><?php _e('Add Template', WPFB) ?></a></i>
-		</div>
-	</div>
-	
-	<div id="mceActionPanel" class="mceActionPanel" style="display: none;">
-		<div style="float: left">
-			<input type="button" id="cancel" name="cancel" value="{#cancel}" onclick="tinyMCEPopup.close();" />
-		</div>
+<div id="media-upload-header">
+<?php if(!$manage_attachments) {?>
+	<ul id='sidemenu'>
+		<li><a href="#attach" onclick="return tabclick(this)"><?php _e('Attachments', WPFB) ?></a></li>
+		<li><a href="#file" onclick="return tabclick(this)"><?php _e('Single file', WPFB) ?></a></li>
+		<li><a href="#fileurl" onclick="return tabclick(this)"><?php _e('File URL', WPFB) ?></a></li>
+		<li><a href="#list" onclick="return tabclick(this)"><?php _e('File list', WPFB) ?></a></li>
+	</ul>
+<?php } ?>
+</div>
 
-		<div style="float: right">
-			<input type="submit" id="insert" name="insert" value="{#insert}" />
+<div id="attach" class="container">
+<?php
+if(!WPFB_Core::GetOpt('auto_attach_files')) {
+	echo '<div id="no-auto-attach-note" class="updated">';
+	printf(__('Note: Listing of attached files is disabled. You have to <a href="%s">insert the attachments tag</a> to show the files in the content.'),'javascript:insAttachTag();');
+	echo '</div>';
+}
+
+if($action =='addfile' || $action =='updatefile')
+{
+	$result = WPFB_Admin::InsertFile(array_merge($_POST, $_FILES));
+	if(isset($result['error']) && $result['error']) {
+		?><div id="message" class="updated fade"><p><?php echo $result['error']; ?></p></div><?php
+		$file = new WPFB_File($_POST);
+		unset($post_attachments); // hide attachment list on error
+	} else {
+		// success!!!!
+		$file_id = $result['file_id'];
+		if($action =='addfile')
+			$post_attachments[] = WPFB_File::GetFile($file_id);
+		else
+			$file = null;
+	}
+}
+	
+if($action != 'editfile' && (!empty($post_attachments) || $manage_attachments)) {
+	?>
+	<form action="" method="get">	
+	<h3 class="media-title"><?php _e('Files', WPFB) ?></h3>
+	<div id="media-items">
+	<?php 
+	if(empty($post_attachments)) echo "<div class='media-item'>",__('No items found.'),"</div>";
+	else foreach($post_attachments as $pa) { ?>
+		<div class='media-item'>
+			<?php if(!empty($pa->file_thumbnail)) { ?><img class="pinkynail toggle" src="<?php echo $pa->GetIconUrl(); ?>" alt="" style="margin-top: 3px; display: block;" /><?php } ?>
+
+			<a class='toggle describe-toggle-on' href="<?php echo add_query_arg(array('file_id'=>$pa->file_id,'action'=>'delfile')) ?>" title="<?php _e('Delete') ?>"><img style="display: inline;" src="<?php echo WPFB_PLUGIN_URI.'extras/jquery/contextmenu/delete_icon.gif'; ?>" /></a>
+			<a class='toggle describe-toggle-on' href="<?php echo add_query_arg(array('file_id'=>$pa->file_id,'action'=>'rmfile')) ?>" title="<?php _e('Remove') ?>"><img src="<?php echo WPFB_PLUGIN_URI.'extras/jquery/contextmenu/page_white_delete.png'; ?>" /></a>
+			<a class='toggle describe-toggle-on' href="<?php echo add_query_arg(array('file_id'=>$pa->file_id,'action'=>'editfile')) ?>" title="<?php _e('Edit') ?>"><img src="<?php echo WPFB_PLUGIN_URI.'extras/jquery/contextmenu/page_white_edit.png'; ?>" /></a>
+
+			<div class='filename'><span class='title'><?php echo $pa->file_display_name ?></span></div>
 		</div>
+	<?php }	?>
 	</div>
+	</form>
+	<?php
+}
+WPFB_Admin::PrintForm('file', $file, array('in_editor'=>true, 'post_id'=>$post_id));
+?>
+</div> <!-- attach -->
+	
+<?php if(!$manage_attachments) {?>
+<form id="filetplselect">
+	<h2><?php _e('Select Template', WPFB) ?></h2>
+	<label><input type="radio" name="filetpl" value="" checked="checked" /><i><?php _e('Default Template', WPFB) ?></i></label><br />
+	<?php $tpls = WPFB_Core::GetFileTpls();
+		if(!empty($tpls)) {
+			foreach($tpls as $tpl_tag => $tpl_src)
+				echo '<label><input type="radio" name="filetpl" value="' . esc_attr($tpl_tag) . '" />' . esc_html($tpl_tag) . '</label><br />';
+		} ?>
+	<i><a href="<?php echo admin_url('admin.php?page=wpfilebase_tpls#file') ?>" target="_parent"><?php _e('Add Template', WPFB) ?></a></i>
+</form>
+<div id="fileselect" class="container">
+	<h2><?php _e('Select File', WPFB); ?></h2>
+	<ul id="filebrowser" class="filetree"></ul>
+</div>
+<div id="catselect" class="container">
+	<h2><?php _e('Select Category'/*def*/); ?></h2>
+	<p>Select the categories containing the files you would like to list.</p>
+	<ul id="catbrowser" class="filetree"></ul>
+</div>
+<form id="listtplselect">
+	<h2><?php _e('Select Template', WPFB) ?></h2>
+	<?php $tpls = WPFB_ListTpl::GetAll();
+		if(!empty($tpls)) {
+			foreach($tpls as $tpl)
+				echo '<label><input type="radio" name="listtpl" value="'.$tpl->tag.'" />'.$tpl->GetTitle().'</label><br />';
+		} ?>
+	<i><a href="<?php echo admin_url('admin.php?page=wpfilebase_tpls#list') ?>" target="_parent"><?php _e('Add Template', WPFB) ?></a></i>
+</form>
+<form id="list">
+	<h2><?php _e('Sort Order:'); ?></h2>
+	<p>
+	<label for="list-sort-by"><?php _e("Sort by:") ?></label>
+	<select name="list-sort-by" id="list-sort-by" style="width:100%">
+		<option value=""><?php _e('Default'); echo ' ('.WPFB_Core::GetOpt('filelist_sorting').')'; ?></option>
+		<?php $opts = WPFB_Admin::FileSortFields();
+		foreach($opts as $tag => $name) echo '<option value="'.$tag.'">'.$tag.' - '.$name.'</option>'; ?>
+	</select>	
+	<input type="radio" checked="checked" name="list-sort-order" id="list-sort-order-asc" value="asc" />
+	<label for="list-sort-order-asc" class="radio"><?php _e('Ascending'); ?></label>
+	<input type="radio" name="list-sort-order" id="list-sort-order-desc" value="desc" />
+	<label for="list-sort-order-desc" class="radio"><?php _e('Descending'); ?></label>
+	</p>
+	<p>
+	<label for="list-show-cats"><?php _e('Files per page:') ?></label>
+	<input name="list-num" type="text" id="list-num" value="0" class="small-text" />
+	<?php printf(__('Set to 0 to use the default limit (%d), -1 will disable pagination.'), WPFB_Core::GetOpt('filelist_num')) ?>
+	</p>
+	<p>
+	<input type="checkbox" id="list-show-cats" name="list-show-cats" value="1" />
+	<label for="list-show-cats"><?php _e('List selected categories') ?></label>
+	</p>
+	
+	<p><a class="button" style="float: right;" href="javascript:insListTag()"><?php echo _e('Insert') ?></a></p>
 </form>
 
+
+<?php } /*manage_attachments*/ ?>
+
+<?php do_action('admin_print_footer_scripts'); ?>
+<script type="text/javascript">if(typeof wpOnload=='function')wpOnload();</script>
 </body>
 </html>

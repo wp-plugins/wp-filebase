@@ -1,28 +1,77 @@
 <?php
-$update = isset($item) && is_object($item) && !empty($item->file_id);
-if($update) {
-	$file = &$item;
-	$exform = true;
-} else
-	$file = new stdClass();
-$action = ($update ? 'updatefile' : 'addfile');
-$title = $update ? __('Edit File', WPFB) : __('Upload File', WPFB);
+wpfb_loadclass('File', 'Output');
 
-$file_members_only = ($file->file_required_level > 0);
+$update = isset($item) && is_object($item) && !empty($item->file_id);
+
+$in_widget = !empty($in_widget);
+$in_editor = !empty($in_editor);
+
+$exform = $update || (!$in_editor && !empty($exform));
+	
+if(empty($item))
+	$file = new WPFB_File();
+else
+	$file = &$item;
+
+if(!empty($post_id))
+	$file->file_post_id = $post_id;
+
+$action = ($update ? 'updatefile' : 'addfile');
+$title = $update ? __('Edit File', WPFB) : __('Add File', WPFB);
+
+$file_members_only = (!empty($file->file_required_level) && $file->file_required_level > 0);
+
+$form_url = $in_editor ? remove_query_arg(array('file_id', 'page', 'action')) : add_query_arg('page', 'wpfilebase_files', admin_url('admin.php'));
+
+if(!empty($_GET['redirect_to']))
+	$form_url = add_query_arg(array('redirect' => 1, 'redirect_to' => $_GET['redirect_to']), $form_url);
 ?>
-<div class="wrap">
-<h2><?php echo $title ?></h2>
-<?php if(!$update) { ?><a href="<?php echo remove_query_arg('exform') ?>&amp;exform=<?php echo ($exform ? '0' : '1') ?>" class="button"><?php _e($exform ? 'Simple Form' : 'Extended Form') ?></a><?php } ?>
-<?php echo '<form enctype="multipart/form-data" name="' . $action . '" id="' . $action . '" method="post" action="' . remove_query_arg(array('file_id', 'action')) . '&amp;action=manage_files" class="validate">' ?>
+<form enctype="multipart/form-data" name="<?php echo $action ?>" id="<?php echo $action ?>" method="post" action="<?php echo $form_url ?>" class="validate">
+
+<?php if($in_editor && !$in_widget) { ?><h3 class="media-title"><?php echo $title ?></h3>
+<?php } elseif(!$in_widget) {?><h2><?php echo $title ?> <?php if(!$in_editor && !$update) { ?><a style="font-style:normal; vertical-align:super;" href="<?php echo remove_query_arg('exform') ?>&amp;exform=<?php echo ($exform ? '0' : '1') ?>" class="button"><?php _e($exform ? 'Simple Form' : 'Extended Form', WPFB) ?></a><?php } ?>
+</h2><?php } ?>
+
+<script type="text/javascript">
+//<![CDATA[
+function WPFB_switchFileUpload(i)
+{
+	jQuery('#file-upload-wrap').toggleClass('hidden');
+	jQuery('#file-remote-wrap').toggleClass('hidden');
+	var as = jQuery('a', jQuery('#wpfilebase-upload-menu')).toArray();
+	jQuery(as[i]).addClass('current');
+	jQuery(as[!i+0]).removeClass('current');
+	jQuery('#file_is_remote').val(i);
+}
+//]]>
+</script>
+
+
 <input type="hidden" name="action" value="<?php echo $action ?>" />
 <?php if($update) { ?><input type="hidden" name="file_id" value="<?php echo $file->file_id ?>" /><?php } ?>
 <?php wp_nonce_field($action . ($update ? $file->file_id : '')); ?>
 <table class="form-table">
-	<tr>
-		<th scope="row" valign="top"><label for="file_upload"><?php _e('Choose File', WPFB) ?></label></th>
-		<td class="form-field" colspan="3"><input type="file" name="file_upload" id="file_upload" /><br />
-		<?php printf(__('Maximum file size: %s', WPFB), wpfilebase_format_filesize(wpfilebase_max_upload_size())) ?>
-		<?php if($update) { echo '<br /><b>' . $file->file_name . '</b> (' . $file->get_formatted_size() . ')'; } ?>
+	<tr id="wpfilebase-form-upload-row">
+		<th scope="row" valign="top" id="wpfilebase-upload-menu">
+			<a href="#" <?php echo ($file->IsRemote() ? '' : 'class="current"'); ?> onclick="return WPFB_switchFileUpload(0)"><?php _e('Upload')?></a>
+			<a href="#" <?php echo ($file->IsRemote() ? 'class="current"' : ''); ?> onclick="return WPFB_switchFileUpload(1)"><?php _e('File URL')?></a>
+			<input type="hidden" name="file_is_remote" id="file_is_remote" value="<?php echo ($file->IsRemote() ? 1 : 0); ?>" />
+		</th>
+		<td colspan="3">
+		<div id="file-upload-wrap" <?php echo ($file->IsRemote() ? 'class="hidden"' : ''); ?>>
+			<label for="file_upload"><?php _e('Choose File', WPFB) ?></label>
+			<input type="file" name="file_upload" id="file_upload" /><br />
+			<?php printf(str_replace('%d%s','%s',__('Maximum upload file size: %d%s'/*def*/)), WPFB_Output::FormatFilesize(WPFB_Admin::GetMaxUlSize())) ?>
+			<?php if($update) { echo '<br /><b><a href="'.$file->GetUrl().'">' . $file->file_name . '</a></b> (' . $file->GetFormattedSize() . ')'; } ?>
+		</div>
+		<div id="file-remote-wrap" <?php echo ($file->IsRemote() ? '' : 'class="hidden"'); ?>>
+			<label for="file_remote_uri"><?php _e('File URL') ?></label>
+			<input name="file_remote_uri" id="file_remote_uri" type="text" value="<?php echo esc_attr($file->file_remote_uri); ?>" style="width:98%" /><br />
+			<fieldset><legend class="hidden"></legend>
+				<label><input type="radio" name="file_remote_redirect" value="1" <?php checked($file->IsRemote()); ?>/><?php _e('Redirect download to URL', WPFB) ?></label>
+				<label><input type="radio" name="file_remote_redirect" value="0" <?php checked($file->IsLocal()); ?>/><?php _e('Copy file into Filebase (sideload)', WPFB) ?></label>
+			</fieldset>
+		</div>
 		</td>
 	</tr>
 	<tr>		
@@ -31,21 +80,22 @@ $file_members_only = ($file->file_required_level > 0);
 		<td class="form-field" colspan="3"><input type="file" name="file_upload_thumb" id="file_upload_thumb" />
 		<br /><?php _e('You can optionally upload a thumbnail here. If the file is a valid image, a thumbnail is generated automatically.', WPFB); ?>
 		<?php if($update && !empty($file->file_thumbnail)) { ?>
-			<br /><img src="<?php echo $file->get_icon_url(); ?>" /><br />
-			<b><?php echo $file->file_thumbnail; ?></b> <label for="file_delete_thumb"><input type="checkbox" value="1" name="file_delete_thumb" id="file_delete_thumb" /> <?php _e('Delete'); ?></label>
+			<br /><img src="<?php echo $file->GetIconUrl(); ?>" /><br />
+			<b><?php echo $file->file_thumbnail; ?></b><br />
+			<label for="file_delete_thumb"><?php _e('Delete') ?></label><input type="checkbox" value="1" name="file_delete_thumb" id="file_delete_thumb" style="display:inline; width:30px;" />
 		<?php } ?>
 		</td>
 		<?php } else { ?><th scope="row"></th><td colspan="3"><?php _e('The following fields are optional.', WPFB) ?></td><?php } ?>
 	</tr>
 	<tr class="form-field">
 		<th scope="row" valign="top"><label for="file_display_name"><?php _e('Title') ?></label></th>
-		<td><input name="file_display_name" id="file_display_name" type="text" value="<?php echo esc_attr($file->file_display_name); ?>" size="40" /></td>
+		<td width="60%"><input name="file_display_name" id="file_display_name" type="text" value="<?php echo esc_attr($file->file_display_name); ?>" size="<?php echo ($in_editor||$in_widget) ? 20 : 40 ?>" /></td>
 		<th scope="row" valign="top"><label for="file_version"><?php _e('Version') ?></label></th>
-		<td><input name="file_version" id="file_version" type="text" value="<?php echo esc_attr($file->file_version); ?>" size="20" /></td>
+		<td width="40%"><input name="file_version" id="file_version" type="text" value="<?php echo esc_attr($file->file_version); ?>" size="<?php echo ($in_editor||$in_widget) ? 10 : 20 ?>" /></td>
 	</tr>
 	<tr class="form-field">
 		<th scope="row" valign="top"><label for="file_author"><?php _e('Author') ?></label></th>
-		<td><input name="file_author" id="file_author" type="text" value="<?php echo esc_attr($file->file_author); ?>" size="40" /></td>
+		<td><input name="file_author" id="file_author" type="text" value="<?php echo esc_attr($file->file_author); ?>" size="<?php echo ($in_editor||$in_widget) ? 20 : 40 ?>" /></td>
 		<?php if($exform) { ?>
 		<th scope="row" valign="top"><label for="file_date"><?php _e('Date') ?></label></th>
 		<td><?php
@@ -61,34 +111,38 @@ $file_members_only = ($file->file_required_level > 0);
 	<tr class="form-field">
 		<?php } ?>
 		<th scope="row" valign="top"><label for="file_category"><?php _e('Category') ?></label></th>
-		<td><select name="file_category" id="file_category" class="postform"><?php echo wpfilebase_cat_selection_tree($update ? $file->file_category : 0) ?></select></td>
+		<td><select name="file_category" id="file_category" class="postform"><?php echo WPFB_Output::CatSelTree(array('selected'=>$file->file_category)) ?></select></td>
 		<?php if($exform) { ?>
 		<th scope="row" valign="top"><label for="file_license"><?php _e('License', WPFB) ?></label></th>
-		<td><select name="file_license" id="file_license" class="postform"><?php echo wpfilebase_make_options_list('licenses', $file ? $file->file_license : null, true) ?></select></td>
+		<td><select name="file_license" id="file_license" class="postform"><?php echo  WPFB_Admin::MakeFormOptsList('licenses', $file ? $file->file_license : null, true) ?></select></td>
 		<?php } ?>
 	</tr>
 
 	<tr class="form-field">
+		<?php if(!$in_editor) { ?>
 		<th scope="row" valign="top"><label for="file_post_id"><?php _e('Post') ?> ID</label></th>
-		<td><input type="text" name="file_post_id" class="small-text" id="file_post_id" value="<?php echo esc_attr($file->file_post_id); ?>" /> <a href="javascript:;" class="button" onclick="openPostBrowser('file_post_id');"><?php _e('Browse') ?>...</a></td>
+		<td><input type="text" name="file_post_id" class="small-text" size="8" style="width: 60px" id="file_post_id" value="<?php echo esc_attr($file->file_post_id); ?>" /> <span id="file_post_title" style="font-style:italic;"><?php if($file->file_post_id > 0) echo get_the_title($file->file_post_id); ?></span> <a href="javascript:;" class="button" onclick="WPFB_PostBrowser('file_post_id', 'file_post_title');"><?php _e('Select') ?>...</a></td>
+		<?php } else { ?>
+		<td><input type="hidden" name="file_post_id" id="file_post_id" value="<?php echo esc_attr($file->file_post_id); ?>" /></td>
+		<?php } ?>
 		<?php if($exform) { ?>
 		<th scope="row" valign="top"><label for="file_hits"><?php _e('Download Counter', WPFB) ?></label></th>
 		<td><input type="text" name="file_hits" class="small-text" id="file_hits" value="<?php echo (int)$file->file_hits; ?>" /></td>
 	</tr>
 	<tr class="form-field">
-		<?php if(wpfilebase_get_opt('platforms')) { ?>
+		<?php if(WPFB_Core::GetOpt('platforms')) { ?>
 		<th scope="row" valign="top"><label for="file_platforms[]"><?php _e('Platforms', WPFB) ?></label></th>
-		<td><select name="file_platforms[]" size="40" multiple="multiple" id="file_platforms[]" style="height: 80px;"><?php echo wpfilebase_make_options_list('platforms', $file ? $file->file_platform : null, true) ?></select></td>
+		<td><select name="file_platforms[]" size="40" multiple="multiple" id="file_platforms[]" style="height: 80px;"><?php echo  WPFB_Admin::MakeFormOptsList('platforms', $file ? $file->file_platform : null, true) ?></select></td>
 		<?php } else { ?><th></th><td></td><?php }
-		if(wpfilebase_get_opt('requirements')) { ?>
+		if(WPFB_Core::GetOpt('requirements')) { ?>
 		<th scope="row" valign="top"><label for="file_requirements[]"><?php _e('Requirements', WPFB) ?></label></th>
-		<td><select name="file_requirements[]" size="40" multiple="multiple" id="file_requirements[]" style="height: 80px;"><?php echo wpfilebase_make_options_list('requirements', $file ? $file->file_requirement : null, true) ?></select></td>
+		<td><select name="file_requirements[]" size="40" multiple="multiple" id="file_requirements[]" style="height: 80px;"><?php echo  WPFB_Admin::MakeFormOptsList('requirements', $file ? $file->file_requirement : null, true) ?></select></td>
 		<?php } else { ?><th></th><td></td><?php } ?>
 	</tr>
 	<tr>
-	<?php if(wpfilebase_get_opt('languages')) { ?>
+	<?php if(WPFB_Core::GetOpt('languages')) { ?>
 		<th scope="row" valign="top"><label for="file_languages[]"><?php _e('Languages') ?></label></th>
-		<td  class="form-field"><select name="file_languages[]" size="40" multiple="multiple" id="file_languages[]" style="height: 80px;"><?php echo wpfilebase_make_options_list('languages', $file ? $file->file_language : null, true) ?></select></td>
+		<td  class="form-field"><select name="file_languages[]" size="40" multiple="multiple" id="file_languages[]" style="height: 80px;"><?php echo  WPFB_Admin::MakeFormOptsList('languages', $file ? $file->file_language : null, true) ?></select></td>
 		<?php } else { ?><th></th><td></td><?php } ?>
 		
 		<th scope="row" valign="top"><label for="file_direct_linking"><?php _e('Direct linking', WPFB) ?></label></th>
@@ -102,7 +156,7 @@ $file_members_only = ($file->file_required_level > 0);
 	</tr>
 	<tr class="form-field">
 		<th scope="row" valign="top"><label for="file_description"><?php _e('Description') ?></label></th>
-		<td colspan="3"><textarea name="file_description" id="file_description" rows="5" cols="50" style="width: 97%;"><?php echo wp_specialchars($file->file_description); ?></textarea></td>
+		<td colspan="3"><textarea name="file_description" id="file_description" rows="5" cols="50" style="width: 97%;"><?php echo esc_html($file->file_description); ?></textarea></td>
 	</tr>
 	<?php if($exform) { ?>
 	<tr>
@@ -111,12 +165,17 @@ $file_members_only = ($file->file_required_level > 0);
 		
 		<th scope="row" valign="top"><label for="file_members_only"><?php _e('For members only', WPFB) ?></label></th>
 		<td>
-			<input type="checkbox" name="file_members_only" value="1" <?php checked(true, $file_members_only) ?> onclick="checkboxShowHide(this, 'file_required_level')" />
-			<label for="file_required_level"<?php if(!$file_members_only) { echo ' class="hidden"'; } ?>><?php printf(__('Minimum user level: (see %s)', WPFB), '<a href="http://codex.wordpress.org/Roles_and_Capabilities#Role_to_User_Level_Conversion" target="_blank">Role to User Level Conversion</a>') ?> <input type="text" name="file_required_level" class="small-text<?php if(!$file_members_only) { echo ' hidden'; } ?>" id="file_required_level" value="<?php echo max(0, intval($file->file_required_level) - 1); ?>" /></label>
+			<input type="checkbox" name="file_members_only" value="1" <?php checked(true, $file_members_only) ?> onclick="WPFB_CheckBoxShowHide(this, 'file_required_role')" />
+			<!-- <label for="file_required_level"<?php if(!$file_members_only) { echo ' class="hidden"'; } ?>><?php printf(__('Minimum user level: (see %s)', WPFB), '<a href="http://codex.wordpress.org/Roles_and_Capabilities#Role_to_User_Level_Conversion" target="_blank">Role to User Level Conversion</a>') ?> <input type="text" name="file_required_level" class="small-text<?php if(!$file_members_only) { echo ' hidden'; } ?>" id="file_required_level" value="<?php echo max(0, intval($file->file_required_level) - 1); ?>" /></label> -->
+
+			<label for="file_required_role"<?php if(!$file_members_only) { echo ' class="hidden"'; } ?>><?php _e('Minimum user role:', WPFB) ?>		
+				<select name="file_required_role" id="file_required_role" class="<?php if(!$file_members_only) { echo ' hidden'; } ?>">
+						<?php wp_dropdown_roles($file->GetRequiredRole()) ?>
+				</select>
+			</label>
 		</td>
 	</tr>
 	<?php } ?>
 </table>
-<p class="submit"><input type="submit" class="button-primary" name="submit" value="<?php echo $title ?>" /></p>
+<p class="submit"><input type="submit" class="button-primary" name="submit-btn" value="<?php echo $title ?>" <?php if(false && !$in_editor) { ?>onclick="this.form.submit(); return false;"<?php } ?>/></p>
 </form>
-</div>
