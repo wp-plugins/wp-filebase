@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=money
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, traffic, widget, filelist, list, thumb, thumbnail, attachment, attachments, category, categories, media, template, ftp, http
 Requires at least: 3.1
 Tested up to: 3.1
-Stable tag: 0.2.0
+Stable tag: 0.2.1
 
 Adds a powerful download manager supporting file categories, thumbnails, traffic/bandwidth limits and more to your WordPress blog.
 
@@ -14,7 +14,6 @@ WP-Filebase is an allround file manager for Wordpress.
 It keeps files structed in categories, offers a template system to create sortable, paginated file lists and can sideload files from other websites.
 
 Some more features:
-
 *	Category / child category / file taxonomy
 *	Automatic thumbnail
 *	Built-in download counter
@@ -33,13 +32,14 @@ Some more features:
 *	Custom JavaScript download tracking (e.g. Google Analytics)
 *	Many file properties like author, version, supported languages, platforms and license
 *	Search integration
+*	Automatic synchronization of file system and database
 
 
 You can see a [live demo on my Website](http://fabi.me/downloads/ "WP-Filebase demo")
 For support, please [leave a message on my blog](http://fabi.me/wordpress-plugins/wp-filebase-file-download-manager/#postcomment "Post comment"). When having trouble don't forget to post PHP and Wordpress version! Any ideas/feature requests are welcome.
 
-**Note when updating to 0.2.0:** Since 0.2.0 WP-Filebase uses a different shortcode format. Old tags can be easily converted with the built-in converter. Please backup your database and run the converter right after the update. You should also run a filebase sync!
-**Important:** Don't upgrade to 0.2.0 if you are still running old PHP 4! WP-Filebase 0.2.0 only runs on PHP 5 and later!
+**Note when updating to 0.2.1:** Since 0.2.1 WP-Filebase uses a different shortcode format. Old tags can be easily converted with the built-in converter. Please backup your database and run the converter right after the update. You should also run a filebase sync!
+**Important:** Don't upgrade to 0.2.1 if you are still running old PHP 4! WP-Filebase 0.2.1 only runs on PHP 5 and later!
 
 If you want to translate WP-Filebase in your language, open `wp-filebase/languages/template.po` with [Poedit](http://www.poedit.net/download.php) and save as `wpfb-xx_YY.po` (`xx` is your language code, `YY` your country). Poedit will create the file `wpfb-xx_YY.po`. Put this file in `wp-filebase/languages` and share it if you like (attach it to an email or post it on my blog).
 
@@ -88,7 +88,7 @@ Goto WP-Filebase Settings and disable Permalinks under "Download". Try to disabl
 
 == Changelog ==
 
-= 0.2.0 =
+= 0.2.1 =
 * Sortable, paginated file lists
 * New tree view post browser
 * WP Search integration (search includes post attachments)
@@ -110,6 +110,8 @@ Goto WP-Filebase Settings and disable Permalinks under "Download". Try to disabl
 * File name version detection (i.e: `sample-v1.2.ext`)
 * Small thumbnails in admin file list
 * Added RAR file type
+* Fixed 404 bug when home url differs from site url
+* Added anchor to category links
 * Fixes, fixes and new bugs ;)
 
 = 0.1.3.4 =

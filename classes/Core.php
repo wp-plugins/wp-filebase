@@ -25,7 +25,7 @@ static function InitClass()
 	// some misc filters & actions
 	//add_filter('query_vars', array(__CLASS__, 'QueryVarsFilter'));	
 	add_filter('ext2type', array(__CLASS__, 'Ext2TypeFilter'));
-	add_action('generate_rewrite_rules', array(__CLASS__, 'AddRewriteRules'));
+	add_action('generate_rewrite_rules', array(__CLASS__, 'GenRewriteRules'));
 	
 	// register treeview stuff
 	//wp_register_script('jquery-cookie', WPFB_PLUGIN_URI.'extras/jquery/jquery.cookie.js', array('jquery'));
@@ -67,8 +67,8 @@ static function InitClass()
 	if (current_user_can('edit_posts') || current_user_can('edit_pages'))
 		self::MceAddBtns();
 		
-	add_action('wp_dashboard_setup', array(__CLASS__, 'AdminDashboardSetup'));
-	
+	add_action('wp_dashboard_setup', array(__CLASS__, 'AdminDashboardSetup'));	
+
 	// TODO: the download redirect function has to called as early as possible, maybe even before init() ?
 	self::DownloadRedirect();
 }
@@ -140,8 +140,7 @@ static function DownloadRedirect()
 		$file = WPFB_File::GetFile((int)$_GET['wpfb_dl']);
 		@ob_end_clean(); // FIX: clean the OB so any output before the actual download is truncated (OB is started in wp-filebase.php)
 	} else {
-		$dl_url = parse_url(get_site_url(null, WPFB_Core::GetOpt('download_base') . '/'));
-		$dl_url_path = $dl_url['path'];
+		$dl_url_path = parse_url(home_url(WPFB_Core::GetOpt('download_base').'/'), PHP_URL_PATH);
 		$pos = strpos($_SERVER['REQUEST_URI'], $dl_url_path);
 		if($pos !== false && $pos == 0) {
 			$filepath = trim(urldecode(substr($_SERVER['REQUEST_URI'], strlen($dl_url_path))), '/');
@@ -250,12 +249,16 @@ static function Footer() {
 }
 
 
-static function AddRewriteRules($wp_rewrite) {	
-	$browser_base = WPFB_Core::GetOpt('file_browser_base');
-	$redirect = WPFB_Core::GetOpt('file_browser_redirect');
-	if(empty($browser_base) || empty($redirect)) return;
-    $new_rules = array('^' . $browser_base . '/(.+)$' => $redirect);
-    $wp_rewrite->rules = $new_rules + $wp_rewrite->rules;
+static function GenRewriteRules() {
+    global $wp_rewrite;
+	$fb_pid = intval(WPFB_Core::GetOpt('file_browser_post_id'));
+	if($fb_pid > 0) {
+		$is_page = (get_post_type($fb_pid) == 'page');
+		$redirect = 'index.php?'.($is_page?'page_id':'p')."=$fb_pid";
+		$base = trim(substr(get_permalink($fb_pid), strlen(home_url())), '/');
+		$pattern = "$base/(.+)$";
+		$wp_rewrite->rules = array($pattern => $redirect) + $wp_rewrite->rules;
+	}
 }
 
 /*// removed, no need of adding the query vars
@@ -379,7 +382,7 @@ static function PrintJS() {
 		'ql'=>1, // querylinks with jQuery
 		'hl'=> (int)self::GetOpt('hide_links'), // hide links
 		'pl'=>(self::GetOpt('disable_permalinks') ? 0 : (int)!!get_option('permalink_structure')), // permlinks
-		'su'=> trailingslashit(site_url()),// home url
+		'hu'=> trailingslashit(home_url()),// home url
 		'db'=> self::GetOpt('download_base'),// urlbase
 		'fb'=> self::GetPostUrl(self::GetOpt('file_browser_post_id')),
 		'cm'=>(int)$context_menu,

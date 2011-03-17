@@ -67,7 +67,7 @@ static function SettingsSchema()
 	'decimal_size_format'	=> array('default' => false, 'title' => __('Decimal file size prefixes', WPFB), 'type' => 'checkbox', 'desc' => __('Enable this if you want decimal prefixes (1 MB = 1000 KB = 1 000 000 B) instead of binary (1 MiB = 1024 KiB = 1 048 576 B)', WPFB)),
 	
 	'admin_bar'	=> array('default' => true, 'title' => __('Add WP-Filebase to admin menu bar', WPFB), 'type' => 'checkbox', 'desc' => __('Display some quick actions for file management in the admin menu bar.', WPFB)),
-	'file_context_menu'	=> array('default' => true, 'title' => '', 'type' => 'checkbox', 'desc' => ''),
+	//'file_context_menu'	=> array('default' => true, 'title' => '', 'type' => 'checkbox', 'desc' => ''),
 	
 	
 	'languages'				=> array('default' => "English|en\nDeutsch|de", 'title' => __('Languages'), 'type' => 'textarea', 'desc' => &$multiple_entries_desc),
@@ -933,20 +933,8 @@ static function ParseTpls() {
 
 static function FlushRewriteRules()
 {
-    global $wp_rewrite;
-	$browser_post_id = intval(WPFB_Core::GetOpt('file_browser_post_id'));
-	if($browser_post_id <= 0) {
-		$redirect = '';
-		$file_browser_base = '';
-	} else {
-		$is_page = (get_post_type($browser_post_id) == 'page');
-		$redirect = 'index.php?' . ($is_page ? 'page_id' : 'p') . '=' . $browser_post_id . '&wpfb_cat_path=$matches[1]';
-		$file_browser_base = trim(substr(get_permalink($browser_post_id), strlen(get_option('home'))), '/');
-	}
-	WPFB_Core::UpdateOption('file_browser_redirect', $redirect);
-	WPFB_Core::UpdateOption('file_browser_base', $file_browser_base);
-	
-	if(is_object($wp_rewrite))
+	global $wp_rewrite;
+	if(!empty($wp_rewrite) && is_object($wp_rewrite))
 		$wp_rewrite->flush_rules();
 }
 

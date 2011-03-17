@@ -58,7 +58,7 @@ function wpfb_findId(el, url) {
 	
 	// by permalink in table
 	for (i in wpfbFPaths) {
-		u = wpfbConf.su+wpfbConf.db+'/'+wpfbFPaths[i];
+		u = wpfbConf.hu+wpfbConf.db+'/'+wpfbFPaths[i];
 		if(u == url || u == uesc) return i;
 	}
 	
@@ -91,7 +91,7 @@ function wpfb_processimg(index, el)
 
 function wpfb_setupLinks() {
 	if(!wpfbConf.ql) return;
-	var us = wpfbConf.pl ? ('^="'+wpfbConf.su+wpfbConf.db+'/') : ('*="\\?wpfb_dl=');
+	var us = wpfbConf.pl ? ('^="'+wpfbConf.hu+wpfbConf.db+'/') : ('*="\\?wpfb_dl=');
 	jQuery('a[href'+us+'"]').each(wpfb_processlink);
 	if(wpfbConf.cm) jQuery('a[href*="#wpfb-file-"]').each(wpfb_processlink);
 	jQuery('img[src'+us+'"]').each(wpfb_processimg);

@@ -182,7 +182,8 @@ class WPFB_Item {
 		} else {
 			$url = get_permalink(WPFB_Core::GetOpt('file_browser_post_id'));	
 			if(!empty($ps)) $url .= $this->GetLocalPathRel().'/';
-			elseif($this->cat_id > 0) $url = add_query_arg(array('wpfb_cat' => $this->cat_id), $url);		
+			elseif($this->cat_id > 0) $url = add_query_arg(array('wpfb_cat' => $this->cat_id), $url);
+			$url .= "#wpfb-cat-$this->cat_id";	
 		}			
 		return $url;
 	}
@@ -233,7 +234,7 @@ class WPFB_Item {
 	}
 	
 	function GetIconUrl($size=null) {
-		if($this->is_category) return WPFB_PLUGIN_URI . (empty($this->cat_icon) ? ('/images/'.(($size=='small')?'folder48':'crystal_cat').'.png') : 'wp-filebase_thumb.php?cid=' . $this->cat_id);
+		if($this->is_category) return WPFB_PLUGIN_URI . (empty($this->cat_icon) ? ('images/'.(($size=='small')?'folder48':'crystal_cat').'.png') : 'wp-filebase_thumb.php?cid=' . $this->cat_id);
 
 		if(!empty($this->file_thumbnail) && file_exists($this->GetThumbPath()))
 		{
