@@ -14,6 +14,7 @@ WP-Filebase is an allround file manager for Wordpress.
 It keeps files structed in categories, offers a template system to create sortable, paginated file lists and can sideload files from other websites.
 
 Some more features:
+
 *	Category / child category / file taxonomy
 *	Automatic thumbnail
 *	Built-in download counter
