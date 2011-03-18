@@ -160,7 +160,7 @@ switch ( $action = $_REQUEST['action'] ) {
 			
 		foreach($terms as &$t)
 			$items[] = array('id' => $t->ID, 'classes' => 'file',
-			'text'=> ('<a href="javascript:'.sprintf($onclick,$t->ID, str_replace('\'','\\\'',htmlspecialchars(stripslashes($t->post_title)))).'">'.esc_html($t->post_title).'</a>'));
+			'text'=> ('<a href="javascript:'.sprintf($onclick,$t->ID, str_replace('\'','\\\'',/*htmlspecialchars*/(stripslashes(get_the_title($t->ID))))).'">'.get_the_title($t->post_title).'</a>'));
 
 		echo json_encode($items);
 		exit;

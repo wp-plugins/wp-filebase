@@ -390,7 +390,6 @@ static function PrintJS() {
 	);
 	
 	if($context_menu) {
-		$conf['ajaxUrl'] = WPFB_PLUGIN_URI.'wpfb-ajax.php';
 		$conf['fileEditUrl'] = admin_url("admin.php?page=wpfilebase_files&action=editfile&file_id=");
 		
 		wp_print_scripts('jquery-contextmenu');
@@ -454,8 +453,10 @@ function GetParsedTpl($type, $tag) {
 }
 
 static function AdminDashboardSetup() {
-	wpfb_loadclass('Admin');
-	wp_add_dashboard_widget('wpfb-add-file-widget', WPFB_PLUGIN_NAME.': '.__('Add File', WPFB), array('WPFB_Admin', 'AddFileWidget'));	
+	if(current_user_can('upload_files')) {
+		wpfb_loadclass('Admin');
+		wp_add_dashboard_widget('wpfb-add-file-widget', WPFB_PLUGIN_NAME.': '.__('Add File', WPFB), array('WPFB_Admin', 'AddFileWidget'));
+	}	
 }
 
 static function AdminBar() {

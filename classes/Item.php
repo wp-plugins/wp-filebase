@@ -164,12 +164,12 @@ class WPFB_Item {
 		static $usr_level = -1;
 		if($usr_level == -1) {
 			global $current_user;
-			if($current_user) foreach($current_user->roles as $r){
+			if($current_user) foreach(array_keys($current_user->caps) as $r){
 				$usr_level = max($usr_level, WPFB_Core::UserRole2Level($r)+1);
 			} else $usr_level = 0;
-		}
+		}		
 		$level = $this->is_file?$this->file_required_level:$this->cat_required_level;
-		return ($level <= 0 || $usr_level >= $level);
+		return ($level <= 0 || $usr_level >= $level || ($for_tpl && !WPFB_Core::GetOpt('hide_inaccessible')));
 	}
 	
 	function GetUrl()

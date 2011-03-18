@@ -95,5 +95,11 @@ function wpfb_setupLinks() {
 	jQuery('a[href'+us+'"]').each(wpfb_processlink);
 	if(wpfbConf.cm) jQuery('a[href*="#wpfb-file-"]').each(wpfb_processlink);
 	jQuery('img[src'+us+'"]').each(wpfb_processimg);
+	
+	/*
+	var links = document.getElementsByTagName('a');
+	for(i=0;i<links.length;i++){
+		links.href.search()
+	} */
 }
 jQuery(document).ready(wpfb_setupLinks);

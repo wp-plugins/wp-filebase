@@ -286,7 +286,7 @@ class WPFB_File extends WPFB_Item {
 		
 		// check user level
 		if(!$this->CurUserCanAccess())
-			$this->download_denied('inaccessible_msg');
+			$this->DownloadDenied('inaccessible_msg');
 		
 		// check offline
 		if($this->file_offline)
@@ -312,7 +312,7 @@ class WPFB_File extends WPFB_Item {
 		// check daily user limit
 		if(!$is_admin && WPFB_Core::GetOpt('daily_user_limits')) {
 			if(!$logged_in)
-				$this->download_denied('inaccessible_msg');
+				$this->DownloadDenied('inaccessible_msg');
 			
 			$today = intval(date('z'));
 			$usr_dls_today = intval(get_user_option(WPFB_OPT_NAME . '_dls_today'));
@@ -323,7 +323,7 @@ class WPFB_File extends WPFB_Item {
 			// check for limit
 			$dl_limit = intval(WPFB_Core::GetOpt('daily_limit_'.$user_role));
 			if($usr_dls_today >= $dl_limit)
-				$this->download_denied(($dl_limit > 0) ? sprintf(WPFB_Core::GetOpt('daily_limit_exceeded_msg'), $dl_limit) : 'inaccessible_msg');			
+				$this->DownloadDenied(($dl_limit > 0) ? sprintf(WPFB_Core::GetOpt('daily_limit_exceeded_msg'), $dl_limit) : 'inaccessible_msg');			
 			
 			$usr_dls_today++;
 			update_user_option($user_ID, WPFB_OPT_NAME . '_dls_today', $usr_dls_today);
