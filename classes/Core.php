@@ -95,7 +95,7 @@ jQuery(document).ready(function(){
 	jQuery("#wpfilebase-file-browser").treeview({
 		url: "<?php echo WPFB_PLUGIN_URI."wpfb-ajax.php" ?>",
 		ajax: {
-			data: { action: "tree" },
+			data: {action:"tree",type:"browser"},
 			type: "post",
 			complete: wpfb_setupLinks
 		},
@@ -220,7 +220,7 @@ function ContentFilter($content)
 		if(WPFB_Core::GetOpt('auto_attach_files'))
 		{
 			wpfb_loadclass('Output');
-			$content .= WPFB_Output::GetPostAttachments(true);
+			$content .= WPFB_Output::PostAttachments(true);
 		}
 	}
 
@@ -233,7 +233,7 @@ static function ShortCode($atts) {
 		'id' => -1,
 		'tpl' => null,
 		'sort' => null,
-		'showcats' => true,
+		'showcats' => false,
 		'num' => 0,
 		'pagenav' => 1,
 	), $atts));
@@ -372,7 +372,7 @@ static function GetFileListSortSql($sort=null)
 }
 
 static function PrintJS() {
-	global $wpfb_file_paths;
+	//global $wpfb_file_paths;
 	
 	wp_print_scripts(WPFB);
 	
@@ -401,8 +401,8 @@ static function PrintJS() {
 	
 	echo "<script type=\"text/javascript\">\n//<![CDATA[\n",'wpfbConf=',json_encode($conf),';';
 	
-	if(!empty($wpfb_file_paths)) echo 'wpfbFPaths=',json_encode($wpfb_file_paths),';';
-	else echo 'wpfbFPaths={};';
+	//if(!empty($wpfb_file_paths)) echo 'wpfbFPaths=',json_encode($wpfb_file_paths),';';
+	//else echo 'wpfbFPaths={};';
 	
 	//if(!empty($wpfb_cat_urls)) echo 'wpfbCPaths=',json_encode($wpfb_cat_urls),';',"\n";
 	//else echo 'wpfbCPaths={};',"\n";
@@ -417,7 +417,7 @@ static function PrintJS() {
 		
 	}
 	
-	echo "function wpfb_ondl(file_id,file_url){ {$js} }";	
+	echo "function wpfb_ondl(file_id,file_url,file_path){ {$js} }";	
 	echo "\n//]]>\n</script>\n";
 }
 

@@ -55,7 +55,7 @@ static function AddTpls() {
 	);
 	
 	$tpls_cat = array(
-		'filebrowser' => '%cat_small_icon% <a href="%cat_url%#wpfb-cat-%cat_id%" onclick="return false;">%cat_name%</a>',
+		'filebrowser' => '%cat_small_icon% <a href="%cat_url%" onclick="return false;">%cat_name%</a>',
 		'3-col-row' => '<tr><td colspan="3" align="center">%cat_name%</td></tr>',
 	);
 	
@@ -332,7 +332,7 @@ static function ContentReplaceOldTags(&$content)
 					break;
 					
 				case 'attachments':
-					self::GetPostAttachments($tag_content, false, !empty($args['tpl']) ? $args['tpl'] : null);
+					self::PostAttachments($tag_content, false, !empty($args['tpl']) ? $args['tpl'] : null);
 					break;
 			}
 */
@@ -354,7 +354,7 @@ static function ProtectUploadPath()
 	$htaccess = "$dir/.htaccess";
 	
 	@unlink($htaccess);
-	if( is_writable(WPFB_Core::UploadDir()) && ($fp = @fopen($htaccess, 'w')) )
+	if(WPFB_Core::GetOpt('protect_upload_path') && is_writable(WPFB_Core::UploadDir()) && ($fp = @fopen($htaccess, 'w')) )
 	{
 		@fwrite($fp, "Order deny,allow\n");
 		@fwrite($fp, "Deny from all\n");

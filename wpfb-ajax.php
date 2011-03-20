@@ -18,11 +18,14 @@ $_GET = stripslashes_deep($_GET);
 switch ( $action = $_REQUEST['action'] ) {
 	
 	case 'tree':
+		$type = $_REQUEST['type'];
+		
 		wpfb_loadclass('File','Category','Output');		
 		@header('Content-Type: application/json; charset=' . get_option('blog_charset'));
 		$parent_id = (empty($_REQUEST['root']) || $_REQUEST['root'] == 'source') ? 0 : intval(substr(strrchr($_REQUEST['root'],'-'),1));
-		$filesel = !empty($_REQUEST['fileselect']);
-		$catsel = !$filesel && !empty($_REQUEST['catselect']);
+		$browser = ($type=='browser');
+		$filesel = (!$browser && $type=='fileselect');
+		$catsel = (!$catsel && $type=='catselect');
 		$cat_id_format = empty($_REQUEST['cat_id_fmt']) ? 'wpfb-cat-%d' : $_REQUEST['cat_id_fmt'];
 		$file_id_format = empty($_REQUEST['file_id_fmt']) ? 'wpfb-file-%d' : $_REQUEST['file_id_fmt'];
 		if($filesel || $catsel) $onselect = $_REQUEST['onselect'];
@@ -31,8 +34,8 @@ switch ( $action = $_REQUEST['action'] ) {
 		
 		$cat_tpl = WPFB_Core::GetParsedTpl('cat', 'filebrowser');
 		$file_tpl = WPFB_Core::GetParsedTpl('file', 'filebrowser');
-
-		$cats = WPFB_Category::GetCats("WHERE cat_exclude_browser = 0 AND cat_parent = $parent_id");
+		
+		$cats = WPFB_Category::GetCats("WHERE cat_parent = $parent_id".($browser?" AND cat_exclude_browser <> '1'":''));
 		if($parent_id == 0 && $catsel && count($cats) == 0) {
 			echo json_encode(array(array(
 				'id' => sprintf($cat_id_format, $c->cat_id),
@@ -52,7 +55,10 @@ switch ( $action = $_REQUEST['action'] ) {
 		}
 		
 		if(empty($_REQUEST['cats_only']) && !$catsel) {
-			$files = WPFB_File::GetFiles("WHERE file_category = $parent_id");
+			$sql = "WHERE file_category = $parent_id";
+			if(!empty($_REQUEST['exclude_attached'])) $sql .= " AND file_post_id = 0";
+			if($browser) $sql .= " ".WPFB_Core::GetFileListSortSql();
+			$files = WPFB_File::GetFiles($sql);
 			foreach($files as $f)
 			{
 				if($f->CurUserCanAccess(true))
@@ -120,14 +126,29 @@ switch ( $action = $_REQUEST['action'] ) {
 		exit;
 		
 	case 'fileinfo':
-		wpfb_loadclass('File','Category');		
-		$base = WPFB_Core::GetPermalinkBase();
-		$path = substr($_REQUEST['url'], strlen($base));		
-		if(($file = WPFB_File::GetByPath($path)) != null) echo json_encode(array(
-			'id' => $file->GetId(),
-			'path' => $file->GetLocalPathRel()
-		));
-		else echo '-1';
+		wpfb_loadclass('File','Category');
+		if(empty($_REQUEST['url'])) die('-1');
+		$url = $_REQUEST['url'];
+		$file = null;
+		$matches = array();
+
+		if(preg_match('/\?wpfb_dl=([0-9]+)$/', $url, $matches) || preg_match('/#wpfb-file-([0-9]+)$/', $url, $matches))
+			$file = WPFB_File::GetFile($matches[1]);
+		else {
+			$base = WPFB_Core::GetPermalinkBase();
+			$path = substr($url, strlen($base));
+			$path_u = substr(urldecode($url), strlen($base));			
+			$file = WPFB_File::GetByPath($path);
+			if($file == null) $file = WPFB_File::GetByPath($path_u);
+		}
+		
+		if($file != null && $file->CurUserCanAccess()) {
+			echo json_encode(array(
+				'id' => $file->GetId(),
+				'url' => $file->GetUrl(),
+				'path' => $file->GetLocalPathRel()
+			));			
+		} else echo '-1';
 		exit;
 		
 	case 'postbrowser':
@@ -165,6 +186,15 @@ switch ( $action = $_REQUEST['action'] ) {
 		echo json_encode($items);
 		exit;
 	case 'toggle-context-menu':
+		if(!current_user_can('upload_files')) die('-1');
 		WPFB_Core::UpdateOption('file_context_menu', !WPFB_Core::GetOpt('file_context_menu'));
+		die('1');
+		
+	case 'attach-file':
+		wpfb_loadclass('File');
+		if(!current_user_can('upload_files') || empty($_REQUEST['post_id']) || empty($_REQUEST['file_id']) || !($file = WPFB_File::GetFile($_REQUEST['file_id'])))
+			die('-1');
+		$file->file_post_id = $_REQUEST['post_id'];
+		$file->DBSave();
 		die('1');
 }

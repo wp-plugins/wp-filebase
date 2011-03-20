@@ -71,7 +71,7 @@ class WPFB_File extends WPFB_Item {
 		return $wpdb->get_var("SELECT COUNT(file_id) FROM $wpdb->wpfilebase_files WHERE $sql_or_cat"); 
 	}
 	
-	static function GetPostAttachments($post_id)
+	static function GetAttachedFiles($post_id)
 	{
 		$post_id = intval($post_id);
 		return WPFB_File::GetFiles("WHERE file_post_id = $post_id " . WPFB_Core::GetFileListSortSql());

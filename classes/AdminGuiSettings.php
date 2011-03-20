@@ -152,7 +152,7 @@ static function Display()
 		__('Download', WPFB)				=> array('disable_permalinks', 'download_base', 'force_download', 'hide_links', 'ignore_admin_dls', 'accept_empty_referers','allowed_referers'),
 		__('Form Presets', WPFB)			=> array('languages', 'platforms', 'licenses', 'requirements'),
 		__('Limits', WPFB)					=> array('bitrate_unregistered', 'bitrate_registered', 'traffic_day', 'traffic_month', 'traffic_exceeded_msg', 'file_offline_msg', 'daily_user_limits', 'daily_limit_subscriber', 'daily_limit_contributor', 'daily_limit_author', 'daily_limit_editor', 'daily_limit_exceeded_msg'),
-		__('Security', WPFB)				=> array('allow_srv_script_upload', 'hide_inaccessible', 'inaccessible_msg', 'inaccessible_redirect'),
+		__('Security', WPFB)				=> array('allow_srv_script_upload', 'hide_inaccessible', 'inaccessible_msg', 'inaccessible_redirect', 'protect_upload_path'),
 		__('Templates and Scripts', WPFB)	=> array('template_file', 'template_cat', 'dlclick_js')
 	);
 	?>

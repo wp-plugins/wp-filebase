@@ -13,7 +13,7 @@ static function ProcessShortCode($args)
 		case 'fileurl':
 			if($id > 0 && ($file = wpfb_call('File','GetFile',$id)) != null) return $file->GetUrl();
 			else break;					
-		case 'attachments':	return do_shortcode(self::GetPostAttachments(false, $args['tpl']));
+		case 'attachments':	return do_shortcode(self::PostAttachments(false, $args['tpl']));
 	}	
 	return '';
 }
@@ -32,14 +32,14 @@ static function GenFileList(&$files, $tpl_tag=null)
 	return $content;
 }
 
-static function GetPostAttachments($check_attached = false, $tpl_tag=null)
+static function PostAttachments($check_attached = false, $tpl_tag=null)
 {
 	global $wpdb, $id;
 	static $attached = false;	
 	
 	wpfb_loadclass('File', 'Category');
 	
-	if(empty($id) || $id <= 0 || ($check_attached && $attached) || count($files = &WPFB_File::GetPostAttachments($id)) == 0)
+	if(empty($id) || $id <= 0 || ($check_attached && $attached) || count($files = &WPFB_File::GetAttachedFiles($id)) == 0)
 		return '';
 
 	$attached = true;
@@ -119,7 +119,7 @@ static function FileBrowserList(&$content, &$parents, $cat_tpl, $file_tpl, $root
 		$content .= "</li>\n";
 	}
 	
-	$files = $root_cat ? $root_cat->GetChildFiles() : WPFB_File::GetFiles('WHERE file_category = 0');
+	$files = $root_cat ? $root_cat->GetChildFiles(false,WPFB_Core::GetFileListSortSql()) : WPFB_File::GetFiles('WHERE file_category = 0 '.WPFB_Core::GetFileListSortSql());
 	foreach($files as $file) {
 		if($file->CurUserCanAccess(true))
 			$content .= '<li id="wpfb-file-'.$file->file_id.'"><span>'.$file->GenTpl($file_tpl, 'ajax')."</span></li>\n";

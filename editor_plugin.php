@@ -40,7 +40,7 @@ case 'addfile':
 	break;
 }
 
-$post_attachments = ($post_id > 0) ? WPFB_File::GetPostAttachments($post_id) : array();
+$post_attachments = ($post_id > 0) ? WPFB_File::GetAttachedFiles($post_id) : array();
 
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -135,27 +135,33 @@ jQuery(document).ready( function()
 	else theEditor = null;
 
 	tabclick(jQuery("a", jQuery('#sidemenu')).get(0));
-	refreshTrees();
 
 	<?php if(!WPFB_Core::GetOpt('auto_attach_files')) { ?>
 	if (theEditor && theEditor.getContent().search(/\[wpfilebase\s+tag\s*=\s*['"]attachments['"]/) != -1)
 		jQuery('#no-auto-attach-note').hide(); 	// no notice if attachments tag is in
 <?php }
 } ?>
+	refreshTrees();
 });
 
+function getTreeViewModel(data) {
+	if(typeof data != 'object') data = {};
+	data.action = "tree";
+	return { url: "<?php echo WPFB_PLUGIN_URI."wpfb-ajax.php" ?>",
+		ajax:{data:data,type:"post"},
+		animated: "medium"
+	};
+}
+
 function refreshTrees() {
+	var model = getTreeViewModel({type:"fileselect",onselect:"selectFile(%d,'%s')",exclude_attached:true});
+	jQuery("#attachbrowser").empty().treeview(model);
+	
 <?php if(!$manage_attachments) { ?>
-	jQuery("#filebrowser").empty().treeview({
-		url: "<?php echo WPFB_PLUGIN_URI."wpfb-ajax.php" ?>",
-		ajax: {	data: { action: "tree", fileselect: true, onselect: 'selectFile(%d, \'%s\')' }, type: "post" },
-		animated: "medium"
-	});
-	jQuery("#catbrowser").empty().treeview({
-		url: "<?php echo WPFB_PLUGIN_URI."wpfb-ajax.php" ?>",
-		ajax: {	data: { action: "tree", catselect: true, onselect: 'selectCat(%d, \'%s\')', cat_id_fmt: 'catsel-cat-%d' }, type: "post" },
-		animated: "medium"
-	});
+	model.ajax.data.exclude_attached = false;
+	jQuery("#filebrowser").empty().treeview(model);
+	model = getTreeViewModel({type:"catselect",onselect:"selectCat(%d,'%s')", cat_id_fmt:'catsel-cat-%d'});
+	jQuery("#catbrowser").empty().treeview(model);
 <?php } ?>
 }
 
@@ -198,7 +204,18 @@ function tabclick(a)
 function selectFile(id, name)
 {
 	var tag = {tag:currentTab, id:id};
-	if(currentTab == 'fileurl') {
+	if(<?php echo ($manage_attachments?'true ||':'') ?> currentTab == 'attach') {
+		jQuery.ajax({
+			url: "<?php echo WPFB_PLUGIN_URI."wpfb-ajax.php" ?>",
+			data: {
+				action:"attach-file",
+				post_id:<?php echo $post_id ?>,
+				file_id:id
+			},
+			async: false});
+		window.location.reload();
+		return;
+	} else if(currentTab == 'fileurl') {
 		var linkText = prompt('<?php _e('Enter link text:', WPFB) ?>', name);
 		if(!linkText || linkText == null || linkText == '')	return;
 		tag.linktext = linkText;
@@ -354,6 +371,8 @@ if($action != 'editfile' && (!empty($post_attachments) || $manage_attachments)) 
 }
 WPFB_Admin::PrintForm('file', $file, array('in_editor'=>true, 'post_id'=>$post_id));
 ?>
+<h3 class="media-title"><?php _e('Attach existing file', WPFB) ?></h3>
+<ul id="attachbrowser" class="filetree"></ul>
 </div> <!-- attach -->
 	
 <?php if(!$manage_attachments) {?>

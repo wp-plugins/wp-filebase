@@ -210,13 +210,13 @@ class WPFB_Item {
 				WPFB_Core::UpdateOption($tpo, $parsed_tpl); 
 			}
 		}
-		
+		/*
 		if($this->is_file) {
 			global $wpfb_file_paths;
 			if(empty($wpfb_file_paths)) $wpfb_file_paths = array();
 			$wpfb_file_paths[(int)$this->file_id] = $this->GetLocalPathRel();
 		}
-
+		*/
 		self::$tpl_uid++;
 		$f =& $this;
 		return eval("return ($parsed_tpl);");
@@ -277,15 +277,15 @@ class WPFB_Item {
 	
 	// for a category this return an array of child files
 	// for a file an array with a single element, the file itself
-	function GetChildFiles($recursive=false)
+	function GetChildFiles($recursive=false,$sort_sql=null)
 	{
 		if($this->is_file) return array($this->GetId() => $this);
-		
-		$files = WPFB_File::GetFiles('WHERE file_category = ' . (int)$this->GetId() . ' ORDER BY file_id');
+		if(empty($sort_sql)) $sort_sql = "ORDER BY file_id ASC";
+		$files = WPFB_File::GetFiles('WHERE file_category = '.(int)$this->GetId()." $sort_sql");
 		if($recursive) {
 			$cats = $this->GetChildCats(true);
 			foreach(array_keys($cats) as $i)
-				$files += $cats[$i]->GetChildFiles(false);
+				$files += $cats[$i]->GetChildFiles(false,$sort_sql);
 		}		
 		return $files;
 	}

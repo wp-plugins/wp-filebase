@@ -1,17 +1,19 @@
 function wpfb_menuEdit(menuItem,menu) {
-	window.location = wpfbConf.fileEditUrl + menu.file_id + '&redirect_to='+escape(window.location.href);
+	var fi = wpfb_getFileInfo(menu.file_url);
+	if(fi != null)
+		window.location = wpfbConf.fileEditUrl + fi.id + '&redirect_to='+escape(window.location.href);
 }
 
 function wpfb_menuDel(menuItem,menu) {
-
-	if(confirm('Do you really want to delete this file?'))
+	var fi = wpfb_getFileInfo(menu.file_url);
+	if(fi != null && confirm('Do you really want to delete this file?'))
 	{
 		jQuery('body').css('cursor', 'wait');
 		
 		jQuery.ajax({
 			type: 'POST',
-			url: wpfbConf.ajaxUrl,
-			data: {action:'delete',file_id:menu.file_id},
+			url: wpfbConf.ajurl,
+			data: {action:'delete',file_id:fi.id},
 			async: false,
 			success: (function(data){
 				if(data != '-1') {
@@ -27,9 +29,9 @@ function wpfb_menuDel(menuItem,menu) {
 	}
 }
 
-function wpfb_addContextMenu(el, fid) {
-	if(typeof(wpfbContextMenu) != 'undefined' && fid > 0)
-		el.contextMenu(wpfbContextMenu,{theme:'osx',showTransition:'fadeIn',hideTransition:'fadeOut',file_id:fid});
+function wpfb_addContextMenu(el, url) {
+	if(typeof(wpfbContextMenu) != 'undefined')
+		el.contextMenu(wpfbContextMenu,{theme:'osx',showTransition:'fadeIn',hideTransition:'fadeOut',file_url:url});
 }
 
 function wpfb_manageAttachments(url,postId)
@@ -42,4 +44,10 @@ function wpfb_toggleContextMenu() {
 	wpfbConf.cm = !wpfbConf.cm;
 	jQuery.ajax({url: wpfbConf.ajurl, data:'action=toggle-context-menu', async: false});
 	return true;
+}
+
+function wpfb_print(obj) {
+	var str = ' '+obj+':';
+	for(var k in obj) str += ' ['+k+'] = '+obj[k]+'\n';
+	alert(str);
 }

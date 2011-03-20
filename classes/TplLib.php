@@ -12,6 +12,9 @@ static function Parse($tpl)
 	// remove existing onclicks
 	$tpl = preg_replace(array('/<a\s+([^>]*)onclick=".+?"\s+([^>]*)href="%file_url%"/i', '/<a\s+([^>]*)href="%file_url%"\s+([^>]*)onclick=".+?"/i'), '<a href="%file_url%" $1$2', $tpl);
 	
+	// remove cat anchors
+	$tpl = str_replace('%cat_url%#wpfb-cat-%cat_id%','%cat_url%',$tpl);
+	
 	// since 0.2.0 the onclick is set via jQuery!
 	//add dl js
 	//$tpl = preg_replace('/<a ([^>]*)href="%file_url%"/i', '<a $1href="%file_url%" onclick="wpfilebase_dlclick(%file_id%, \'%file_url_rel%\')"', $tpl);

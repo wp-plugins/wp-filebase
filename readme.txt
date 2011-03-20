@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=money
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, traffic, widget, filelist, list, thumb, thumbnail, attachment, attachments, category, categories, media, template, ftp, http
 Requires at least: 3.1
 Tested up to: 3.1
-Stable tag: 0.2.2
+Stable tag: 0.2.3
 
 Adds a powerful download manager supporting file categories, thumbnails, traffic/bandwidth limits and more to your WordPress blog.
 
@@ -88,6 +88,14 @@ Goto WP-Filebase Settings and disable Permalinks under "Download". Try to disabl
 4. The Editor Button to insert tags for filelists and download urls
 
 == Changelog ==
+
+= 0.2.3 =
+* File browser is sorted with default settings now
+* Existing files can now be attached to a post in editor plugin
+* New option `Protect upload path`
+* Fixed issue with AJAX file tree in `wpfb-ajax.php`
+* Fixed broken delete function in context menu
+* Some JavaScript optimizations
 
 = 0.2.2 =
 * Scrollbars in post browser
