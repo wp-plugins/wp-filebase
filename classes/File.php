@@ -6,7 +6,7 @@ class WPFB_File extends WPFB_Item {
 	var $file_id = 0;
 	var $file_name;
 	var $file_path;
-	var $file_size;
+	var $file_size = 0;
 	var $file_date;
 	var $file_hash;
 	var $file_remote_uri;
@@ -19,17 +19,17 @@ class WPFB_File extends WPFB_Item {
 	var $file_platform;
 	var $file_requirement;
 	var $file_license;
-	var $file_required_level;
-	var $file_offline;
-	var $file_direct_linking;
-	var $file_force_download;
-	var $file_category;
-	var $file_update_of; // TODO
-	var $file_post_id;
-	var $file_added_by;
-	var $file_hits;
-	var $file_ratings; // TODO
-	var $file_rating_sum; // TODO
+	var $file_required_level = 0;
+	var $file_offline = 0;
+	var $file_direct_linking = 0;
+	var $file_force_download = 0;
+	var $file_category = 0;
+	var $file_update_of = 0; // TODO
+	var $file_post_id = 0;
+	var $file_added_by = 0;
+	var $file_hits = 0;
+	var $file_ratings = 0; // TODO
+	var $file_rating_sum = 0; // TODO
 	var $file_last_dl_ip;
 	var $file_last_dl_time;
 	
@@ -76,7 +76,17 @@ class WPFB_File extends WPFB_Item {
 		$post_id = intval($post_id);
 		return WPFB_File::GetFiles("WHERE file_post_id = $post_id " . WPFB_Core::GetFileListSortSql());
 	}
-
+	
+	function DBSave()
+	{ // validate some values before saving (fixes for mysql strict mode)		
+		$ints = array('file_size','file_category','file_post_id','file_required_level','file_added_by','file_update_of','file_hits','file_ratings','file_rating_sum');
+		foreach($ints as $i) $this->$i = intval($this->$i);
+		$this->file_offline = (int)!empty($this->file_offline);
+		$this->file_direct_linking = (int)!empty($this->file_direct_linking);
+		$this->file_force_download = (int)!empty($this->file_force_download);
+		if(empty($this->file_last_dl_time)) $this->file_last_dl_time = '0000-00-00 00:00:00';
+		return parent::DBSave();
+	}
 	
 	// gets the extension of the file (including .)
 	function GetExtension() { return strtolower(strrchr($this->file_name, '.')); }

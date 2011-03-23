@@ -8,13 +8,13 @@ class WPFB_Category extends WPFB_Item {
 	var $cat_description;
 	var $cat_folder;
 	var $cat_path;
-	var $cat_parent;
+	var $cat_parent = 0;
 	//var $cat_files;
-	var $cat_num_files;
-	var $cat_num_files_total;
-	var $cat_required_level;
+	var $cat_num_files = 0;
+	var $cat_num_files_total = 0;
+	var $cat_required_level = 0;
 	var $cat_icon;
-	var $cat_exclude_browser;
+	var $cat_exclude_browser = 0;
 	
 	static $cache = array();
 	static $cache_complete = false;
@@ -72,6 +72,18 @@ class WPFB_Category extends WPFB_Item {
 	
 	
 	static function CompareName($a, $b) { return $a->cat_name > $b->cat_name; }
+	
+	
+	function DBSave()
+	{ // validate some values before saving (fixes for mysql strict mode)
+		$this->cat_exclude_browser = (int)!empty($this->cat_exclude_browser);
+		$this->cat_required_level = intval($this->cat_required_level);
+		$this->cat_parent = intval($this->cat_parent);
+		$this->cat_num_files = intval($this->cat_num_files);
+		$this->cat_num_files_total = intval($this->cat_num_files_total);
+
+		return parent::DBSave();
+	}
 
 	function NotifyFileAdded($file)
 	{	

@@ -1,0 +1,71 @@
+Comments
+
+-single download pages
+-fix post browser!!!
+change editor plugin icon
+-query links without jquery
+gettext update, add new textssss
+list templates doc, page nav uand stuff
+
+file list header foooter doc (serach form, page nav)
+
+- file tags
+- handle web search crawler
+- multiple widgets
+-ADD WPFB-FILE-ID TO TEMPLATE1
+.multiple posts per file 
+
+new tpl tags:
+added by [user]
+
+file ratings
+file updates
+file dependencies
+report error form
+
+force download per file
+
+/*
+archive lister?
+per-page download list
+
+* upload by guests
+* upload progress bar
+* searchboxes
+*/W
+
+global hotlink protecting
+
+rename hotlink to deeplink?
+ 
+ fix hotlink?
+ 
+ batch actions for files: set properties, delete, create thumbnails, etc...
+ 
+ hide download links
+   
+  attachment form in post! (switchable!)
+ 
+ file ratings!!
+ 
+ list files under categories
+ 
+ converter from other plugins
+ 
+ 
+ ################### low
+ index documents, find files
+ 
+ list sorting
+ 
+ // Final::
+ check for old function calls
+ test tag converter notice!!
+ check css editor
+ check hotlinking!!
+ 
+ fix analytics url bug
+ 
+ review JS loading and minimize!!
+ 
+ single dl page

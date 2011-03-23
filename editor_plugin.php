@@ -4,10 +4,10 @@ define('WPFB_EDITOR_PLUGIN', 1);
 
 require_once(dirname(__FILE__).'/../../../wp-load.php');
 // disable error reporting
-error_reporting(0);
-@require_once(dirname(__FILE__).'/../../../wp-admin/admin.php');
+//error_reporting(0);
+require_once(dirname(__FILE__).'/../../../wp-admin/admin.php');
 // enable error reporting again
-wp_debug_mode();
+//wp_debug_mode();
 
 // anti hack
 if(!current_user_can('publish_posts') && !current_user_can('edit_posts') && !current_user_can('edit_pages'))
@@ -115,6 +115,9 @@ do_action('admin_head');
 
 <script type="text/javascript">
 //<![CDATA[ 
+
+var userSettings = {'url':'<?php echo SITECOOKIEPATH; ?>','uid':'<?php if ( ! isset($current_user) ) $current_user = wp_get_current_user(); echo $current_user->ID; ?>','time':'<?php echo time(); ?>'};
+var ajaxurl = '<?php echo admin_url('admin-ajax.php'); ?>', pagenow = 'wpfilebase-popup', adminpage = 'wpfilebase-popup', isRtl = <?php echo (int) is_rtl(); ?>;
 
 var theEditor;
 var currentTab;

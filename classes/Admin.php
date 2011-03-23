@@ -294,7 +294,7 @@ static function InsertCategory($catarr)
 
 	$cat->cat_name = trim($cat_name);
 	$cat->cat_description = trim($cat_description);
-	$cat->cat_exclude_browser = !empty($cat_exclude_browser);	
+	$cat->cat_exclude_browser = (int)!empty($cat_exclude_browser);	
 	$cat->cat_required_level = empty($cat_members_only) ? 0 : (WPFB_Core::UserRole2Level($cat_required_role)+1);
 	
 	if($update && !empty($cat_child_apply_perm))
