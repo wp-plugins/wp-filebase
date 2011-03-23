@@ -10,6 +10,7 @@ static function InitClass()
 	add_action('wp_head', array(__CLASS__, 'Header'));
 	add_action('wp_footer', array(__CLASS__, 'Footer'));
 
+	add_action(WPFB.'_cron', array(__CLASS__, 'Cron'));
 	
 	// for attachments and file browser
 	add_filter('the_content',	array(__CLASS__, 'ContentFilter'), 10); // must be lower than 11 (before do_shortcode) and after wpautop (>9)
@@ -69,7 +70,6 @@ static function InitClass()
 		
 	add_action('wp_dashboard_setup', array(__CLASS__, 'AdminDashboardSetup'));	
 
-	// TODO: the download redirect function has to called as early as possible, maybe even before init() ?
 	self::DownloadRedirect();
 }
 
@@ -476,5 +476,10 @@ static function AdminBar() {
 	$wp_admin_bar->add_menu(array('parent' => WPFB, 'id' => WPFB.'-toggle-context-menu', 'title' => __(self::GetOpt('file_context_menu')?'Disable file context menu':'Enable file context menu', WPFB), 'href' => '',
 	'meta' => array('onclick' => 'return wpfb_toggleContextMenu();')));
 	
+}
+
+static function Cron() {
+	if(self::GetOpt('cron_sync'))
+		wpfb_call('Admin', 'Sync');
 }
 }

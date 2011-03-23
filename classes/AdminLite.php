@@ -1,6 +1,5 @@
 <?php
 class WPFB_AdminLite {
-
 static function InitClass()
 {		
 	wp_register_widget_control(WPFB_PLUGIN_NAME, WPFB_PLUGIN_NAME .' '. __('File list'), array(__CLASS__, 'WidgetFileListControl'), array('description' => __('Lists the latest or most popular files', WPFB)));

@@ -54,9 +54,9 @@ switch ( $action = $_REQUEST['action'] ) {
 					'classes'=>($filesel||$catsel)?'folder':null);
 		}
 		
-		if(empty($_REQUEST['cats_only']) && !$catsel) {
+		if((empty($_REQUEST['cats_only']) || $_REQUEST['cats_only'] == 'false') && !$catsel) {
 			$sql = "WHERE file_category = $parent_id";
-			if(!empty($_REQUEST['exclude_attached'])) $sql .= " AND file_post_id = 0";
+			if(!empty($_REQUEST['exclude_attached']) && $_REQUEST['exclude_attached'] != 'false') $sql .= " AND file_post_id = 0";
 			if($browser) $sql .= " ".WPFB_Core::GetFileListSortSql();
 			$files = WPFB_File::GetFiles($sql);
 			foreach($files as $f)
@@ -142,7 +142,7 @@ switch ( $action = $_REQUEST['action'] ) {
 			if($file == null) $file = WPFB_File::GetByPath($path_u);
 		}
 		
-		if($file != null && $file->CurUserCanAccess()) {
+		if($file != null && $file->CurUserCanAccess(true)) {
 			echo json_encode(array(
 				'id' => $file->GetId(),
 				'url' => $file->GetUrl(),
@@ -179,9 +179,10 @@ switch ( $action = $_REQUEST['action'] ) {
 		if($id == 0)
 			$terms = array_merge($terms, get_pages(/*array('parent' => $id)*/));
 			
-		foreach($terms as &$t)
+		foreach($terms as &$t) {
 			$items[] = array('id' => $t->ID, 'classes' => 'file',
-			'text'=> ('<a href="javascript:'.sprintf($onclick,$t->ID, str_replace('\'','\\\'',/*htmlspecialchars*/(stripslashes(get_the_title($t->ID))))).'">'.get_the_title($t->post_title).'</a>'));
+			'text'=> ('<a href="javascript:'.sprintf($onclick,$t->ID, str_replace('\'','\\\'',/*htmlspecialchars*/(stripslashes(get_the_title($t->ID))))).'">'.get_the_title($t->ID).'</a>'));
+		}
 
 		echo json_encode($items);
 		exit;

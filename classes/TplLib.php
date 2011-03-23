@@ -53,7 +53,7 @@ static function ParseTplExp($exp)
 	$exp = str_replace('%post_id%', 'get_the_ID()', $exp);
 	
 	// remove critical functions TODO: still a bit unsecure, only allow some functions
-	$exp = str_replace(array('mysql_query', 'mysql', '$wpdb', 'fopen', 'readfile', 'include'), '', $exp);
+	$exp = str_replace(array('eval','mysql_query', 'mysql', '$wpdb', 'fopen', 'readfile', 'include','include_once','require(','require_once('), '', $exp);
 	
 	$exp = preg_replace('/%([a-z0-9_]+?)%/i', '($f->get_tpl_var(\'$1\'))', $exp);
 	$exp = preg_replace('/([^\w])AND([^\w])/', '$1&&$2', $exp);

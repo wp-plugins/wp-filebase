@@ -51,7 +51,7 @@ class WPFB_File extends WPFB_Item {
 			foreach(array_keys($results) as $i) {				
 				$id = (int)$results[$i]->file_id;
 				self::$cache[$id] = new WPFB_File($results[$i]);	
-				$files[$id] = self::$cache[$id]; // todo: no associative array?
+				$files[$id] = self::$cache[$id];
 			}
 		}		
 		return $files;

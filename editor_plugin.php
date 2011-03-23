@@ -41,7 +41,6 @@ case 'addfile':
 }
 
 $post_attachments = ($post_id > 0) ? WPFB_File::GetAttachedFiles($post_id) : array();
-
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" <?php do_action('admin_xml_ns'); ?> <?php language_attributes(); ?>>
@@ -301,7 +300,7 @@ function insListTag() {
 	if(showcats) tag.showcats = 1;
 	
 	var num = parseInt(jQuery('#list-num').val());
-	if(num != 0) tag.num = num; 
+	if(num != 0) tag.num = num;
 	
 	insertTag(tag);
 }

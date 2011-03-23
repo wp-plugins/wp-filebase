@@ -4,14 +4,14 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=money
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, traffic, widget, filelist, list, thumb, thumbnail, attachment, attachments, category, categories, media, template, ftp, http
 Requires at least: 3.1
 Tested up to: 3.1
-Stable tag: 0.2.3
+Stable tag: 0.2.4
 
-Adds a powerful download manager supporting file categories, thumbnails, traffic/bandwidth limits and more to your WordPress blog.
+Adds a powerful downloads manager supporting file categories, download counter, widgets, sorted file lists and more to your WordPress blog.
 
 == Description ==
 
 WP-Filebase is an allround file manager for Wordpress.
-It keeps files structed in categories, offers a template system to create sortable, paginated file lists and can sideload files from other websites.
+It keeps files structured in categories, offers a template system to create sortable, paginated file lists and can sideload files from other websites.
 
 Some more features:
 
@@ -88,6 +88,13 @@ Goto WP-Filebase Settings and disable Permalinks under "Download". Try to disabl
 4. The Editor Button to insert tags for filelists and download urls
 
 == Changelog ==
+
+= 0.2.4 =
+* Added search form for file list (use `%search_form%` in list template footer or header)
+* New option `Automatic Sync` which enables hourly synchronizations
+* Files are now hidden when offline if `Hide inaccessible files` is enabled
+* Fixed file browser
+* Fixed post browser
 
 = 0.2.3 =
 * File browser is sorted with default settings now

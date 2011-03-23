@@ -72,7 +72,8 @@ static function AddTpls() {
 			'cat_tpl_tag' => 'default'
 		),
 		'table' => array(
-			'header' => '<table>
+			'header' => '%search_form%
+<table>
 <thead>
 	<tr><th scope="col"><a href="%sortlink:file_name%">Name</a></th><th scope="col"><a href="%sortlink:file_size%">Size</a></th><th scope="col"><a href="%sortlink:file_downloads%">Hits</a></th></tr>
 </thead>
@@ -372,5 +373,12 @@ static function OnActivateOrVerChange() {
 	WPFB_Admin::FlushRewriteRules();
 	WPFB_Admin::UpdateItemsPath();
 	WPFB_Admin::SyncCats();
+	
+	if (!wp_next_scheduled(WPFB.'_cron'))	
+		wp_schedule_event(time(), 'hourly', WPFB.'_cron');	
+}
+
+static function OnDeactivate() {
+	wp_clear_scheduled_hook(WPFB.'_cron');
 }
 }

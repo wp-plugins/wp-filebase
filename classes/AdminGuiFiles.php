@@ -104,21 +104,11 @@ static function Display()
 				$filesperpage = 30;
 				
 			$pagestart = ($pagenum - 1) * $filesperpage;
-
 			$extra_sql = '';
-			if(!empty($_GET['s']))
-			{
-				$s = $wpdb->escape(trim($_GET['s']));
-				// TODO: use the sort sql function here!
-				$extra_sql .= "WHERE file_name LIKE '%$s%' 
-				OR file_thumbnail LIKE '%$s%'
-				OR file_display_name LIKE '%$s%'
-				OR file_description LIKE '%$s%'
-				OR file_requirement LIKE '%$s%'
-				OR file_version LIKE '%$s%' OR file_author LIKE '%$s%'
-				OR file_language LIKE '%$s%' OR file_platform LIKE '%$s%' OR file_license LIKE '%$s%'	";
-			}
-		
+			
+			$where = wpfb_call('Search','SearchWhereSql');
+			if(!empty($where))
+				$extra_sql .= "WHERE 0 $where";		
 			
 			if(!empty($_GET['order']) && in_array($_GET['order'], array_keys(get_class_vars('WPFB_File'))))
 				$extra_sql .= "ORDER BY " . $_GET['order'] . " " . (!empty($_GET['desc']) ? "DESC" : "ASC");	
@@ -149,6 +139,7 @@ static function Display()
 			<thead>
 			<tr>
 				<th scope="col" class="check-column"><input type="checkbox" /></th>
+				<th scope="col" class="num"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_id') ?>"><?php _e('ID'/*def*/) ?></a></th>	
 				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_display_name') ?>"><?php _e('Name'/*def*/) ?></a></th>	
 				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_name') ?>"><?php _e('Filename', WPFB) ?></a></th>    
 				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_size') ?>"><?php _e('Size'/*def*/) ?></a></th>    		
@@ -171,7 +162,8 @@ static function Display()
 					$cat = $file->GetParent();
 				?>
 				<tr id='file-<?php echo $file_id ?>'<?php if($file->file_offline) { echo " class='offline'"; } ?>>
-						   <th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $file_id ?>' /></th>
+						    <th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $file_id ?>' /></th>
+						    <td class="num"><?php echo $file_id ?></td>
 							<td class="wpfilebase-admin-list-row-title"><a class='row-title' href='<?php echo $file->GetEditUrl() ?>' title='&quot;<?php echo esc_attr($file->file_display_name); ?>&quot; bearbeiten'>
 							<?php if(!empty($file->file_thumbnail)) { ?><img src="<?php echo $file->GetIconUrl(); ?>" height="32" /><?php } ?>
 							<span><?php if($file->IsRemote()){echo '*';} echo esc_html($file->file_display_name); ?></span>

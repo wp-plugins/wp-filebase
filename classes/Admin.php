@@ -70,6 +70,8 @@ static function SettingsSchema()
 	'admin_bar'	=> array('default' => true, 'title' => __('Add WP-Filebase to admin menu bar', WPFB), 'type' => 'checkbox', 'desc' => __('Display some quick actions for file management in the admin menu bar.', WPFB)),
 	//'file_context_menu'	=> array('default' => true, 'title' => '', 'type' => 'checkbox', 'desc' => ''),
 	
+	'cron_sync'	=> array('default' => true, 'title' => __('Automatic Sync', WPFB), 'type' => 'checkbox', 'desc' => __('Schedules a cronjob to hourly synchronize the filesystem and the database.', WPFB)),
+	
 	
 	'languages'				=> array('default' => "English|en\nDeutsch|de", 'title' => __('Languages'), 'type' => 'textarea', 'desc' => &$multiple_entries_desc),
 	'platforms'				=> array('default' => "Windows 95|win95\n*Windows 98|win98\n*Windows 2000|win2k\n*Windows XP|winxp\n*Windows Vista|vista\n*Windows 7|win7\nLinux|linux\nMac OS X|mac", 'title' => __('Platforms', WPFB), 'type' => 'textarea', 'desc' => &$multiple_entries_desc, 'nowrap' => true),	
@@ -378,7 +380,7 @@ static function InsertFile($data)
 	
 	// VALIDATION
 	$current_user = wp_get_current_user();
-	if(empty($current_user->ID)) return array( 'error' => __('Could not get user id!', WPFB) );	
+	if(!$add_existing && empty($current_user->ID)) return array( 'error' => __('Could not get user id!', WPFB) );	
 	
 	if(!$update && !$add_existing && !$upload && !$remote_upload) return array( 'error' => __('No file was uploaded.', WPFB) );
 
@@ -467,8 +469,7 @@ static function InsertFile($data)
 	if(!empty($file_platforms)) $file->file_platform = implode('|', $file_platforms);
 	if(!empty($file_requirements)) $file->file_requirement = implode('|', $file_requirements);
 	
-	if(isset($data->file_offline))
-		$file->file_offline = (int)empty($data->file_offline);
+	$file->file_offline = (int)(!empty($data->file_offline));
 	
 	$file->file_required_level = empty($data->file_members_only) ? 0 : (WPFB_Core::UserRole2Level($data->file_required_role)+1);
 	
@@ -484,7 +485,7 @@ static function InsertFile($data)
 	}		
 
 	// set the user id
-	if(!$update) $file->file_added_by = $current_user->ID;	
+	if(!$update && !empty($current_user)) $file->file_added_by = $current_user->ID;	
 
 	// if thumbnail was uploaded
 	if($upload_thumb)
@@ -588,6 +589,8 @@ static function SideloadFile($url) {
 static function Sync($hash_sync=false)
 {
 	@set_time_limit(0);
+	
+	require_once(ABSPATH . 'wp-admin/includes/file.php');
 	
 	$result = array('missing_files' => array(), 'missing_folders' => array(), 'changed' => array(), 'not_added' => array(), 'error' => array(), 'updated_categories' => array());
 	WPFB_Admin::UpdateItemsPath();

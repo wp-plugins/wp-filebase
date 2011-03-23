@@ -142,7 +142,7 @@ static function Display()
 	</p>
 	<?php
 	
-	$common_tags = array('upload_path', 'thumbnail_size', 'file_browser_post_id', /*'cat_drop_down'*/);
+	$common_tags = array('upload_path', 'thumbnail_size', 'file_browser_post_id', /*'cat_drop_down'*/'cron_sync');
 	if(function_exists('wp_admin_bar_render'))
 		$common_tags[] = 'admin_bar';
 	

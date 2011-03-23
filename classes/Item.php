@@ -24,9 +24,6 @@ class WPFB_Item {
 		}
 	}
 	
-	// TODO: add rename function , lock/unlock function!!
-	
-	
 	function GetId(){return (int)($this->is_file?$this->file_id:$this->cat_id);}	
 	function GetName(){return $this->is_file?$this->file_name:$this->cat_folder;}	
 	function GetTitle($maxlen=0){
@@ -162,6 +159,9 @@ class WPFB_Item {
 	function CurUserCanAccess($for_tpl=false)
 	{
 		static $usr_level = -1;
+		
+		if($for_tpl && !WPFB_Core::GetOpt('hide_inaccessible')) return true;
+		
 		if($usr_level == -1) {
 			global $current_user;
 			if($current_user) foreach(array_keys($current_user->caps) as $r){
@@ -169,7 +169,7 @@ class WPFB_Item {
 			} else $usr_level = 0;
 		}		
 		$level = $this->is_file?$this->file_required_level:$this->cat_required_level;
-		return ($level <= 0 || $usr_level >= $level || ($for_tpl && !WPFB_Core::GetOpt('hide_inaccessible')));
+		return ( ($level <= 0 || $usr_level >= $level) && ($this->is_category || !$this->file_offline) );
 	}
 	
 	function GetUrl()
