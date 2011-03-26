@@ -46,8 +46,13 @@ function wpfb_toggleContextMenu() {
 	return true;
 }
 
-function wpfb_print(obj) {
-	var str = ' '+obj+':';
-	for(var k in obj) str += ' ['+k+'] = '+obj[k]+'\n';
-	alert(str);
+function wpfb_print(obj,ret) {
+	var str = ' '+obj+':',t;
+	for(var k in obj) {
+		t = typeof(obj[k]);
+		str += ' ['+k+':'+t+'] = '+((t=='string'||t=='array')?obj[k]:wpfb_print(obj[k],true))+'\n';
+	}
+	if(typeof(ret) == 'undefined' || !ret)
+		alert(str);
+	return str;
 }

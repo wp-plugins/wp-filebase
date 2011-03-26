@@ -1,8 +1,10 @@
 <?php
 
 define('WPFB_EDITOR_PLUGIN', 1);
+if ( ! isset( $_GET['inline'] ) )
+	define( 'IFRAME_REQUEST' , true );
 
-require_once(dirname(__FILE__).'/../../../wp-load.php');
+//require_once(dirname(__FILE__).'/../../../wp-load.php');
 // disable error reporting
 //error_reporting(0);
 require_once(dirname(__FILE__).'/../../../wp-admin/admin.php');
@@ -13,6 +15,13 @@ require_once(dirname(__FILE__).'/../../../wp-admin/admin.php');
 if(!current_user_can('publish_posts') && !current_user_can('edit_posts') && !current_user_can('edit_pages'))
 	wp_die(__('Cheatin&#8217; uh?'));
 
+function wpfb_editor_plugin_scripts() {
+	//wp_enqueue_script('tiny-mce-popup', site_url().'/'.WPINC.'/js/tinymce/tiny_mce_popup.js');
+	wp_enqueue_script('jquery');
+	wp_enqueue_script('jquery-treeview-async');
+}
+add_action('admin_enqueue_scripts', 'wpfb_editor_plugin_scripts');
+	
 @header('Content-Type: ' . get_option('html_type') . '; charset=' . get_option('blog_charset'));
 
 wpfb_loadclass('File', 'Category', 'Admin', 'ListTpl');
@@ -31,7 +40,7 @@ case 'rmfile':
 	break;
 	
 case 'delfile':
-	if($file) $file->remove();
+	if($file) $file->Remove();
 	$file = null;
 	break;
 	
@@ -49,10 +58,6 @@ $post_attachments = ($post_id > 0) ? WPFB_File::GetAttachedFiles($post_id) : arr
 <title><?php echo WPFB_PLUGIN_NAME ?></title>
 
 <?php
-//wp_enqueue_script('tiny-mce-popup', site_url().'/'.WPINC.'/js/tinymce/tiny_mce_popup.js');
-wp_enqueue_script('jquery');
-wp_enqueue_script('jquery-treeview-async');
-
 wp_enqueue_style( 'global' );
 wp_enqueue_style( 'wp-admin' );
 wp_enqueue_style( 'colors' );
@@ -133,7 +138,7 @@ jQuery(document).ready( function()
 	
 <?php if(!$manage_attachments) { ?>
 	var win = window.dialogArguments || opener || parent || top;
-	if(win && win.tinymce) theEditor = win.tinymce.EditorManager.activeEditor;
+	if(win && typeof(win.tinymce) != 'undefined' && win.tinymce) theEditor = win.tinymce.EditorManager.activeEditor;
 	else theEditor = null;
 
 	tabclick(jQuery("a", jQuery('#sidemenu')).get(0));
@@ -249,8 +254,24 @@ function editorInsert(str, close)
 	var win = window.dialogArguments || opener || parent || top;
 	if(win && win.send_to_editor) {
 		win.send_to_editor(str);
-		if(typeof close != 'undefined' && close)
-			win.tinymce.EditorManager.activeEditor.windowManager.close(window);
+		if(typeof close != 'undefined' && close) {
+			if(typeof(win.tinymce) != 'undefined')
+				win.tinymce.EditorManager.activeEditor.windowManager.close(window);
+			else
+			{/*
+				var regex = /^cke_dialog_close_button_([0-9]+)/;				
+				var els = win.document.getElementsByTagName('a'), aid;
+				for(i=0;i<els.length;i++){
+					aid = els[i].getAttribute('id');
+					if(aid && aid.search(regex) == 0) {
+						alert(els[i].click);
+						els[i].click();
+						break;
+					}
+				}
+				*/
+			}
+		}
 		return true;
 	}
 	return false;
@@ -436,7 +457,9 @@ WPFB_Admin::PrintForm('file', $file, array('in_editor'=>true, 'post_id'=>$post_i
 
 <?php } /*manage_attachments*/ ?>
 
-<?php do_action('admin_print_footer_scripts'); ?>
+<?php
+do_action('admin_print_footer_scripts');
+?>
 <script type="text/javascript">if(typeof wpOnload=='function')wpOnload();</script>
 </body>
 </html>

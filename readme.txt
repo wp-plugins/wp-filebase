@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=money
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, traffic, widget, filelist, list, thumb, thumbnail, attachment, attachments, category, categories, media, template, ftp, http
 Requires at least: 3.1
 Tested up to: 3.1
-Stable tag: 0.2.5
+Stable tag: 0.2.6
 
 Adds a powerful downloads manager supporting file categories, download counter, widgets, sorted file lists and more to your WordPress blog.
 
@@ -88,6 +88,11 @@ Goto WP-Filebase Settings and disable Permalinks under "Download". Try to disabl
 4. The Editor Button to insert tags for filelists and download urls
 
 == Changelog ==
+
+= 0.2.6 =
+* Made Editor Plugin compatible with [CKEditor](http://wordpress.org/extend/plugins/ckeditor-for-wordpress/)
+* Fixed AJAX response when using WP-Minify
+* Fixed script enqueue bug in editor_plugin.php
 
 = 0.2.5 =
 * Fixed several bugs occurring with MySQL strict mode

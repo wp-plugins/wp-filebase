@@ -1,5 +1,6 @@
 Comments
-
+http://forum.wpml.org/topic.php?id=2894
+http://www.reddit.com/r/Wordpress/comments/f6c0f/question_for_anyone_using_the_plugin_wpfilebase/
 -single download pages
 -fix post browser!!!
 change editor plugin icon

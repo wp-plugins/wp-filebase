@@ -1,15 +1,23 @@
 <?php
 
+function wpfb_print_json($obj) {
+	@ob_end_clean();
+	echo json_encode($obj);
+	@ob_flush();
+	@flush();
+	exit;
+}
 define('DOING_AJAX', true);
-
+error_reporting(0);
 require_once(dirname(__FILE__).'/../../../wp-load.php');
 
 if ( ! isset( $_REQUEST['action'] ) )
 	die('-1'); 
 	
-@header('Content-Type: text/html; charset=' . get_option('blog_charset'));
-send_nosniff_header();
+//@header('Content-Type: text/html; charset=' . get_option('blog_charset'));
+//send_nosniff_header();
 error_reporting(0);
+
 
 $_REQUEST = stripslashes_deep($_REQUEST);
 $_POST = stripslashes_deep($_POST);
@@ -25,7 +33,7 @@ switch ( $action = $_REQUEST['action'] ) {
 		$parent_id = (empty($_REQUEST['root']) || $_REQUEST['root'] == 'source') ? 0 : intval(substr(strrchr($_REQUEST['root'],'-'),1));
 		$browser = ($type=='browser');
 		$filesel = (!$browser && $type=='fileselect');
-		$catsel = (!$catsel && $type=='catselect');
+		$catsel = (!$filesel && $type=='catselect');
 		$cat_id_format = empty($_REQUEST['cat_id_fmt']) ? 'wpfb-cat-%d' : $_REQUEST['cat_id_fmt'];
 		$file_id_format = empty($_REQUEST['file_id_fmt']) ? 'wpfb-file-%d' : $_REQUEST['file_id_fmt'];
 		if($filesel || $catsel) $onselect = $_REQUEST['onselect'];
@@ -37,7 +45,7 @@ switch ( $action = $_REQUEST['action'] ) {
 		
 		$cats = WPFB_Category::GetCats("WHERE cat_parent = $parent_id".($browser?" AND cat_exclude_browser <> '1'":''));
 		if($parent_id == 0 && $catsel && count($cats) == 0) {
-			echo json_encode(array(array(
+			wpfb_print_json(array(array(
 				'id' => sprintf($cat_id_format, $c->cat_id),
 				'text' => sprintf(__('You did not create a category. <a href="%s" target="_parent">Click here to create one.</a>', WPFB), admin_url('admin.php?page=wpfilebase_cats#addcat')),
 				'hasChildren'=>false
@@ -65,8 +73,8 @@ switch ( $action = $_REQUEST['action'] ) {
 					$children[$i++] = array('id'=>sprintf($file_id_format, $f->file_id), 'text'=>$filesel?('<a href="javascript:'.sprintf($onselect,$f->file_id,str_replace('\'','\\\'',htmlspecialchars(stripslashes($f->file_display_name)))).'">'.esc_html($f->GetTitle(24)).'</a> <span style="font-size:75%;vertical-align:top;">'.esc_html($f->file_name).'</span>'):$f->GenTpl($file_tpl, 'ajax'), 'classes'=>$filesel?'file':null);
 			}
 		}
-
-		echo json_encode($children);
+		
+		wpfb_print_json($children);
 		exit;
 	
 	case 'delete':
@@ -143,7 +151,7 @@ switch ( $action = $_REQUEST['action'] ) {
 		}
 		
 		if($file != null && $file->CurUserCanAccess(true)) {
-			echo json_encode(array(
+			wpfb_print_json(array(
 				'id' => $file->GetId(),
 				'url' => $file->GetUrl(),
 				'path' => $file->GetLocalPathRel()
@@ -184,7 +192,7 @@ switch ( $action = $_REQUEST['action'] ) {
 			'text'=> ('<a href="javascript:'.sprintf($onclick,$t->ID, str_replace('\'','\\\'',/*htmlspecialchars*/(stripslashes(get_the_title($t->ID))))).'">'.get_the_title($t->ID).'</a>'));
 		}
 
-		echo json_encode($items);
+		wpfb_print_json($items);
 		exit;
 	case 'toggle-context-menu':
 		if(!current_user_can('upload_files')) die('-1');

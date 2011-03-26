@@ -131,6 +131,17 @@ static function Display()
 ?>
 <div id="message" class="error fade"><?php echo $error; ?></div>
 <?php endif; ?>
+<script type="text/javascript">
+/* Option tabs */
+jQuery(document).ready( function() {
+	try { jQuery('#wpfb-tabs').tabs(); }
+	catch(ex) {}
+	/*if(typeof(CKEDITOR) != 'undefined') {
+		CKEDITOR.plugins.addExternal('wpfilebase', ajaxurl+'/../../wp-content/plugins/wp-filebase/extras/ckeditor/');
+		alert( ajaxurl+'/../../wp-content/plugins/wp-filebase/extras/ckeditor/');
+	}*/
+});
+</script>
 
 <div class="wrap">
 <h2><?php echo WPFB_PLUGIN_NAME; echo ' '; _e("Settings"/*def*/); ?></h2>

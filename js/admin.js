@@ -1,3 +1,4 @@
+
 function WPFB_PostBrowser(inputId, titleId)
 {
 	var postId = document.getElementById(inputId).value;
@@ -68,8 +69,8 @@ function WPFB_CheckBoxShowHide(checkbox, name)
 	}
 }
 
-/* Option tabs */
-jQuery(document).ready( function() {
-	try { jQuery('#wpfb-tabs').tabs(); }
-	catch(ex) {}
-});
+/* CKEditor Plugin */
+if(typeof(ckeditorSettings) == 'object') {
+	ckeditorSettings.externalPlugins.wpfilebase = ajaxurl+'/../../wp-content/plugins/wp-filebase/extras/ckeditor/';
+	ckeditorSettings.additionalButtons.push(["WPFilebase"]);
+}

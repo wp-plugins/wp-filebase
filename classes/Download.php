@@ -296,6 +296,9 @@ function ShouldSendRangeHeader($file_path, $file_type)
 // this is the cool function which sends the file!
 function SendFile($file_path, $bandwidth = 0, $etag = null, $force_download=false)
 {
+	error_reporting(0);
+	while(@ob_end_clean()){}
+	
 	// remove some headers
 	if(function_exists('header_remove')) {
 		header_remove();

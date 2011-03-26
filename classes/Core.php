@@ -44,6 +44,14 @@ static function InitClass()
 	{
 		wp_enqueue_style(WPFB.'-admin', WPFB_PLUGIN_URI.'wp-filebase-admin.css', array(), WPFB_VERSION, 'all' );
 		wp_enqueue_script(WPFB.'-admin', WPFB_PLUGIN_URI.'js/admin.js', array('jquery-ui-tabs'), WPFB_VERSION);	
+		
+		/*
+		if(class_exists('ckeditor_wordpress')) {
+			global $pagenow;
+			if ( in_array( $pagenow, array('post.php', 'post-new.php') ) ) {
+				add_action( 'admin_print_footer_scripts', array(__CLASS__,'PrintCKEdPluginJS'), 30 );
+			}
+		}*/	
 	}
 	
 	// live admin
