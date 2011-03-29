@@ -89,7 +89,6 @@ Goto WP-Filebase Settings and disable Permalinks under "Download". Try to disabl
 
 == Changelog ==
 
-
 = 0.2.7 =
 * Fixed sideload bug and improved support for large files
 * Fixed file form presets bug
