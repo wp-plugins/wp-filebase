@@ -125,7 +125,7 @@ var userSettings = {'url':'<?php echo SITECOOKIEPATH; ?>','uid':'<?php if ( ! is
 var ajaxurl = '<?php echo admin_url('admin-ajax.php'); ?>', pagenow = 'wpfilebase-popup', adminpage = 'wpfilebase-popup', isRtl = <?php echo (int) is_rtl(); ?>;
 
 var theEditor;
-var currentTab;
+var currentTab = '';
 var selectedCats = [];
 
 jQuery(document).ready( function()
@@ -174,15 +174,16 @@ function refreshTrees() {
 
 function tabclick(a)
 {
+	var href = a.getAttribute('href');	
 	var tabLinks = jQuery("a", a.parentNode.parentNode).toArray();
 	var h,tl,tab;
 	for(var i = 0; i < tabLinks.length; i++)
 	{
-		h = tabLinks[i].href;
+		h = tabLinks[i].getAttribute('href');
 		h = h.substr(h.indexOf('#'));
 		tab = jQuery(h);
 		tl = jQuery(tabLinks[i]);
-		if(a.href == tabLinks[i].href) {
+		if(href == tabLinks[i].getAttribute('href')) {
 			tl.addClass('current');
 			tab.show();
 		} else {
@@ -191,8 +192,12 @@ function tabclick(a)
 		}
 	}
 
-	currentTab = a.href.substr(a.href.indexOf('#')+1);
-
+	currentTab = href.substr(href.indexOf('#')+1);
+	if(typeof(currentTab) != 'string' || currentTab.length < 2) {
+		alert('Something wrong with tab link: '+href);
+		currentTab = href;
+	}
+	
 	var showEls = {
 		'fileselect': (currentTab == 'file' || currentTab == 'fileurl'),
 		'filetplselect': (currentTab == 'file'),
@@ -210,7 +215,7 @@ function tabclick(a)
 
 function selectFile(id, name)
 {
-	var tag = {tag:currentTab, id:id};
+	var theTag = {"tag":currentTab, "id":id};
 	if(<?php echo ($manage_attachments?'true ||':'') ?> currentTab == 'attach') {
 		jQuery.ajax({
 			url: "<?php echo WPFB_PLUGIN_URI."wpfb-ajax.php" ?>",
@@ -225,12 +230,12 @@ function selectFile(id, name)
 	} else if(currentTab == 'fileurl') {
 		var linkText = prompt('<?php _e('Enter link text:', WPFB) ?>', name);
 		if(!linkText || linkText == null || linkText == '')	return;
-		tag.linktext = linkText;
+		theTag.linktext = linkText;
 	} else {
 		var tpl = jQuery('input[name=filetpl]:checked', '#filetplselect').val();
-		if(tpl && tpl != '' && tpl != 'default') tag.tpl = tpl;
+		if(tpl && tpl != '' && tpl != 'default') theTag.tpl = tpl;
 	}
-	insertTag(tag);
+	insertTag(theTag);
 }
 
 function selectCat(id, name)
@@ -280,14 +285,18 @@ function editorInsert(str, close)
 function insertTag(tagObj)
 {
 	var str = '[wpfilebase';
+	var q, v;
 
 	if(tagObj.tag == 'fileurl' && tagObj.linktext) {
 		str = '<a href="'+str;
 	}
 	
 	for(var t in tagObj) {
-		if(tagObj[t] != '' && t != 'linktext')
-			str += ' '+t+"='"+tagObj[t]+"'";
+		v = tagObj[t];
+		if(v != '' && t != 'linktext') {
+			q = (!isNaN(v) || v.search(/^[a-z0-9]+$/i) != -1) ? "" : "'";			
+			str += ' '+t+"="+q+v+q;
+		}
 	}
 	str+=']';
 

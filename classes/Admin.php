@@ -75,8 +75,15 @@ static function SettingsSchema()
 	
 	'languages'				=> array('default' => "English|en\nDeutsch|de", 'title' => __('Languages'), 'type' => 'textarea', 'desc' => &$multiple_entries_desc),
 	'platforms'				=> array('default' => "Windows 95|win95\n*Windows 98|win98\n*Windows 2000|win2k\n*Windows XP|winxp\n*Windows Vista|vista\n*Windows 7|win7\nLinux|linux\nMac OS X|mac", 'title' => __('Platforms', WPFB), 'type' => 'textarea', 'desc' => &$multiple_entries_desc, 'nowrap' => true),	
-	'licenses'				=> array('default' => "*Freeware|free\nShareware|share\nGNU General Public License|gpl\nGNU Lesser General Public License|lgpl\nGNU Affero General Public License|agpl", 'title' => __('Licenses', WPFB), 'type' => 'textarea', 'desc' => &$multiple_entries_desc, 'nowrap' => true),
-	'requirements'			=> array('default' => ".NET Framework 2.0|.net2|http://www.microsoft.com/downloads/details.aspx?FamilyID=0856eacb-4362-4b0d-8edd-aab15c5e04f5\n.NET Framework 3.0|.net3|http://www.microsoft.com/downloads/details.aspx?FamilyID=10cc340b-f857-4a14-83f5-25634c3bf043\n.NET Framework 3.5|.net35|http://www.microsoft.com/downloads/details.aspx?FamilyID=333325fd-ae52-4e35-b531-508d977d32a6", 'title' => __('Requirements', WPFB), 'type' => 'textarea', 'desc' => $multiple_entries_desc . ' ' . __('You can optionally add |<i>URL</i> to each line to link to the required software/file.', WPFB), 'nowrap' => true),
+	'licenses'				=> array('default' =>
+"*Freeware|free\nShareware|share\nGNU General Public License|gpl\nGNU Lesser General Public License|lgpl\nGNU Affero General Public License|agpl", 'title' => __('Licenses', WPFB), 'type' => 'textarea', 'desc' => &$multiple_entries_desc, 'nowrap' => true),
+	'requirements'			=> array('default' =>
+"PDF Reader|pdfread|http://www.foxitsoftware.com/pdf/reader/addons.php
+Java|java|http://www.java.com/download/
+Flash|flash|http://get.adobe.com/flashplayer/
+Open Office|ooffice|http://download.openoffice.org/
+.NET Framework 3.5|.net35|http://www.microsoft.com/downloads/details.aspx?FamilyID=333325fd-ae52-4e35-b531-508d977d32a6",
+	'title' => __('Requirements', WPFB), 'type' => 'textarea', 'desc' => $multiple_entries_desc . ' ' . __('You can optionally add |<i>URL</i> to each line to link to the required software/file.', WPFB), 'nowrap' => true),
 	
 	
 	'template_file'			=> array('default' =>
@@ -422,7 +429,9 @@ static function InsertFile($data)
 		if(!@move_uploaded_file($file_src_path, $file->GetLocalPath()) || !@file_exists($file->GetLocalPath())) return array( 'error' => sprintf( __( 'Unable to move file %s! Is the upload directory writeable?', WPFB), $file->file_name ) );		
 	} elseif($remote_upload) {
 		require_once(ABSPATH . 'wp-admin/includes/file.php');			
-		$tmp = self::SideloadFile($data->file_remote_uri);
+		$result = self::SideloadFile($data->file_remote_uri);
+		if(!empty($result['error'])) return $result;
+		$tmp = $result['file'];
 		$file_name = $file->file_name = basename($tmp, '.tmp');
 		if(!$update && @file_exists($file->GetLocalPath()))	
 			return array( 'error' => sprintf( __( 'File %s already exists. You have to delete it first!', WPFB), $file->GetLocalPath() ) );
@@ -439,8 +448,8 @@ static function InsertFile($data)
 	}
 	
 	if($upload || $remote_upload || $add_existing) {
-		if($add_existing && !empty($file_thumbnail))
-			$file->file_thumbnail = $file_thumbnail; // we already got the thumbnail on disk!		
+		if($add_existing && !empty($data->file_thumbnail))
+			$file->file_thumbnail = $data->file_thumbnail; // we already got the thumbnail on disk!		
 		elseif(empty($file->file_thumbnail) && !$upload_thumb && ($file->GetExtension() == '.bmp' || @getimagesize($file->GetLocalPath()) !== false))
 			$file->CreateThumbnail();	// check if the file is an image and create thumbnail
 	}
@@ -459,15 +468,14 @@ static function InsertFile($data)
 	} else {
 		// set permissions
 		@chmod ($file->GetLocalPath(), octdec(WPFB_PERM_FILE));
-		
-		// eventually unset the remote uri, when sideloaded file (no redirection)
-		if(!empty($file_remote_uri))
-			$file_remote_uri = '';
+		// no redirection, URI is not neede anymore
+		$data->file_remote_uri = '';
+		$file->file_remote_uri = '';
 	}
 	
-	if(!empty($file_languages)) $file->file_language = implode('|', $file_languages);
-	if(!empty($file_platforms)) $file->file_platform = implode('|', $file_platforms);
-	if(!empty($file_requirements)) $file->file_requirement = implode('|', $file_requirements);
+	if(!empty($data->file_languages)) $file->file_language = implode('|', $data->file_languages);
+	if(!empty($data->file_platforms)) $file->file_platform = implode('|', $data->file_platforms);
+	if(!empty($data->file_requirements)) $file->file_requirement = implode('|', $data->file_requirements);
 	
 	$file->file_offline = (int)(!empty($data->file_offline));
 	
@@ -532,34 +540,16 @@ static function ParseFileNameVersion($file_name, $file_version) {
 
 static function SideloadFile($url) {
 	//WARNING: The file is not automatically deleted, The script must unlink() the file.
-	if ( ! $url )
-		return new WP_Error('http_no_url', __('Invalid URL Provided.'));
+	
+	if ( ! $url ) return array('error' => __('Invalid URL Provided.'));
 
 	$tmpfname = wp_tempnam($url);
 	if ( ! $tmpfname )
-		return new WP_Error('http_no_file', __('Could not create Temporary file.'));
+		return array('error' => __('Could not create Temporary file.'));
 
-	$handle = @fopen($tmpfname, 'wb');
-	if ( ! $handle )
-		return new WP_Error('http_no_file', __('Could not create Temporary file.'));
-
-	// TODO: this does not work for large files, implement streaming to file
-	$response = wp_remote_get($url, array('timeout' => 300));
-
-	if ( is_wp_error($response) ) {
-		fclose($handle);
-		unlink($tmpfname);
-		return $response;
-	}
-
-	if ( $response['response']['code'] != '200' ){
-		fclose($handle);
-		unlink($tmpfname);
-		return new WP_Error('http_404', trim($response['response']['message']));
-	}
-
-	fwrite($handle, $response['body']);
-	fclose($handle);
+	wpfb_loadclass('Download');
+	$result = WPFB_Download::SideloadFile($url, $tmpfname);
+	if(!empty($result['error'])) return $result;
 	
 	$newname = $tmpfname;
 	
@@ -583,7 +573,7 @@ static function SideloadFile($url) {
 	}
 	
 	rename($tmpfname, $newname);	
-	return $newname;
+	return array('error'=>false,'file'=>$newname);
 }
 
 static function Sync($hash_sync=false)
@@ -757,8 +747,6 @@ static function AddExistingFile($file_path, $thumb=null)
 			if(empty($dir) || $dir == '.')
 				continue;
 			$cat = WPFB_Item::GetByName($dir, $last_cat_id);
-			//echo "<br>Get by name $dir $last_cat_id ";
-			//print_r($cat);
 			if($cat != null && $cat->is_category) {
 				$last_cat_id = $cat->cat_id;
 			} else {
@@ -870,12 +858,6 @@ static function UninstallPlugin()
 	WPFB_Setup::RemoveOptions();
 	WPFB_Setup::DropDBTables();
 	// TODO: remove user opt
-}
-
-static function ProgressBar($progress, $label)
-{
-	$progress = round(100 * $progress);
-	echo "<div class='wpfilebase-progress'><div class='progress'><div class='bar' style='width: $progress%'></div></div><div class='label'><strong>$progress %</strong> ($label)</div></div>";
 }
 
 static function PrintForm($name, $item=null, $vars=array())

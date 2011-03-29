@@ -42,6 +42,7 @@ function WPFB_switchFileUpload(i)
 	jQuery(as[i]).addClass('current');
 	jQuery(as[!i+0]).removeClass('current');
 	jQuery('#file_is_remote').val(i);
+	return false;
 }
 //]]>
 </script>

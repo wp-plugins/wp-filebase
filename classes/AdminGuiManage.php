@@ -67,7 +67,7 @@ static function Display()
 				<th scope="row"><?php _e('Today', WPFB); ?></th>
 				<td><?php
 					if($limit_day > 0)
-						WPFB_Admin::ProgressBar($traffic_stats['today'] / $limit_day, WPFB_Output::FormatFilesize($traffic_stats['today']) . '/' . WPFB_Output::FormatFilesize($limit_day));
+						self::ProgressBar($traffic_stats['today'] / $limit_day, WPFB_Output::FormatFilesize($traffic_stats['today']) . '/' . WPFB_Output::FormatFilesize($limit_day));
 					else
 						echo WPFB_Output::FormatFilesize($traffic_stats['today']);
 				?></td>
@@ -76,7 +76,7 @@ static function Display()
 				<th scope="row"><?php _e('This Month', WPFB); ?></th>
 				<td><?php
 					if($limit_month > 0)
-						WPFB_Admin::ProgressBar($traffic_stats['month'] / $limit_month, WPFB_Output::FormatFilesize($traffic_stats['month']) . '/' . WPFB_Output::FormatFilesize($limit_month));
+						self::ProgressBar($traffic_stats['month'] / $limit_month, WPFB_Output::FormatFilesize($traffic_stats['month']) . '/' . WPFB_Output::FormatFilesize($limit_month));
 					else
 						echo WPFB_Output::FormatFilesize($traffic_stats['month']);
 				?></td>
@@ -249,5 +249,11 @@ static function Display()
 	?>
 </div> <!-- wrap -->
 <?php
+}
+
+static function ProgressBar($progress, $label)
+{
+	$progress = round(100 * $progress);
+	echo "<div class='wpfilebase-progress'><div class='progress'><div class='bar' style='width: $progress%'></div></div><div class='label'><strong>$progress %</strong> ($label)</div></div>";
 }
 }

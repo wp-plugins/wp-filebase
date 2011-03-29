@@ -419,5 +419,48 @@ function SendFile($file_path, $bandwidth = 0, $etag = null, $force_download=fals
 	@fclose($fh);	
 	return true;
 }
+
+static function SideloadFile($url, $dest_path)
+{
+	$rh = @fopen($url, 'rb');
+	if($rh === false)
+		return array('error' => sprintf('Could not open URL %s!', $url));
+		
+	$fh = @fopen($dest_path, 'wb');
+	if($fh === false) {
+		@fclose($rh);
+		return array('error' => sprintf('Could not create file %s!', $dest_path));
+	}
+	
+	$size = 0;
+	while (!feof($rh)) {
+	  if(($s=fwrite($fh, fread($rh, 8192))) === false) {
+		@fclose($rh);
+		@fclose($fh);
+		return array('error' => sprintf('Writing to file %s failed!', $dest_path));	
+	  }
+	  $size += $s;
+	}
+	fclose($rh);
+	fclose($fh);
+	
+	if($size <= 0) return array('error' => 'File is empty.');
+	
+	return array('error' => false, 'size' => $size);
+	/*	
+	$url = parse_url($url);
+	print_r($url);
+	
+	$headers = 
+	"GET {$url['path']}{$url['query_string']} HTTP/1.1\r\n".
+	"Host: {$url['host']}\r\n".
+	"User-Agent: ". WPFB_PLUGIN_NAME." ".WPFB_VERSION."\r\n".
+	"Accept: *"."/*\r\n".
+	"Connection: close\r\n".
+	"Referer: ".home_url()."\r\n".
+	"\r\n";
+
+	echo $headers;
+	exit;*/	
 }
-?>
+}
