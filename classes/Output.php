@@ -108,7 +108,7 @@ static function FileBrowser(&$content)
 
 static function FileBrowserList(&$content, &$parents, $cat_tpl, $file_tpl, $root_cat=null)
 {
-	$cats = $root_cat ? $root_cat->GetChildCats() : WPFB_Category::GetCats('WHERE cat_parent = 0');
+	$cats = $root_cat ? $root_cat->GetChildCats(false, true) : WPFB_Category::GetCats('WHERE cat_parent = 0 ORDER BY cat_name ASC');
 	$open_cat = array_pop($parents);
 	foreach($cats as $cat) {
 		if(!$cat->CurUserCanAccess(true)) continue;

@@ -43,7 +43,7 @@ switch ( $action = $_REQUEST['action'] ) {
 		$cat_tpl = WPFB_Core::GetParsedTpl('cat', 'filebrowser');
 		$file_tpl = WPFB_Core::GetParsedTpl('file', 'filebrowser');
 		
-		$cats = WPFB_Category::GetCats("WHERE cat_parent = $parent_id".($browser?" AND cat_exclude_browser <> '1'":''));
+		$cats = WPFB_Category::GetCats("WHERE cat_parent = $parent_id".($browser?" AND cat_exclude_browser <> '1'":'')." ORDER BY cat_name ASC");
 		if($parent_id == 0 && $catsel && count($cats) == 0) {
 			wpfb_print_json(array(array(
 				'id' => sprintf($cat_id_format, $c->cat_id),

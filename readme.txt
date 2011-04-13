@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=money
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, traffic, widget, filelist, list, thumb, thumbnail, attachment, attachments, category, categories, media, template, ftp, http
 Requires at least: 3.1
 Tested up to: 3.1.1
-Stable tag: 0.2.8
+Stable tag: 0.2.8.1
 
 Adds a powerful downloads manager supporting file categories, download counter, widgets, sorted file lists and more to your WordPress blog.
 
@@ -35,11 +35,12 @@ Some more features:
 *	Search integration
 *	Automatic synchronization of file system and database
 
+
 You can see a [live demo on my Website](http://fabi.me/downloads/ "WP-Filebase demo")
 For support, please [leave a message on my blog](http://fabi.me/wordpress-plugins/wp-filebase-file-download-manager/#postcomment "Post comment"). When having trouble don't forget to post PHP and Wordpress version! Any ideas/feature requests are welcome.
 
-**Note when updrading from an earlier version than 0.2.1:** Since 0.2.1 WP-Filebase uses a different shortcode format. Old tags can be easily converted with the built-in converter. Please backup your database and run the converter right after the update. You should also run a filebase sync!
-**Important:** Don't upgrade to 0.2.1 or later if you are still running old PHP 4! It only runs on PHP 5 and later!
+**Note when updating to 0.2.1:** Since 0.2.1 WP-Filebase uses a different shortcode format. Old tags can be easily converted with the built-in converter. Please backup your database and run the converter right after the update. You should also run a filebase sync!
+**Important:** Don't upgrade to 0.2.1 if you are still running old PHP 4! WP-Filebase 0.2.1 only runs on PHP 5 and later!
 
 If you want to translate WP-Filebase in your language, open `wp-filebase/languages/template.po` with [Poedit](http://www.poedit.net/download.php) and save as `wpfb-xx_YY.po` (`xx` is your language code, `YY` your country). Poedit will create the file `wpfb-xx_YY.po`. Put this file in `wp-filebase/languages` and share it if you like (attach it to an email or post it on my blog).
 
@@ -87,6 +88,10 @@ Goto WP-Filebase Settings and disable Permalinks under "Download". Try to disabl
 4. The Editor Button to insert tags for filelists and download urls
 
 == Changelog ==
+
+= 0.2.8.1 =
+* Fixed File Browser sorting
+* Improved filename version detection
 
 = 0.2.8 =
 * New sort option `file_category_name` to sort files by the name of their category

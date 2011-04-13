@@ -529,7 +529,7 @@ static function ParseFileNameVersion($file_name, $file_version) {
 	$fnwv = substr($file_name, 0, strrpos($file_name, '.'));// remove extension
 	if(empty($file_version)) {
 		$matches = array();		
-		if(preg_match('/-v?([0-9]{1,2}\.[0-9]{1,2}(\.[0-9]{1,2}){0,2})(-[a-zA-Z_]+)?$/', $fnwv, $matches)) {
+		if(preg_match('/[-\.]v?([0-9]{1,2}\.[0-9]{1,2}(\.[0-9]{1,2}){0,2})(-[a-zA-Z_]+)?$/', $fnwv, $matches)) {
 			$file_version = $matches[1];
 			if((strlen($fnwv)-strlen($matches[0])) > 1)
 				$fnwv = substr($fnwv, 0, -strlen($matches[0]));

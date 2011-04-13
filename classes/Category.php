@@ -112,10 +112,10 @@ class WPFB_Category extends WPFB_Item {
 	}
 
 	
-	function GetChildCats($recursive=false)
+	function GetChildCats($recursive=false, $sort_by_name=false)
 	{		
 		if(!self::$cache_complete && empty($this->childs_complete)) {
-			$this->cat_childs = self::GetCats("WHERE cat_parent = ".(int)$this->cat_id);
+			$this->cat_childs = self::GetCats("WHERE cat_parent = ".(int)$this->cat_id.($sort_by_name?" ORDER BY cat_name ASC":""));
 			$this->childs_complete = true;
 		}
 		
