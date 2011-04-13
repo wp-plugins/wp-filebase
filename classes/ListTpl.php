@@ -89,21 +89,27 @@ class WPFB_ListTpl {
 		
 		$sort_and_limit = WPFB_Core::GetFileListSortSql($file_order).$limit;
 		$num_total_files = 0;
-		if(empty($categories)) {
+		if(is_null($categories)) { // if null, just list all files!
 			$files = WPFB_File::GetFiles($where.$sort_and_limit);
-			$num_total_files = WPFB_File::GetNumFiles();
-			foreach($files as $file) $content .= $file->GenTpl($file_tpl);
+			$num_total_files = WPFB_File::GetNumFiles();// TODO: total number is not correct if user cannot access some files!
+			foreach($files as $file) {
+				if($file->CurUserCanAccess(true))
+					$content .= $file->GenTpl($file_tpl);
+			}
 		} elseif(count($categories) == 1) { // single cat
 			$cat = reset($categories);
+			if(!$cat->CurUserCanAccess()) return '';
 			if($show_cats) $content .= $cat->GenTpl($cat_tpl);
 			$files = WPFB_File::GetFiles("$where AND file_category = $cat->cat_id $sort_and_limit");
-			$num_total_files = $cat->cat_num_files;	
+			$num_total_files = $cat->cat_num_files;
 			foreach($files as $file) $content .= $file->GenTpl($file_tpl);	
 		} else { // multi-cat
 			// TODO: multi-cat list pagination does not work properly yet
 			$n = 0;
 			foreach($categories as $cat)
 			{
+				if(!$cat->CurUserCanAccess()) continue;
+				
 				$num_total_files += $cat->cat_num_files;
 				
 				if($n > $num) break; // TODO!!

@@ -1,5 +1,7 @@
 <?php
 class WPFB_Core {
+static $load_js = false;
+
 static function InitClass()
 {
 	global $wp_query, $wpfb_post_url_cache;
@@ -90,24 +92,18 @@ static function ParseQuery(&$query)
 }
 
 static function Header() {
-	global $wp_query, $wpfb_load_js;		
+	global $wp_query;		
 	// conditionally loading the treeview		
 	if(!empty($wp_query->post->ID) && $wp_query->post->ID > 0 && $wp_query->post->ID == WPFB_Core::GetOpt('file_browser_post_id') && !is_feed() && (is_single() || is_page())) {
-		$wpfb_load_js = true;
+		self::$load_js = true;
 		wp_print_scripts('jquery-treeview-async');
 		wp_print_styles('jquery-treeview');
 		?>
 <script type="text/javascript">
 //<![CDATA[
-jQuery(document).ready(function(){
-	jQuery("#wpfilebase-file-browser").treeview({
-		url: "<?php echo WPFB_PLUGIN_URI."wpfb-ajax.php" ?>",
-		ajax: {
-			data: {action:"tree",type:"browser"},
-			type: "post",
-			complete: wpfb_setupLinks
-		},
-		animated: "medium"			
+jQuery(document).ready(function(){jQuery("#wpfilebase-file-browser").treeview({url: "<?php echo WPFB_PLUGIN_URI."wpfb-ajax.php" ?>",
+ajax:{data:{action:"tree",type:"browser"},type:"post",complete:function(){if(typeof(wpfb_setupLinks)=='function')wpfb_setupLinks();}},
+animated: "medium"			
 	});
 });
 //]]>
@@ -249,9 +245,8 @@ static function ShortCode($atts) {
 
 
 static function Footer() {
-	global $wpfb_load_js;
 	// TODO: use enque and no cond loading ?
-	if(!empty($wpfb_load_js)) {
+	if(!empty(self::$load_js)) {
 		self::PrintJS();
 	}
 }
@@ -353,7 +348,7 @@ static function GetFileListSortSql($sort=null)
 	static $fields = array(
 		'file_name','file_size','file_date','file_display_name','file_hits',
 		'file_description','file_version','file_author','file_license',
-		'file_required_level','file_category','file_post_id',
+		'file_required_level','file_category','file_category_name','file_post_id',
 		'file_added_by','file_hits','file_last_dl_time');
 	
 	if(!empty($_REQUEST['wpfb_file_sort']))

@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=money
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, traffic, widget, filelist, list, thumb, thumbnail, attachment, attachments, category, categories, media, template, ftp, http
 Requires at least: 3.1
 Tested up to: 3.1
-Stable tag: 0.2.7
+Stable tag: 0.2.8
 
 Adds a powerful downloads manager supporting file categories, download counter, widgets, sorted file lists and more to your WordPress blog.
 
@@ -88,6 +88,15 @@ Goto WP-Filebase Settings and disable Permalinks under "Download". Try to disabl
 4. The Editor Button to insert tags for filelists and download urls
 
 == Changelog ==
+
+= 0.2.8 =
+* New sort option `file_category_name` to sort files by the name of their category
+* Editor Plugin: Added option to include all categories in a file list
+* Post selector lists private posts now
+* Added warning in content if list template does not exists (only visible for editors)
+* New option `Send HTTP-Range header`
+* New option `Redirect to referring page after login`
+* Fixed search SQL: search was listing drafts with attached files
 
 = 0.2.7 =
 * Fixed sideload bug and improved support for large files

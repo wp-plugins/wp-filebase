@@ -51,11 +51,13 @@ static function SettingsSchema()
 	'cat_drop_down'			=> array('default' => false, 'title' => __('Category drop down list', WPFB), 'type' => 'checkbox', 'desc' => __('Use category drop down list in the file browser instead of listing like files.', WPFB)),
 
 	'force_download'		=> array('default' => false, 'title' => __('Always force download', WPFB), 'type' => 'checkbox', 'desc' => __('If enabled files that can be viewed in the browser (like images, PDF documents or videos) can only be downloaded (no streaming).', WPFB)),
+	'range_download'		=> array('default' => true, 'title' => __('Send HTTP-Range header', WPFB), 'type' => 'checkbox', 'desc' => __('Allows users to pause downloads and continue later. In addition download managers can use multiple connections at the same time.', WPFB)),
 	'hide_links'			=> array('default' => false, 'title' => __('Hide download links', WPFB), 'type' => 'checkbox', 'desc' => sprintf(__('File download links wont be displayed in the browser\'s status bar. You should enable \'%s\' to make it even harder to find out the URL.', WPFB), __('Always force download', WPFB))),
 	'ignore_admin_dls'		=> array('default' => true, 'title' => __('Ignore downloads by admins', WPFB), 'type' => 'checkbox'),
 	'hide_inaccessible'		=> array('default' => true, 'title' => __('Hide inaccessible files and categories', WPFB), 'type' => 'checkbox', 'desc' => __('If enabled files tagged <i>For members only</i> will not be listed for guests or users whith insufficient rights.', WPFB)),
 	'inaccessible_msg'		=> array('default' => __('You are not allowed to access this file!', WPFB), 'title' => __('Inaccessible file message', WPFB), 'type' => 'text', 'size' => 65, 'desc' => __('This message will be displayed if users try to download a file they cannot access', WPFB)),
 	'inaccessible_redirect'	=> array('default' => false, 'title' => __('Redirect to login', WPFB), 'type' => 'checkbox', 'desc' => __('Guests trying to download inaccessible files are redirected to the login page if this option is enabled.', WPFB)),
+	'login_redirect_src'	=> array('default' => false, 'title' => __('Redirect to referring page after login', WPFB), 'type' => 'checkbox', 'desc' => __('Users are redirected to the page where they clicked on the download link after logging in.', WPFB)),
 	
 	'parse_tags_rss'		=> array('default' => true, 'title' => __('Parse template tags in RSS feeds', WPFB), 'type' => 'checkbox', 'desc' => __('If enabled WP-Filebase content tags are parsed in RSS feeds.', WPFB)),
 	
@@ -226,7 +228,8 @@ static function FileSortFields()
 	'file_required_level'	=> __('The minimum user level to download this file (-1 = guest, 0 = Subscriber ...)', WPFB),
 	//'file_offline'			=> __('Offline &gt; Online', WPFB),
 	//'file_direct_linking'	=> __('Direct linking &gt; redirect to post', WPFB),
-	'file_category'			=> __('Category', WPFB),
+	'file_category_name'	=> __('Category Name', WPFB),
+	'file_category'			=> __('Category ID', WPFB),
 	'file_post_id'			=> __('ID of the post/page this file belongs to', WPFB),
 	'file_added_by'			=> __('User ID of the uploader', WPFB),
 	'file_hits'				=> __('How many times this file has been downloaded.', WPFB),
@@ -704,7 +707,8 @@ static function SyncCats()
 	foreach(array_keys($cats) as $i)
 	{
 		$cat = $cats[$i];
-		$num_files = (int)count($cat->GetChildFiles(false));
+		$child_files = $cat->GetChildFiles(false);
+		$num_files = (int)count($child_files);
 		$num_files_total = (int)count($cat->GetChildFiles(true));
 		if($num_files != $cat->cat_num_files || $num_files_total != $cat->cat_num_files_total)
 		{
@@ -712,6 +716,17 @@ static function SyncCats()
 			$cat->cat_num_files_total = $num_files_total;
 			$cat->DBSave();			
 			$updated_cats[] = $cat;
+		}
+		
+		// update category names
+		if($child_files) {
+			foreach($child_files as $file) {
+				if($file->file_category_name != $cat->GetTitle()) {
+					$file->file_category_name = $cat->GetTitle();
+					if(!$file->locked)
+						$file->DBSave();
+				}
+			}
 		}
 		
 		@chmod ($cat->GetLocalPath(), octdec(WPFB_PERM_DIR));

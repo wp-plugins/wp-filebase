@@ -24,6 +24,7 @@ class WPFB_File extends WPFB_Item {
 	var $file_direct_linking = 0;
 	var $file_force_download = 0;
 	var $file_category = 0;
+	var $file_category_name;
 	var $file_update_of = 0; // TODO
 	var $file_post_id = 0;
 	var $file_added_by = 0;
@@ -274,8 +275,13 @@ class WPFB_File extends WPFB_Item {
 	}
 	
 	function DownloadDenied($msg_id) {
-		if(WPFB_Core::GetOpt('inaccessible_redirect') && !is_user_logged_in())
-			auth_redirect();
+		if(WPFB_Core::GetOpt('inaccessible_redirect') && !is_user_logged_in()) {
+			//auth_redirect();
+			$redirect = (WPFB_Core::GetOpt('login_redirect_src') && wp_get_referer()) ? wp_get_referer() : $this->GetUrl();
+			$login_url = wp_login_url($redirect, true); // force re-auth
+			wp_redirect($login_url);
+			exit;
+		}
 		$msg = WPFB_Core::GetOpt($msg_id);
 		if(!$msg) $msg = $msg_id;
 		wp_die(empty($msg) ? __('Cheatin&#8217; uh?') : $msg);

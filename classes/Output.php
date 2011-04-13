@@ -50,15 +50,25 @@ static function FileList($args)
 {
 	global $wpdb;	
 	wpfb_loadclass('File','Category','ListTpl');
+	$tpl_tag = empty($args['tpl'])?'default':$args['tpl'];
+	$tpl = WPFB_ListTpl::Get($tpl_tag);
 	
-	$tpl = WPFB_ListTpl::Get(empty($args['tpl'])?'default':$args['tpl']);
-	if(empty($tpl)) return '';
+	if(empty($tpl)) {
+		if(current_user_can('edit_posts')) {
+			return "<p>[".WPFB_PLUGIN_NAME."]: <b>WARNING</b>: List template $tpl_tag does not exist!</p>";
+		} elseif(is_null($tpl = WPFB_ListTpl::Get('default'))) {
+			return '';
+		}
+	}
 	
-	$cats = array();	
-	$cat_ids = explode(',', $args['id']);	
-	foreach($cat_ids as $cat_id) {
-		$cat = WPFB_Category::GetCat($cat_id);
-		if($cat && $cat->CurUserCanAccess()) $cats[] = $cat;
+	if(empty($args['id']) || $args['id'] == -1) {
+		$cats = null;
+	} else {
+		$cats = array();	
+		$cat_ids = explode(',', $args['id']);	
+		foreach($cat_ids as $cat_id) {
+			if(!is_null($cat = WPFB_Category::GetCat($cat_id))) $cats[] = $cat;
+		}
 	}
 	
 	return $tpl->Generate($cats, $args['showcats'], $args['sort'], $args['num']);

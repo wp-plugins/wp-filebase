@@ -181,7 +181,8 @@ switch ( $action = $_REQUEST['action'] ) {
 			'numberposts' => 0, 'nopaging' => true,
 			//'category' => $id,
 			'category__in' => array($id), // undoc: dont list posts of child cats!
-			'orderby' => 'title', 'order' => 'ASC'
+			'orderby' => 'title', 'order' => 'ASC',
+			'post_status' => 'any' // undoc: get private posts aswell
 		));
 		
 		if($id == 0)

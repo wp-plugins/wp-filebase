@@ -182,6 +182,7 @@ static function SetupDBTables()
   `file_direct_linking` enum('0','1') NOT NULL default '0',
   `file_force_download` enum('0','1') NOT NULL default '0',
   `file_category` int(8) unsigned NOT NULL default '0',
+  `file_category_name` varchar(127) NOT NULL default '',
   `file_update_of` bigint(20) unsigned default NULL,
   `file_post_id` bigint(20) unsigned default NULL,
   `file_added_by` bigint(20) unsigned default NULL,
@@ -223,6 +224,8 @@ static function SetupDBTables()
 	$queries[] = "@ALTER TABLE `$tbl_cats` CHANGE `cat_files` `cat_num_files_total` INT( 8 ) UNSIGNED NOT NULL DEFAULT '0'";
 	$queries[] = "@ALTER TABLE `$tbl_cats` ADD `cat_num_files_total` int(8) unsigned NOT NULL default '0' AFTER `cat_num_files`";
 	
+	// since 0.2.8
+	$queries[] = "@ALTER TABLE `$tbl_files` ADD `file_category_name` varchar(127) NOT NULL default '' AFTER `file_category`";
 	
 	$queries[] = "OPTIMIZE TABLE `$tbl_cats`";
 	$queries[] = "OPTIMIZE TABLE `$tbl_files`";

@@ -144,7 +144,7 @@ static function Display()
 				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_name') ?>"><?php _e('Filename', WPFB) ?></a></th>    
 				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_size') ?>"><?php _e('Size'/*def*/) ?></a></th>    		
 				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_description') ?>"><?php _e('Description'/*def*/) ?></a></th>
-				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_category') ?>"><?php _e('Category'/*def*/) ?></a></th>
+				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_category_name') ?>"><?php _e('Category'/*def*/) ?></a></th>
 				<th scope="col" class="num"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_hits') ?>"><?php _e('Hits', WPFB) ?></a></th>
 				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_last_dl_time') ?>"><?php _e('Last download', WPFB) ?></a></th>
 				<!-- TODO <th scope="col" class="num"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_') ?>"><?php _e('Rating'/*def*/) ?></th> -->
@@ -171,7 +171,7 @@ static function Display()
 							<td><?php echo esc_html($file->file_name); ?></td>
 							<td><?php echo WPFB_Output::FormatFilesize($file->file_size); ?></td>
 							<td><?php echo empty($file->file_description) ? '-' : esc_html($file->file_description); ?></td>
-							<td><?php echo $cat ? esc_html($cat->cat_name) : '-'; ?></td>
+							<td><?php echo ($file->file_category > 0) ? ('<a href="'.$cat->GetEditUrl().'">'.esc_html($file->file_category_name).'</a>') : '-'; ?></td>
 							<td class='num'><?php echo $file->file_hits; ?></td>
 							<td><?php echo ( (!empty($file->file_last_dl_time) && $file->file_last_dl_time > 0) ? mysql2date(get_option('date_format'), $file->file_last_dl_time) : '-') ?></td>
 							<!-- TODO <td class='num'><?php echo $rating ?></td> -->

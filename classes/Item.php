@@ -195,10 +195,8 @@ class WPFB_Item {
 	
 	function GenTpl($parsed_tpl=null, $context='')
 	{
-		global $wpfb_load_js;
-		
 		if($context!='ajax')
-			$wpfb_load_js = true;
+			WPFB_Core::$load_js = true;
 		
 		if(empty($parsed_tpl))
 		{
@@ -317,6 +315,7 @@ class WPFB_Item {
 		if($this->is_file) {
 			$this->file_category = $new_cat_id;
 			$this->file_name = $new_name;
+			$this->file_category_name = ($new_cat_id==0) ? '' : $new_cat->GetTitle();
 		} else {
 			$this->cat_parent = $new_cat_id;
 			$this->cat_folder = $new_name;

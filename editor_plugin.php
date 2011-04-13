@@ -127,6 +127,7 @@ var ajaxurl = '<?php echo admin_url('admin-ajax.php'); ?>', pagenow = 'wpfilebas
 var theEditor;
 var currentTab = '';
 var selectedCats = [];
+var includeAllCats = false;
 
 jQuery(document).ready( function()
 {
@@ -216,7 +217,7 @@ function tabclick(a)
 function selectFile(id, name)
 {
 	var theTag = {"tag":currentTab, "id":id};
-	if(<?php echo ($manage_attachments?'true ||':'') ?> currentTab == 'attach') {
+	if(<?php echo $manage_attachments?'true':'false' ?> || currentTab == 'attach') {
 		jQuery.ajax({
 			url: "<?php echo WPFB_PLUGIN_URI."wpfb-ajax.php" ?>",
 			data: {
@@ -252,6 +253,15 @@ function selectCat(id, name)
 	}
 	if(!selected) selectedCats.push(id);	
 	el.css('background-image', selected?'':'url(<?php echo admin_url( 'images/yes.png' ) ?>)');
+}
+
+function incAllCatsChanged(value) {
+	includeAllCats = !!value;
+
+	if(includeAllCats)
+		jQuery("#catbrowser").hide();
+	else
+		jQuery("#catbrowser").show();
 }
 
 function editorInsert(str, close)
@@ -307,8 +317,11 @@ function insertTag(tagObj)
 
 function insAttachTag()
 {
-	editorInsert("[wpfilebase tag='attachments']", false);
-	jQuery('#no-auto-attach-note').hide();
+	if(editorInsert("[wpfilebase tag='attachments']", false)) {
+		jQuery('#no-auto-attach-note').hide();
+		return true;
+	}
+	return false;
 }
 
 function insListTag() {
@@ -316,7 +329,15 @@ function insListTag() {
 		alert('Please select at least one category!');
 		return;
 	}*/
-	var tag = {tag:currentTab, id:selectedCats.join(',')};
+	var tag = {tag:currentTab};
+
+	if(!includeAllCats) {
+		if(selectedCats.length == 0) {
+			alert("Please select at least one category!");
+			return false;
+		}
+		tag.id = selectedCats.join(',');
+	}
 		
 	var tpl = jQuery('input[name=listtpl]:checked', '#listtplselect').val();
 	if(tpl && tpl != '' && tpl != 'default') tag.tpl = tpl;
@@ -335,7 +356,7 @@ function insListTag() {
 	var num = parseInt(jQuery('#list-num').val());
 	if(num != 0) tag.num = num;
 	
-	insertTag(tag);
+	return insertTag(tag);
 }
 //]]>
 </script>
@@ -425,6 +446,7 @@ WPFB_Admin::PrintForm('file', $file, array('in_editor'=>true, 'post_id'=>$post_i
 <div id="catselect" class="container">
 	<h2><?php _e('Select Category'/*def*/); ?></h2>
 	<p>Select the categories containing the files you would like to list.</p>
+	<p><input type="checkbox" id="list-all-files" name="list-all-files" value="1" onchange="incAllCatsChanged(this.checked)"/> <label for="list-all-files">Include all Categories</label></p>
 	<ul id="catbrowser" class="filetree"></ul>
 </div>
 <form id="listtplselect">
@@ -460,7 +482,7 @@ WPFB_Admin::PrintForm('file', $file, array('in_editor'=>true, 'post_id'=>$post_i
 	<label for="list-show-cats"><?php _e('List selected categories') ?></label>
 	</p>
 	
-	<p><a class="button" style="float: right;" href="javascript:insListTag()"><?php echo _e('Insert') ?></a></p>
+	<p><a class="button" style="float: right;" href="javascript:void(0)" onclick="return insListTag()"><?php echo _e('Insert') ?></a></p>
 </form>
 
 

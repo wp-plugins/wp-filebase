@@ -284,6 +284,10 @@ function ShouldSendDLHeader($file_path, $file_type)
 function ShouldSendRangeHeader($file_path, $file_type)
 {
 	static $no_range_types = array('application/pdf', 'application/x-shockwave-flash');
+	
+	if(!WPFB_Core::GetOpt('range_download'))
+		return false;
+		
 	foreach($no_range_types as $t)
 	{
 		$p = strpos($file_type, $t);
