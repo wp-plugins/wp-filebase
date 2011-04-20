@@ -113,7 +113,7 @@ static function Display()
 	
 	WPFB_Admin::FlushRewriteRules();
 	
-	$action_uri = $_SERVER['PHP_SELF'] . '?page=' . $_GET['page'] . '&amp;updated=true';
+	$action_uri = admin_url('admin.php') . '?page=' . $_GET['page'] . '&amp;updated=true';
 
 	if (!empty($messages)) :
 	$message = '';
@@ -153,13 +153,14 @@ jQuery(document).ready( function() {
 	</p>
 	<?php
 	
-	$common_tags = array('upload_path', 'thumbnail_size', 'file_browser_post_id', /*'cat_drop_down'*/'cron_sync');
+	$common_tags = array('upload_path', 'thumbnail_size', /*'cat_drop_down'*/'cron_sync');
 	if(function_exists('wp_admin_bar_render'))
 		$common_tags[] = 'admin_bar';
 	
 	$option_categories = array(
 		__('Common', WPFB)					=> $common_tags,
 		__('Display', WPFB)					=> array('auto_attach_files', 'filelist_sorting', 'filelist_sorting_dir', 'filelist_num', /* TODO: remove? 'parse_tags_rss',*/ 'decimal_size_format'),
+		__('File Browser',WPFB)				=> array('file_browser_post_id','file_browser_cat_sort_by','file_browser_cat_sort_dir','file_browser_file_sort_by','file_browser_file_sort_dir'),
 		__('Download', WPFB)				=> array('disable_permalinks', 'download_base', 'force_download', 'range_download', 'hide_links', 'ignore_admin_dls', 'accept_empty_referers','allowed_referers'),
 		__('Form Presets', WPFB)			=> array('languages', 'platforms', 'licenses', 'requirements'),
 		__('Limits', WPFB)					=> array('bitrate_unregistered', 'bitrate_registered', 'traffic_day', 'traffic_month', 'traffic_exceeded_msg', 'file_offline_msg', 'daily_user_limits', 'daily_limit_subscriber', 'daily_limit_contributor', 'daily_limit_author', 'daily_limit_editor', 'daily_limit_exceeded_msg'),

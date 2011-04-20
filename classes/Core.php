@@ -346,7 +346,7 @@ static function GetFileListSortSql($sort=null)
 {
 	global $wpdb;
 	static $fields = array(
-		'file_name','file_size','file_date','file_display_name','file_hits',
+		'file_id','file_name','file_size','file_date','file_path','file_display_name','file_hits',
 		'file_description','file_version','file_author','file_license',
 		'file_required_level','file_category','file_category_name','file_post_id',
 		'file_added_by','file_hits','file_last_dl_time');

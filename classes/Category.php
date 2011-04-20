@@ -70,6 +70,12 @@ class WPFB_Category extends WPFB_Item {
 		return $wpdb->get_var("SELECT COUNT(cat_id) FROM $wpdb->wpfilebase_cats");
 	}
 	
+	static function GetFileBrowserCats($parent_id)
+	{
+		return WPFB_Category::GetCats(
+		"WHERE cat_exclude_browser <> '1' AND cat_parent = $parent_id ". 
+		"ORDER BY ".WPFB_Core::GetOpt('file_browser_cat_sort_by').' '.(WPFB_Core::GetOpt('file_browser_cat_sort_dir')?'DESC':'ASC'));
+	}
 	
 	static function CompareName($a, $b) { return $a->cat_name > $b->cat_name; }
 	

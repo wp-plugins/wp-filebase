@@ -130,6 +130,13 @@ function WPFB_PreviewTpl(ta, ty)
 		context: jQuery('#'+previewId)
 	});
 }
+
+
+jQuery(document).ready( function() {
+	try { jQuery('#wpfb-tabs').tabs(); }
+	catch(ex) {}
+});
+
 </script>
 
 	<?php

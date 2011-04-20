@@ -48,7 +48,9 @@ static function PostAttachments($check_attached = false, $tpl_tag=null)
 
 static function FileList($args)
 {
-	global $wpdb;	
+	global $wpdb;
+	//print_r($args);
+	
 	wpfb_loadclass('File','Category','ListTpl');
 	$tpl_tag = empty($args['tpl'])?'default':$args['tpl'];
 	$tpl = WPFB_ListTpl::Get($tpl_tag);
@@ -108,10 +110,10 @@ static function FileBrowser(&$content)
 
 static function FileBrowserList(&$content, &$parents, $cat_tpl, $file_tpl, $root_cat=null)
 {
-	$cats = $root_cat ? $root_cat->GetChildCats(false, true) : WPFB_Category::GetCats('WHERE cat_parent = 0 ORDER BY cat_name ASC');
+	$cats = WPFB_Category::GetFileBrowserCats(is_null($root_cat) ? 0 : $root_cat->cat_id);
 	$open_cat = array_pop($parents);
 	foreach($cats as $cat) {
-		if(!$cat->CurUserCanAccess(true)) continue;
+		if(!$cat->CurUserCanAccess()) continue;
 		
 		$liclass = '';
 		if($has_children = ($cat->cat_num_files_total > 0)) $liclass .= 'hasChildren';
@@ -129,7 +131,8 @@ static function FileBrowserList(&$content, &$parents, $cat_tpl, $file_tpl, $root
 		$content .= "</li>\n";
 	}
 	
-	$files = $root_cat ? $root_cat->GetChildFiles(false,WPFB_Core::GetFileListSortSql()) : WPFB_File::GetFiles('WHERE file_category = 0 '.WPFB_Core::GetFileListSortSql());
+	$sort_sql = WPFB_Core::GetFileListSortSql((WPFB_Core::GetOpt('file_browser_file_sort_dir')?'>':'<').WPFB_Core::GetOpt('file_browser_file_sort_by'));
+	$files = $root_cat ? $root_cat->GetChildFiles(false,$sort_sql) : WPFB_File::GetFiles("WHERE file_category = 0 $sort_sql");
 	foreach($files as $file) {
 		if($file->CurUserCanAccess(true))
 			$content .= '<li id="wpfb-file-'.$file->file_id.'"><span>'.$file->GenTpl($file_tpl, 'ajax')."</span></li>\n";
@@ -158,9 +161,8 @@ static function ParseSelOpts($opt_name, $sel_tags, $uris=false)
 }
 
 static function FormatFilesize($file_size) {
-	global $wpfb_dec_size_format;
-	if(!isset($wpfb_dec_size_format))
-		$wpfb_dec_size_format = WPFB_Core::GetOpt('decimal_size_format');
+	static $wpfb_dec_size_format;
+	if(!isset($wpfb_dec_size_format)) $wpfb_dec_size_format = WPFB_Core::GetOpt('decimal_size_format');
 	if($wpfb_dec_size_format) {
 		if($file_size <= 1000) {
 			$unit = 'B';

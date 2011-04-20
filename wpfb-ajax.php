@@ -2,6 +2,8 @@
 
 function wpfb_print_json($obj) {
 	@ob_end_clean();
+	if(!WP_DEBUG)
+		@header('Content-Type: application/json; charset=' . get_option('blog_charset'));
 	echo json_encode($obj);
 	@ob_flush();
 	@flush();
@@ -11,13 +13,14 @@ define('DOING_AJAX', true);
 error_reporting(0);
 require_once(dirname(__FILE__).'/../../../wp-load.php');
 
-if ( ! isset( $_REQUEST['action'] ) )
+if(!isset($_REQUEST['action']))
 	die('-1'); 
-	
-//@header('Content-Type: text/html; charset=' . get_option('blog_charset'));
-//send_nosniff_header();
-error_reporting(0);
 
+@header('Content-Type: text/html; charset=' . get_option('blog_charset'));
+if(!WP_DEBUG) {
+	send_nosniff_header();
+	error_reporting(0);
+}
 
 $_REQUEST = stripslashes_deep($_REQUEST);
 $_POST = stripslashes_deep($_POST);
@@ -29,7 +32,6 @@ switch ( $action = $_REQUEST['action'] ) {
 		$type = $_REQUEST['type'];
 		
 		wpfb_loadclass('File','Category','Output');		
-		@header('Content-Type: application/json; charset=' . get_option('blog_charset'));
 		$parent_id = (empty($_REQUEST['root']) || $_REQUEST['root'] == 'source') ? 0 : intval(substr(strrchr($_REQUEST['root'],'-'),1));
 		$browser = ($type=='browser');
 		$filesel = (!$browser && $type=='fileselect');
@@ -42,8 +44,9 @@ switch ( $action = $_REQUEST['action'] ) {
 		
 		$cat_tpl = WPFB_Core::GetParsedTpl('cat', 'filebrowser');
 		$file_tpl = WPFB_Core::GetParsedTpl('file', 'filebrowser');
+	
 		
-		$cats = WPFB_Category::GetCats("WHERE cat_parent = $parent_id".($browser?" AND cat_exclude_browser <> '1'":'')." ORDER BY cat_name ASC");
+		$cats = $browser ? WPFB_Category::GetFileBrowserCats($parent_id) : WPFB_Category::GetCats("WHERE cat_parent = $parent_id ORDER BY cat_name ASC");	
 		if($parent_id == 0 && $catsel && count($cats) == 0) {
 			wpfb_print_json(array(array(
 				'id' => sprintf($cat_id_format, $c->cat_id),
@@ -55,7 +58,7 @@ switch ( $action = $_REQUEST['action'] ) {
 		
 		foreach($cats as $c)
 		{
-			if($c->CurUserCanAccess(true))
+			if($c->CurUserCanAccess())
 				$children[$i++] = array('id'=>sprintf($cat_id_format, $c->cat_id),
 					'text'=>$catsel?('<a href="javascript:'.sprintf($onselect,$c->cat_id,str_replace('\'','\\\'',htmlspecialchars(stripslashes($c->cat_name)))).'">'.esc_html($c->GetTitle(24)).'</a>'):($filesel?esc_html($c->cat_name):$c->GenTpl($cat_tpl, 'ajax')),
 					'hasChildren'=>($catsel?(count($c->GetChildCats())>0):($c->cat_num_files_total > 0)),
@@ -65,7 +68,7 @@ switch ( $action = $_REQUEST['action'] ) {
 		if((empty($_REQUEST['cats_only']) || $_REQUEST['cats_only'] == 'false') && !$catsel) {
 			$sql = "WHERE file_category = $parent_id";
 			if(!empty($_REQUEST['exclude_attached']) && $_REQUEST['exclude_attached'] != 'false') $sql .= " AND file_post_id = 0";
-			if($browser) $sql .= " ".WPFB_Core::GetFileListSortSql();
+			if($browser) $sql .= " ".WPFB_Core::GetFileListSortSql((WPFB_Core::GetOpt('file_browser_file_sort_dir')?'>':'<').WPFB_Core::GetOpt('file_browser_file_sort_by'));
 			$files = WPFB_File::GetFiles($sql);
 			foreach($files as $f)
 			{

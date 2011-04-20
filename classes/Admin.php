@@ -47,7 +47,15 @@ static function SettingsSchema()
 	'disable_permalinks'	=> array('default' => false, 'title' => __('Disable download permalinks', WPFB), 'type' => 'checkbox', 'desc' => __('Enable this if you have problems with permalinks.', WPFB)),
 	'download_base'			=> array('default' => 'download', 'title' => __('Download URL base', WPFB), 'type' => 'text', 'desc' => sprintf(__('The url prefix for file download links. Example: <code>%s</code> (Only used when Permalinks are enabled.)', WPFB), get_option('home').'/%value%/category/file.zip')),
 	
-	'file_browser_post_id'	=> array('default' => '', 'title' => __('Post ID of the file browser', WPFB), 'type' => 'number', 'unit' => '<span id="file_browser_post_title">'.(($fbid=WPFB_Core::GetOpt('file_browser_post_id'))?get_the_title($fbid):'').'</span> <a href="javascript:;" class="button" onclick="WPFB_PostBrowser(\'file_browser_post_id\',\'file_browser_post_title\')">' . __('Select') . '</a>', 'desc' => __('Specify the ID of the post or page where the file browser should be placed. If you want to disable this feature leave the field blank.', WPFB)),
+	'file_browser_post_id'		=> array('default' => '', 'title' => __('Post ID of the file browser', WPFB), 'type' => 'number', 'unit' => '<span id="file_browser_post_title">'.(($fbid=WPFB_Core::GetOpt('file_browser_post_id'))?get_the_title($fbid):'').'</span> <a href="javascript:;" class="button" onclick="WPFB_PostBrowser(\'file_browser_post_id\',\'file_browser_post_title\')">' . __('Select') . '</a>', 'desc' => __('Specify the ID of the post or page where the file browser should be placed. If you want to disable this feature leave the field blank.', WPFB)),
+	
+	'file_browser_cat_sort_by'		=> array('default' => 'cat_name', 'title' => __('File browser category sorting', WPFB), 'type' => 'select', 'desc' => __('The category property categories in the file browser are sorted by', WPFB), 'options' => self::CatSortFields()),
+	'file_browser_cat_sort_dir'	=> array('default' => 0, 'title' => __('Sort Order:'/*def*/), 'type' => 'select', 'desc' => '', 'options' => array(0 => __('Ascending'), 1 => __('Descending'))),
+	
+	'file_browser_file_sort_by'		=> array('default' => 'file_display_name', 'title' => __('File browser file sorting', WPFB), 'type' => 'select', 'desc' => __('The file property files in the file browser are sorted by', WPFB), 'options' => self::FileSortFields()),
+	'file_browser_file_sort_dir'	=> array('default' => 0, 'title' => __('Sort Order:'/*def*/), 'type' => 'select', 'desc' => '', 'options' => array(0 => __('Ascending'), 1 => __('Descending'))),
+	
+	
 	'cat_drop_down'			=> array('default' => false, 'title' => __('Category drop down list', WPFB), 'type' => 'checkbox', 'desc' => __('Use category drop down list in the file browser instead of listing like files.', WPFB)),
 
 	'force_download'		=> array('default' => false, 'title' => __('Always force download', WPFB), 'type' => 'checkbox', 'desc' => __('If enabled files that can be viewed in the browser (like images, PDF documents or videos) can only be downloaded (no streaming).', WPFB)),
@@ -216,24 +224,51 @@ static function TplVarsDesc($for_cat=false)
 
 static function FileSortFields()
 {
-	return array(	
+	return array(
+	'file_display_name'		=> __('Title', WPFB),
 	'file_name'				=> __('Name of the file', WPFB),
+	'file_version'			=> __('File version', WPFB),
+	
+	'file_hits'				=> __('How many times this file has been downloaded.', WPFB),
 	'file_size'				=> __('Formatted file size', WPFB),
 	'file_date'				=> __('Formatted file date', WPFB),
-	'file_display_name'		=> __('Title', WPFB),
-	'file_description'		=> __('Short description', WPFB),
-	'file_version'			=> __('File version', WPFB),
-	'file_author'			=> __('Author', WPFB),
-	'file_license'			=> __('License', WPFB),
-	'file_required_level'	=> __('The minimum user level to download this file (-1 = guest, 0 = Subscriber ...)', WPFB),
-	//'file_offline'			=> __('Offline &gt; Online', WPFB),
-	//'file_direct_linking'	=> __('Direct linking &gt; redirect to post', WPFB),
+	'file_last_dl_time'		=> __('Time of the last download', WPFB),
+	
+	'file_path'				=> __('Relative path of the file'),
+	'file_id'				=> __('File ID'),
+	
 	'file_category_name'	=> __('Category Name', WPFB),
 	'file_category'			=> __('Category ID', WPFB),
+	
+	'file_description'		=> __('Short description', WPFB),	
+	'file_author'			=> __('Author', WPFB),
+	'file_license'			=> __('License', WPFB),
+	
 	'file_post_id'			=> __('ID of the post/page this file belongs to', WPFB),
+	'file_required_level'	=> __('The minimum user level to download this file (-1 = guest, 0 = Subscriber ...)', WPFB),
 	'file_added_by'			=> __('User ID of the uploader', WPFB),
-	'file_hits'				=> __('How many times this file has been downloaded.', WPFB),
-	'file_last_dl_time'		=> __('Time of the last download', WPFB),
+	
+	//'file_offline'			=> __('Offline &gt; Online', WPFB),
+	//'file_direct_linking'	=> __('Direct linking &gt; redirect to post', WPFB),
+	
+	);
+}
+
+static function CatSortFields()
+{
+	return array(
+	'cat_name'			=> __('Category Name'),
+	'cat_folder'		=> __('Name of the category folder', WPFB),
+	'cat_description'	=> __('Short description', WPFB),	
+	
+	'cat_path'			=> __('Relative path of the category folder', WPFB),
+	'cat_id'			=> __('Category ID'),
+	'cat_parent'		=> __('Parent category ID', WPFB),
+	
+	'cat_num_files'		=> __('Number of files directly in the category', WPFB),
+	'cat_num_files_total' => __('Number of all files in the category and all sub-categories', WPFB),
+	
+	'cat_required_level' => __('The minimum user level to access (-1 = guest, 0 = Subscriber ...)', WPFB)
 	);
 }
 

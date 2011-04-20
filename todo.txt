@@ -1,4 +1,11 @@
 Comments
+
+-template management broken
+-category template prview broken
+-security: validate selected option when submitting settings!!
+
+shocats tag does not work if all cats selected
+
 -check compat tinymcs advanced
 -check sortings
 - file not found after log in redirect, redirect to refferrer!!

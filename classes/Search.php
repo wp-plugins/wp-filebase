@@ -75,8 +75,10 @@ static function PostsSearch($sql)
 
 	$where = self::SearchWhereSql();
 
+	
 	// new sql mod., old one was listing drafts!	
-	$sql = preg_replace("/\\)\\)\\)\s+AND/", ") $where))  AND", $sql);
+	$p = strrpos($sql, ")))");	
+	$sql = substr($sql, 0, $p+1) . " $where " . substr($sql, $p+1);
 	
 	// OLD: insert $where into existing sql
 	/*
