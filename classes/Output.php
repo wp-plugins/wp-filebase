@@ -34,12 +34,18 @@ static function GenFileList(&$files, $tpl_tag=null)
 
 static function PostAttachments($check_attached = false, $tpl_tag=null)
 {
-	global $wpdb, $id;
-	static $attached = false;	
+	global $id, $wp_query;
+	static $attached = false;
 	
 	wpfb_loadclass('File', 'Category');
 	
-	if(empty($id) || $id <= 0 || ($check_attached && $attached) || count($files = &WPFB_File::GetAttachedFiles($id)) == 0)
+	$i = 0;
+	if(!empty($id) && $id > 0) $i = $id;
+	else if(!empty($wp_query->post) && !empty($wp_query->post->ID) && $wp_query->post->ID > 0)
+		$i = $wp_query->post->ID;
+	
+	
+	if($i==0 || ($check_attached && $attached) || count($files = &WPFB_File::GetAttachedFiles($i)) == 0)
 		return '';
 
 	$attached = true;

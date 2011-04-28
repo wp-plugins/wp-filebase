@@ -159,7 +159,9 @@ switch ( $action = $_REQUEST['action'] ) {
 				'url' => $file->GetUrl(),
 				'path' => $file->GetLocalPathRel()
 			));			
-		} else echo '-1';
+		} else {
+			echo '-1';
+		}
 		exit;
 		
 	case 'postbrowser':

@@ -14,6 +14,7 @@ function wpfb_getFileInfo(url)
 		if(fi.url == url || fi.url == uesc)	return fi;
 	}
 	try{// to get url by ajax request
+		// wpfbfid
 		fi = jQuery.parseJSON(jQuery.ajax({url:wpfbConf.ajurl,data:{action:"fileinfo",url:uesc},async:false}).responseText);
 		if(typeof(fi) == 'object' && fi.id > 0) {
 			wpfbFileInfos.push(fi);
@@ -44,7 +45,12 @@ function wpfb_onclick(event) {
 function wpfb_processlink(index, el) {
 	var url=el.getAttribute('href'),i;
 	el = jQuery(el);
-	if((i=url.indexOf('#')) > 0) url = url.substr(0, i); // remove hash, not actually needed
+	if((i=url.indexOf('#')) > 0) {
+		var fid = url.substr(i);
+		fid = fid.substr(fid.lastIndexOf('-')+1);
+		el.attr('wpfbfid', fid);
+		url = url.substr(0, i); // remove hash, not actually needed
+	}
 	el.unbind('click').click(url, wpfb_onclick); // bind onclick
 	if(wpfbConf.cm && typeof(wpfb_addContextMenu) == 'function') wpfb_addContextMenu(el, url);
 	if(wpfbConf.hl) url = 'javascript:;';

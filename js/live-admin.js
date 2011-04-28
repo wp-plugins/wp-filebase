@@ -1,19 +1,30 @@
+// gets the file id of the a-element linking to the file
+function wpfb_getLinkFileId(el) {
+	el = jQuery(el);
+	var fid = el.attr('wpfbfid');
+	if(fid && fid > 0) return fid;
+	var fi = wpfb_getFileInfo(el.attr('href'));
+	if(fi != null) return fi.id;
+	return 0;
+}
+
 function wpfb_menuEdit(menuItem,menu) {
-	var fi = wpfb_getFileInfo(menu.file_url);
-	if(fi != null)
-		window.location = wpfbConf.fileEditUrl + fi.id + '&redirect_to='+escape(window.location.href);
+	var fid = wpfb_getLinkFileId(menu.target);
+	if(fid > 0)
+		window.location = wpfbConf.fileEditUrl + fid + '&redirect_to='+escape(window.location.href);
 }
 
 function wpfb_menuDel(menuItem,menu) {
-	var fi = wpfb_getFileInfo(menu.file_url);
-	if(fi != null && confirm('Do you really want to delete this file?'))
-	{
+	
+	var fid = wpfb_getLinkFileId(menu.target);
+	if(fid > 0 && confirm('Do you really want to delete this file?'))
+	{		
 		jQuery('body').css('cursor', 'wait');
 		
 		jQuery.ajax({
 			type: 'POST',
 			url: wpfbConf.ajurl,
-			data: {action:'delete',file_id:fi.id},
+			data: {action:'delete',file_id:fid},
 			async: false,
 			success: (function(data){
 				if(data != '-1') {
@@ -50,7 +61,7 @@ function wpfb_print(obj,ret) {
 	var str = ' '+obj+':',t;
 	for(var k in obj) {
 		t = typeof(obj[k]);
-		str += ' ['+k+':'+t+'] = '+((t=='string'||t=='array')?obj[k]:wpfb_print(obj[k],true))+'\n';
+		str += ' ['+k+':'+t+'] = '+((t=='string'||t=='array')?obj[k]:wpfb_print(''+obj[k],true))+'\n';
 	}
 	if(typeof(ret) == 'undefined' || !ret)
 		alert(str);

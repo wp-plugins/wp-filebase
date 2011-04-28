@@ -166,7 +166,9 @@ function CatListCntrl()
 	if(WPFB_Core::GetOpt('file_browser_post_id') <= 0) {
 		echo '<div>';
 		_e('Before you can use this widget, please set a Post ID for the file browser in WP-Filebase settings.', WPFB);
-		echo '</div>';
+		echo '<br /><a href="'.admin_url('admin.php?page=wpfilebase_sets#file-browser').'">';
+		_e('Goto File Browser Settings');
+		echo '</a></div>';
 		return;
 	}
 	

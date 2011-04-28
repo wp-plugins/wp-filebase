@@ -21,6 +21,7 @@ static function SettingsSchema()
 	// common
 	'upload_path'			=> array('default' => $upload_path_base . '/filebase', 'title' => __('Upload Path', WPFB), 'type' => 'text', 'class' => 'code', 'size' => 65),
 	'thumbnail_size'		=> array('default' => 120, 'title' => __('Thumbnail size'), 'type' => 'number', 'class' => 'num', 'size' => 8),
+	'base_auto_thumb'		=> array('default' => true, 'title' => __('Auto-detect thumbnails'), 'type' => 'checkbox', 'desc' => __('Images are considered as thumbnails for files with the same name when syncing. (e.g `file.jpg` &lt;=&gt; `file.zip`)', WPFB)),
 	
 	// display
 	'auto_attach_files' 	=> array('default' => true,'title' => __('Show attached files', WPFB), 'type' => 'checkbox', 'desc' => __('If enabled, all associated files are listed below an article', WPFB)),
@@ -677,10 +678,14 @@ static function Sync($hash_sync=false)
 	
 	$thumbnails = array();
 	
+	
 	// look for thumnails
+	// find files that have names formatted like thumbnails e.g. file-XXxYY.(jpg|jpeg|png|gif)
 	for($i = 1; $i < count($uploaded_files); $i++)
 	{
 		$len = strrpos($uploaded_files[$i], '.');
+		
+		// file and thumbnail should be neighbours in the list, so only check the prev element for matching name
 		if(strlen($uploaded_files[$i-1]) > ($len+2) && substr($uploaded_files[$i-1],0,$len) == substr($uploaded_files[$i],0,$len) && !in_array($uploaded_files[$i-1], $file_paths))
 		{
 			$suffix = substr($uploaded_files[$i-1], $len);
@@ -692,11 +697,47 @@ static function Sync($hash_sync=false)
 				{
 					//ok, found a thumbnail here
 					$thumbnails[$uploaded_files[$i]] = basename($uploaded_files[$i-1]);
-					$uploaded_files[$i-1] = '';
+					$uploaded_files[$i-1] = ''; // remove the file from the list
+					continue;
 				}
 			}			
 		}
-	}	
+	}
+	
+
+	if(WPFB_Core::GetOpt('base_auto_thumb')) {
+		for($i = 0; $i < count($uploaded_files); $i++)
+		{
+			$len = strrpos($uploaded_files[$i], '.');
+			$ext = strtolower(substr($uploaded_files[$i], $len+1));
+
+			if($ext != 'jpg' && $ext != 'png' && $ext != 'gif') {
+				$prefix = substr($uploaded_files[$i], 0, $len);
+
+				for($ii = $i-1; $ii >= 0; $ii--)
+				{
+					if(substr($uploaded_files[$ii],0, $len) != $prefix) break;						
+					$e = strtolower(substr($uploaded_files[$ii], $len+1));
+					if($e == 'jpg' || $e == 'png' || $e == 'gif') {
+						$thumbnails[$uploaded_files[$i]] = basename($uploaded_files[$ii]);
+						$uploaded_files[$ii] = ''; // remove the file from the list		
+						break;				
+					}
+				}
+				
+				for($ii = $i+1; $ii < count($uploaded_files); $ii++)
+				{
+					if(substr($uploaded_files[$ii],0, $len) != $prefix) break;						
+					$e = strtolower(substr($uploaded_files[$ii], $len+1));
+					if($e == 'jpg' || $e == 'png' || $e == 'gif') {
+						$thumbnails[$uploaded_files[$i]] = basename($uploaded_files[$ii]);
+						$uploaded_files[$ii] = ''; // remove the file from the list		
+						break;				
+					}
+				}
+			}
+		}
+	}
 	
 	for($i = 0; $i < count($uploaded_files); $i++)
 	{
@@ -977,5 +1018,70 @@ static function FlushRewriteRules()
 static function AddFileWidget() {
 	wpfb_loadclass('Category');
 	self::PrintForm('file', null, array('in_widget'=>true));
+}
+
+static function PrintPayPalButton() {
+		$lang = 'en_US';
+		$supported_langs = array('en_US', 'de_DE', 'fr_FR', 'es_ES', 'it_IT', 'ja_JP', 'pl_PL', 'nl_NL');
+		
+		/*
+		 * fr_FR/FR
+		 * https://www.paypalobjects.com/WEBSCR-640-20110401-1/en_US/FR/i/btn/btn_donateCC_LG.gif
+		 * https://www.paypalobjects.com/WEBSCR-640-20110401-1/de_DE/DE/i/btn/btn_donateCC_LG.gif
+		 * https://www.paypalobjects.com/WEBSCR-640-20110401-1/es_ES/ES/i/btn/btn_donateCC_LG.gif
+		 * https://www.paypalobjects.com/WEBSCR-640-20110401-1/it_IT/i/btn/btn_donateCC_LG.gif
+		 */
+		
+		// find out current language for the donate btn
+		if(defined('WPLANG') && WPLANG && WPLANG != '') {
+			if(in_array(WPLANG, $supported_langs))
+				$lang = WPLANG;
+			else {
+				$l = strtolower(substr(WPLANG, 0, strpos(WPLANG, '_')));
+				foreach($supported_langs as $sl) {
+					$pos = strpos($sl,$l);
+					if($pos !== false && $pos == 0) {
+						$lang = $sl;
+					}
+				}
+			}
+		}
+?>
+<form action="https://www.paypal.com/cgi-bin/webscr" method="post">
+<input type="hidden" name="cmd" value="_s-xclick" />
+<input type="hidden" name="hosted_button_id" value="AF6TBLTYLUMD2" />
+<!-- <input type="image" src="https://www.paypalobjects.com/WEBSCR-640-20110401-1/<?php echo $lang ?>/i/btn/btn_donateCC_LG.gif" style="border:none;" name="submit" alt="PayPal - The safer, easier way to pay online!" /> -->
+<input type="image" src="https://www.paypal.com/<?php echo $lang ?>/i/btn/btn_donateCC_LG.gif" style="border:none;" name="submit" alt="PayPal - The safer, easier way to pay online!" title="PayPal - The safer, easier way to pay online!" />
+<!-- <img alt="" border="0" src="https://www.paypalobjects.com/WEBSCR-640-20110401-1/<?php echo $lang ?>/i/scr/pixel.gif" width="1" height="1" /> -->
+<img alt="" border="0" src="https://www.paypal.com/<?php echo $lang ?>/i/scr/pixel.gif" width="1" height="1" />
+
+</form>
+<?php 
+}
+
+static function PrintFlattrHead() {
+?>
+<script type="text/javascript">
+/* <![CDATA[ */
+    (function() {
+        var s = document.createElement('script'), t = document.getElementsByTagName('script')[0];
+        s.type = 'text/javascript';
+        s.async = true;
+        s.src = 'http://api.flattr.com/js/0.6/load.js?mode=auto';
+        t.parentNode.insertBefore(s, t);
+    })();
+/* ]]> */
+</script>
+<?php
+}
+
+static function PrintFlattrButton() {
+?>
+<p style="text-align: center;">
+<a class="FlattrButton" style="display:none;" href="http://wordpress.org/extend/plugins/wp-filebase/"></a>
+</p>
+<noscript><p style="text-align: center;"><a href="http://flattr.com/thing/157167/WP-Filebase" target="_blank">
+<img src="http://api.flattr.com/button/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0" /></a></p></noscript>
+<?php
 }
 }

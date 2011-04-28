@@ -3,8 +3,8 @@ Contributors: fabifott
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=money%40fabi-s%2ede&item_name=WP-Filebase&no_shipping=0&no_note=1&tax=0&currency_code=USD&lc=US&bn=PP%2dDonationsBF&charset=UTF%2d8
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, traffic, widget, filelist, list, thumb, thumbnail, attachment, attachments, category, categories, media, template, ftp, http
 Requires at least: 3.1
-Tested up to: 3.1.1
-Stable tag: 0.2.8.2
+Tested up to: 3.1.2
+Stable tag: 0.2.8.3
 
 Adds a powerful downloads manager supporting file categories, download counter, widgets, sorted file lists and more to your WordPress blog.
 
@@ -54,6 +54,10 @@ If you want to translate WP-Filebase in your language, open `wp-filebase/languag
 
 == Frequently Asked Questions ==
 
+= How can do I get the AJAX tree view like on http://fabi.me/downloads/ ? =
+
+This feature is called File Browser. Go to WP-Filebase settings and click on the tab 'File Browser'. There you can select a post or page where the tree view shoud appear.
+
 = How do I insert a file list into a post?  =
 
 In the post editor click on the *WP-Filebase* button. In the appearing box click on *File list*, then select a category. Optionally you can select a custom template.
@@ -88,6 +92,11 @@ Goto WP-Filebase Settings and disable Permalinks under "Download". Try to disabl
 4. The Editor Button to insert tags for filelists and download urls
 
 == Changelog ==
+
+= 0.2.8.3 =
+* Fixed context menu for file links pointing to the associated page/post
+* Images are considered as thumbnails for files with the same name when syncing
+* Attachment listing now works outside the loop on a single post/page
 
 = 0.2.8.2 =
 * New file browser sort options

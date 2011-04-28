@@ -74,3 +74,18 @@ if(typeof(ckeditorSettings) == 'object') {
 	ckeditorSettings.externalPlugins.wpfilebase = ajaxurl+'/../../wp-content/plugins/wp-filebase/extras/ckeditor/';
 	ckeditorSettings.additionalButtons.push(["WPFilebase"]);
 }
+
+
+jQuery(document).ready(function(){
+	if(getUserSetting("wpfilebase_hidesuprow",false) == 1) {
+		jQuery('#wpfb-liking').hide();
+		jQuery('#wpfb-liking-toggle').addClass('closed');	
+	}	
+	jQuery('#wpfb-liking-toggle').click(function(){
+		jQuery('#wpfb-liking').slideToggle();
+		jQuery(this).toggleClass('closed');
+		setUserSetting("wpfilebase_hidesuprow", 1-getUserSetting("wpfilebase_hidesuprow",false), 0);
+	});	
+});
+
+

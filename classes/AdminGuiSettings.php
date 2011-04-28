@@ -34,8 +34,17 @@ static function Display()
 					$_POST[$opt_tag] = stripslashes($_POST[$opt_tag]);				
 				$_POST[$opt_tag] = trim($_POST[$opt_tag]);
 				
-				if($opt_data['type'] == 'number')
-					$_POST[$opt_tag] = intval($_POST[$opt_tag]);
+				switch($opt_data['type'])
+				{
+					case 'number':
+						$_POST[$opt_tag] = intval($_POST[$opt_tag]);
+						break;
+					case 'select':
+						// check if value is in options array, if not set to default
+						if(!in_array($_POST[$opt_tag], array_keys($opt_data['options'])))
+							$_POST[$opt_tag] = $opt_data['default'];
+						break;
+				}						
 			}
 		}
 		
@@ -153,7 +162,7 @@ jQuery(document).ready( function() {
 	</p>
 	<?php
 	
-	$common_tags = array('upload_path', 'thumbnail_size', /*'cat_drop_down'*/'cron_sync');
+	$common_tags = array('upload_path', 'thumbnail_size', 'base_auto_thumb',/*'cat_drop_down'*/'cron_sync');
 	if(function_exists('wp_admin_bar_render'))
 		$common_tags[] = 'admin_bar';
 	
