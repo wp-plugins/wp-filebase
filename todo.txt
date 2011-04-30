@@ -1,5 +1,6 @@
 Comments
 
+add alert if treeview ajax failuire
 
 shocats tag does not work if all cats selected
 

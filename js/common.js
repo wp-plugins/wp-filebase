@@ -82,4 +82,6 @@ function wpfb_setupLinks() {
 		if(h && (h.search(reQs)>0 || h.search(rePl)==0)) wpfb_processimg(i,els[i]);
 	}
 }
-jQuery(document).ready(wpfb_setupLinks);
+
+if(typeof(jQuery) != 'undefined')
+	jQuery(document).ready(wpfb_setupLinks);

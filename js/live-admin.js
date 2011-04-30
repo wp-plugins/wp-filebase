@@ -61,7 +61,7 @@ function wpfb_print(obj,ret) {
 	var str = ' '+obj+':',t;
 	for(var k in obj) {
 		t = typeof(obj[k]);
-		str += ' ['+k+':'+t+'] = '+((t=='string'||t=='array')?obj[k]:wpfb_print(''+obj[k],true))+'\n';
+		str += ' ['+k+':'+t+'] = '+((t=='string'||t=='array')?obj[k]:wpfb_print(obj[k],true))+'\n';
 	}
 	if(typeof(ret) == 'undefined' || !ret)
 		alert(str);

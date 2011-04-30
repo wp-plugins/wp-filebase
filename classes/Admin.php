@@ -1,7 +1,15 @@
 <?php
-wpfb_loadclass('AdminLite', 'Item');
-
 class WPFB_Admin {
+	
+
+static function InitClass()
+{
+	wpfb_loadclass('AdminLite', 'Item', 'File', 'Category');
+	
+	wp_enqueue_script('jquery');
+	wp_enqueue_script('jquery-ui-tabs');
+	wp_enqueue_script(WPFB.'-admin', WPFB_PLUGIN_URI.'js/admin.js', array(), WPFB_VERSION);			
+}
 
 static function SettingsSchema()
 {
@@ -87,7 +95,7 @@ static function SettingsSchema()
 	'languages'				=> array('default' => "English|en\nDeutsch|de", 'title' => __('Languages'), 'type' => 'textarea', 'desc' => &$multiple_entries_desc),
 	'platforms'				=> array('default' => "Windows 95|win95\n*Windows 98|win98\n*Windows 2000|win2k\n*Windows XP|winxp\n*Windows Vista|vista\n*Windows 7|win7\nLinux|linux\nMac OS X|mac", 'title' => __('Platforms', WPFB), 'type' => 'textarea', 'desc' => &$multiple_entries_desc, 'nowrap' => true),	
 	'licenses'				=> array('default' =>
-"*Freeware|free\nShareware|share\nGNU General Public License|gpl\nGNU Lesser General Public License|lgpl\nGNU Affero General Public License|agpl", 'title' => __('Licenses', WPFB), 'type' => 'textarea', 'desc' => &$multiple_entries_desc, 'nowrap' => true),
+"*Freeware|free\nShareware|share\nGNU General Public License|gpl|http://www.gnu.org/copyleft/gpl.html\nGNU Lesser General Public License|lgpl\nGNU Affero General Public License|agpl\nCC Attribution-NonCommercial-ShareAlike|ccbyncsa|http://creativecommons.org/licenses/by-nc-sa/3.0/", 'title' => __('Licenses', WPFB), 'type' => 'textarea', 'desc' => &$multiple_entries_desc, 'nowrap' => true),
 	'requirements'			=> array('default' =>
 "PDF Reader|pdfread|http://www.foxitsoftware.com/pdf/reader/addons.php
 Java|java|http://www.java.com/download/
@@ -565,7 +573,7 @@ static function ParseFileNameVersion($file_name, $file_version) {
 	$fnwv = substr($file_name, 0, strrpos($file_name, '.'));// remove extension
 	if(empty($file_version)) {
 		$matches = array();		
-		if(preg_match('/[-\.]v?([0-9]{1,2}\.[0-9]{1,2}(\.[0-9]{1,2}){0,2})(-[a-zA-Z_]+)?$/', $fnwv, $matches)) {
+		if(preg_match('/[-_\.]v?([0-9]{1,2}\.[0-9]{1,2}(\.[0-9]{1,2}){0,2})(-[a-zA-Z_]+)?$/', $fnwv, $matches)) {
 			$file_version = $matches[1];
 			if((strlen($fnwv)-strlen($matches[0])) > 1)
 				$fnwv = substr($fnwv, 0, -strlen($matches[0]));

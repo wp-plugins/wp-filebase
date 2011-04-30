@@ -1,4 +1,8 @@
 <?php
+define('DOING_AJAX', true);
+error_reporting(0);
+
+require_once(dirname(__FILE__).'/../../../wp-load.php');
 
 function wpfb_print_json($obj) {
 	@ob_end_clean();
@@ -9,9 +13,6 @@ function wpfb_print_json($obj) {
 	@flush();
 	exit;
 }
-define('DOING_AJAX', true);
-error_reporting(0);
-require_once(dirname(__FILE__).'/../../../wp-load.php');
 
 if(!isset($_REQUEST['action']))
 	die('-1'); 
@@ -165,8 +166,10 @@ switch ( $action = $_REQUEST['action'] ) {
 		exit;
 		
 	case 'postbrowser':
-		if(!current_user_can('read_private_posts'))
-			die('-1');
+		if(!current_user_can('read_private_posts')) {
+			wpfb_print_json(array(array('id'=>'0','text'=>__('Cheatin&#8217; uh?'), 'classes' => '','hasChildren'=>false)));
+			exit;
+		}
 		
 		$id = (empty($_REQUEST['root']) || $_REQUEST['root'] == 'source') ? 0 : intval($_REQUEST['root']);
 		$onclick = empty($_REQUEST['onclick']) ? '' : $_REQUEST['onclick'];

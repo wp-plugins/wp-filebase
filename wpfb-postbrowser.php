@@ -9,6 +9,7 @@ if(!current_user_can('read_private_posts'))
 <title><?php _e('Posts') ?></title>
 <meta http-equiv="Content-Type" content="<?php bloginfo('html_type'); ?>; charset=<?php echo get_option('blog_charset'); ?>" />
 <?php
+wp_enqueue_script('jquery');
 wp_enqueue_script('jquery-treeview-async');
 
 wp_enqueue_style( 'global' );
@@ -30,10 +31,9 @@ jQuery(document).ready(function(){
 		url: "<?php echo WPFB_PLUGIN_URI."wpfb-ajax.php" ?>",
 		ajax: {
 			data: { action: "postbrowser", onclick: "selectPost(%d,'%s')" },
-			type: "post"
+			type: "post", complete: browserAjaxComplete
 		},
-		animated: "medium",
-		persist: "location"
+		animated: "medium"
 	});
 });
 
@@ -49,6 +49,14 @@ function selectPost(postId, postTitle)
 	<?php endif; ?>	
 	window.close();
 	return true;
+}
+
+function browserAjaxComplete(jqXHR, textStatus)
+{
+	if(textStatus != "success")
+	{
+		alert("AJAX Request error: " + textStatus);
+	}
 }
 //]]>
 </script>

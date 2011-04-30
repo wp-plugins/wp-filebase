@@ -1,7 +1,9 @@
 <?php
 class WPFB_AdminLite {
 static function InitClass()
-{		
+{
+	wp_enqueue_style(WPFB.'-admin', WPFB_PLUGIN_URI.'wp-filebase-admin.css', array(), WPFB_VERSION, 'all' );
+		
 	wp_register_widget_control(WPFB_PLUGIN_NAME, WPFB_PLUGIN_NAME .' '. __('File list'), array(__CLASS__, 'WidgetFileListControl'), array('description' => __('Lists the latest or most popular files', WPFB)));
 	wp_register_widget_control(WPFB_PLUGIN_NAME.'_cats', WPFB_PLUGIN_NAME.' ' . __('Category list'), array(__CLASS__, 'WidgetCatListControl'), array('description' => __('Simple listing of file categories', WPFB)));
 	

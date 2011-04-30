@@ -22,7 +22,22 @@ static function Display()
 	
 	WPFB_Admin::PrintFlattrHead();
 	?>
-	
+	<script type="text/javascript">	
+	/* Liking/Donate Bar */
+	if(typeof(jQuery) != 'undefined') {
+		jQuery(document).ready(function(){
+			if(getUserSetting("wpfilebase_hidesuprow",false) == 1) {
+				jQuery('#wpfb-liking').hide();
+				jQuery('#wpfb-liking-toggle').addClass('closed');	
+			}	
+			jQuery('#wpfb-liking-toggle').click(function(){
+				jQuery('#wpfb-liking').slideToggle();
+				jQuery(this).toggleClass('closed');
+				setUserSetting("wpfilebase_hidesuprow", 1-getUserSetting("wpfilebase_hidesuprow",false), 0);
+			});	
+		});
+	}
+	</script>	
 	<div class="wrap">
 	<h2><?php echo WPFB_PLUGIN_NAME; ?></h2>
 	<?php

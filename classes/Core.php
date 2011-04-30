@@ -11,18 +11,12 @@ static function InitClass()
 	
 	add_action('wp_head', array(__CLASS__, 'Header'));
 	add_action('wp_footer', array(__CLASS__, 'Footer'));
-
+	add_action('parse_query', array(__CLASS__, 'ParseQuery')); // search
 	add_action(WPFB.'_cron', array(__CLASS__, 'Cron'));
 	
 	// for attachments and file browser
 	add_filter('the_content',	array(__CLASS__, 'ContentFilter'), 10); // must be lower than 11 (before do_shortcode) and after wpautop (>9)
 	add_shortcode('wpfilebase', array(__CLASS__, 'ShortCode'));
-	
-	/*
-	add_filter('the_excerpt',	array(__CLASS__, 'ContentFilter'), 10);
-	add_filter('the_content_rss',	array(__CLASS__, 'ContentFilter'), 10);
-	add_filter('the_excerpt_rss ',	array(__CLASS__, 'ContentFilter'), 10);
-	*/
 	
 
 	// some misc filters & actions
@@ -41,23 +35,14 @@ static function InitClass()
 	wp_register_script(WPFB, WPFB_PLUGIN_URI.'js/common.js', array('jquery'), WPFB_VERSION); // cond loading (see Footer)
 	wp_enqueue_style(WPFB, WPFB_PLUGIN_URI.'wp-filebase_css.php', array(), WPFB_VERSION, 'all');
 	
-
-	if(is_admin() || defined('WPFB_EDITOR_PLUGIN'))
+	
+	if((is_admin() && !empty($_GET['page']) && strpos($_GET['page'], 'wpfilebase_') !== false) || defined('WPFB_EDITOR_PLUGIN'))
 	{
-		wp_enqueue_style(WPFB.'-admin', WPFB_PLUGIN_URI.'wp-filebase-admin.css', array(), WPFB_VERSION, 'all' );
-		wp_enqueue_script(WPFB.'-admin', WPFB_PLUGIN_URI.'js/admin.js', array('jquery-ui-tabs'), WPFB_VERSION);	
-		
-		/*
-		if(class_exists('ckeditor_wordpress')) {
-			global $pagenow;
-			if ( in_array( $pagenow, array('post.php', 'post-new.php') ) ) {
-				add_action( 'admin_print_footer_scripts', array(__CLASS__,'PrintCKEdPluginJS'), 30 );
-			}
-		}*/	
+		wpfb_loadclass('Admin');
 	}
 	
 	// live admin
-	if(current_user_can('upload_files')) {
+	if(current_user_can('upload_files') && !is_admin()) {
 		wp_enqueue_script(WPFB.'-live-admin', WPFB_PLUGIN_URI.'js/live-admin.js', array('jquery-ui-tabs'), WPFB_VERSION);
 		if(self::GetOpt('admin_bar'))
 			add_action( 'admin_bar_menu', array(__CLASS__, 'AdminBar'), 80 );
@@ -70,10 +55,7 @@ static function InitClass()
 	// widgets
 	wp_register_sidebar_widget(WPFB_PLUGIN_NAME, WPFB_PLUGIN_NAME .' '. __('File list', WPFB), array(__CLASS__, 'FileWidget'), array('description' => __('Lists the latest or most popular files', WPFB)));
 	wp_register_sidebar_widget(WPFB_PLUGIN_NAME.'_cats', WPFB_PLUGIN_NAME.' ' . __('Category list', WPFB), array(__CLASS__, 'CatWidget'), array('description' => __('Simple listing of file categories', WPFB)));
-	
-	// search
-	add_action('parse_query', array(__CLASS__, 'ParseQuery'));
-		
+			
 	// for admin
 	if (current_user_can('edit_posts') || current_user_can('edit_pages'))
 		self::MceAddBtns();
@@ -112,7 +94,11 @@ animated: "medium"
 	}
 }
 
-static function AdminInit() { wpfb_loadclass('AdminLite'); }
+static function AdminInit() { 
+	wpfb_loadclass('AdminLite');
+	if(!empty($_GET['page']) && strpos($_GET['page'], 'wpfilebase_') !== false)
+		wpfb_loadclass('Admin');
+}
 static function AdminMenu() { wpfb_call('AdminLite', 'SetupMenu'); }
 
 static function LoadLang() {
@@ -195,8 +181,6 @@ function wpfilebase_posts_filter($posts) {
 	return $posts;
 } */
 
-
-
 function ContentFilter($content)
 {
 	global $id;
@@ -273,10 +257,12 @@ static function QueryVarsFilter($qvars){
 } */
 
 static function MceAddBtns() {
-	wpfb_loadclass('AdminLite');
-	add_filter('mce_external_plugins', array('WPFB_AdminLite', 'McePlugins'));
-	add_filter('mce_buttons', array('WPFB_AdminLite', 'MceButtons'));
+	add_filter('mce_external_plugins', array('WPFB_Core', 'McePlugins'));
+	add_filter('mce_buttons', array('WPFB_Core', 'MceButtons'));
 }
+
+static function McePlugins($plugins) { wpfb_loadclass('AdminLite'); return WPFB_AdminLite::McePlugins($plugins); }
+static function MceButtons($buttons) { wpfb_loadclass('AdminLite'); return WPFB_AdminLite::MceButtons($buttons); }
 
 static function UpdateOption($name, $value = null) {
 	$options = get_option(WPFB_OPT_NAME);
@@ -375,8 +361,6 @@ static function GetFileListSortSql($sort=null)
 }
 
 static function PrintJS() {
-	//global $wpfb_file_paths;
-	
 	wp_print_scripts(WPFB);
 	
 	$context_menu = current_user_can('upload_files') && self::GetOpt('file_context_menu');
@@ -442,8 +426,7 @@ static function GetTpls($type, $tag=null) { return ($type == 'cat') ? self::GetC
 static function SetFileTpls($tpls) { return is_array($tpls) ? update_option(WPFB_OPT_NAME.'_tpls_file', $tpls) : false; }
 static function SetCatTpls($tpls) { return is_array($tpls) ? update_option(WPFB_OPT_NAME.'_tpls_cat', $tpls) : false; }
 
-
-function GetParsedTpl($type, $tag) {
+static function GetParsedTpl($type, $tag) {
 	if(empty($tag)) return null;
 	if($tag == 'default') return self::GetOpt("template_{$type}_parsed");
 	$on = WPFB_OPT_NAME.'_ptpls_'.$type;

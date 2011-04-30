@@ -254,7 +254,7 @@ class WPFB_File extends WPFB_Item {
 			case 'file_languages':		return WPFB_Output::ParseSelOpts('languages', $this->file_language);
 			case 'file_platforms':		return WPFB_Output::ParseSelOpts('platforms', $this->file_platform);
 			case 'file_requirements':	return WPFB_Output::ParseSelOpts('requirements', $this->file_requirement, true);
-			case 'file_license':		return WPFB_Output::ParseSelOpts('licenses', $this->file_license);
+			case 'file_license':		return WPFB_Output::ParseSelOpts('licenses', $this->file_license, true);
 			
 			case 'file_required_level':	return ($this->file_required_level - 1);
 			
