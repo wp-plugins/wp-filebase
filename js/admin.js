@@ -68,9 +68,3 @@ function WPFB_CheckBoxShowHide(checkbox, name)
 			WPFB_ShowHide(lbs[l], chk);
 	}
 }
-
-/* CKEditor Plugin */
-if(typeof(ckeditorSettings) == 'object') {
-	ckeditorSettings.externalPlugins.wpfilebase = ajaxurl+'/../../wp-content/plugins/wp-filebase/extras/ckeditor/';
-	ckeditorSettings.additionalButtons.push(["WPFilebase"]);
-}

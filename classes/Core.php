@@ -9,7 +9,7 @@ static function InitClass()
 
 	WPFB_Core::LoadLang();
 	
-	add_action('wp_head', array(__CLASS__, 'Header'));
+	//add_action('wp_head', array(__CLASS__, 'Header'));
 	add_action('wp_footer', array(__CLASS__, 'Footer'));
 	add_action('parse_query', array(__CLASS__, 'ParseQuery')); // search
 	add_action(WPFB.'_cron', array(__CLASS__, 'Cron'));
@@ -43,7 +43,7 @@ static function InitClass()
 	
 	// live admin
 	if(current_user_can('upload_files') && !is_admin()) {
-		wp_enqueue_script(WPFB.'-live-admin', WPFB_PLUGIN_URI.'js/live-admin.js', array('jquery-ui-tabs'), WPFB_VERSION);
+		wp_enqueue_script(WPFB.'-live-admin', WPFB_PLUGIN_URI.'js/live-admin.js', array('jquery'), WPFB_VERSION);
 		if(self::GetOpt('admin_bar'))
 			add_action( 'admin_bar_menu', array(__CLASS__, 'AdminBar'), 80 );
 		if(self::GetOpt('file_context_menu')) {
@@ -73,26 +73,18 @@ static function ParseQuery(&$query)
 		wpfb_loadclass('Search');
 }
 
+/* // this was used to load the file browser js, now done directly in the post
 static function Header() {
-	global $wp_query;		
+	global $wp_query;
+	
+	/*
 	// conditionally loading the treeview		
 	if(!empty($wp_query->post->ID) && $wp_query->post->ID > 0 && $wp_query->post->ID == WPFB_Core::GetOpt('file_browser_post_id') && !is_feed() && (is_single() || is_page())) {
-		self::$load_js = true;
-		wp_print_scripts('jquery-treeview-async');
-		wp_print_styles('jquery-treeview');
-		?>
-<script type="text/javascript">
-//<![CDATA[
-jQuery(document).ready(function(){jQuery("#wpfilebase-file-browser").treeview({url: "<?php echo WPFB_PLUGIN_URI."wpfb-ajax.php" ?>",
-ajax:{data:{action:"tree",type:"browser"},type:"post",complete:function(){if(typeof(wpfb_setupLinks)=='function')wpfb_setupLinks();}},
-animated: "medium"			
-	});
-});
-//]]>
-</script>
-<?php
+		wpfb_loadclass('Output');
+		WPFB_Output::InitFileTreeView('wpfilebase-file-browser');
 	}
-}
+	*//*
+}*/
 
 static function AdminInit() { 
 	wpfb_loadclass('AdminLite');
@@ -202,7 +194,7 @@ function ContentFilter($content)
 		if($id == WPFB_Core::GetOpt('file_browser_post_id'))
 		{
 			wpfb_loadclass('Output', 'File', 'Category');
-			WPFB_Output::FileBrowser($content);
+			WPFB_Output::FileBrowser($content, 0, empty($_GET['wpfb_cat']) ? 0 : intval($_GET['wpfb_cat']));
 		}
 	
 		if(WPFB_Core::GetOpt('auto_attach_files'))

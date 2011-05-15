@@ -196,6 +196,7 @@ class WPFB_File extends WPFB_Item {
 	function GetPostUrl() { return empty($this->file_post_id) ? '' : WPFB_Core::GetPostUrl($this->file_post_id).'#wpfb-file-'.$this->file_id; }
 	function GetFormattedSize() { return wpfb_call('Output', 'FormatFilesize', $this->file_size); }
 	function GetFormattedDate() { return mysql2date(get_option('date_format'), $this->file_date); }
+	function GetModifiedTime() { return mysql2date('U', $this->file_date); }
 	
 	// only deletes file/thumbnail on FS, keeping DB entry
 	function Delete()
@@ -369,6 +370,17 @@ class WPFB_File extends WPFB_Item {
 		$id = intval($id);
 		$this->file_post_id = $id;
 		if(!$this->locked) $this->DBSave();
+	}
+	
+	function SetModifiedTime($mysql_date)
+	{
+		$this->file_date = $mysql_date;
+		if($this->IsLocal()) {
+			if(!touch($this->GetLocalPath(), mysql2date('U', $mysql_date)+0))
+				return false;
+		}
+		if(!$this->locked) $this->DBSave();
+		return true;
 	}
 	
 	function IsRemote() { return !empty($this->file_remote_uri); }	

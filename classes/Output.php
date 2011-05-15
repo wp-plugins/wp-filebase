@@ -14,6 +14,11 @@ static function ProcessShortCode($args)
 			if($id > 0 && ($file = wpfb_call('File','GetFile',$id)) != null) return $file->GetUrl();
 			else break;					
 		case 'attachments':	return do_shortcode(self::PostAttachments(false, $args['tpl']));
+		
+		case 'browser':
+				$content = '';
+				self::FileBrowser($content, empty($args['id']) ? 0 : $args['id'], 0);
+				return $content;
 	}	
 	return '';
 }
@@ -32,20 +37,25 @@ static function GenFileList(&$files, $tpl_tag=null)
 	return $content;
 }
 
-static function PostAttachments($check_attached = false, $tpl_tag=null)
+static function GetPostId()
 {
 	global $id, $wp_query;
+	if(!empty($id) && $id > 0) return $id;
+	if(!empty($wp_query->post) && !empty($wp_query->post->ID) && $wp_query->post->ID > 0) return $wp_query->post->ID;
+	
+	return 0;	
+}
+
+static function PostAttachments($check_attached = false, $tpl_tag=null)
+{
 	static $attached = false;
 	
 	wpfb_loadclass('File', 'Category');
 	
-	$i = 0;
-	if(!empty($id) && $id > 0) $i = $id;
-	else if(!empty($wp_query->post) && !empty($wp_query->post->ID) && $wp_query->post->ID > 0)
-		$i = $wp_query->post->ID;
+	$pid = self::GetPostId();
 	
 	
-	if($i==0 || ($check_attached && $attached) || count($files = &WPFB_File::GetAttachedFiles($i)) == 0)
+	if($pid==0 || ($check_attached && $attached) || count($files = &WPFB_File::GetAttachedFiles($pid)) == 0)
 		return '';
 
 	$attached = true;
@@ -82,34 +92,45 @@ static function FileList($args)
 	return $tpl->Generate($cats, $args['showcats'], $args['sort'], $args['num']);
 }
 
-static function FileBrowser(&$content)
+static function FileBrowser(&$content, $root_cat_id=0, $cur_cat_id=0)
 {
-	global $wp_query;
+	static $fb_id = 0;
+	$fb_id++;
 	
-	wpfb_loadclass('Category','File');	
+	wpfb_loadclass('Category','File');
 	
-	$cat = null;
-	if(!empty($_GET['wpfb_cat'])) {
-		$cat = WPFB_Category::GetCat($_GET['wpfb_cat']);
+	$root_cat = ($root_cat_id==0) ? null : WPFB_Category::GetCat($root_cat_id);
+	
+	$cur_cat = null;
+	if($cur_cat_id > 0) {
+		$cur_cat = WPFB_Category::GetCat($cur_cat_id);
 	} else {
 		$url = (is_ssl()?'https':'http').'://'.$_SERVER["HTTP_HOST"].$_SERVER["REQUEST_URI"];		
-		$path = trim(substr($url, strlen(WPFB_Core::GetPostUrl($wp_query->post->ID))), '/');
+		$path = trim(substr($url, strlen(WPFB_Core::GetPostUrl(self::GetPostId()))), '/');
 		if(!empty($path))
-			$cat = WPFB_Category::GetByPath($path);
+			$cur_cat = WPFB_Category::GetByPath($path);
 	}
 	
+	// make sure cur cat is a child cat of parent
+	if(!is_null($cur_cat) && !is_null($root_cat) && !$root_cat->IsAncestorOf($cur_cat))
+		$cur_cat = null;
+	
+	$el_id = "wpfb-filebrowser-$fb_id";
+	self::InitFileTreeView($el_id, $root_cat);
+	
 	// thats all, JS is loaded in Core::Header
-	$content .= '<ul id="wpfilebase-file-browser">';
+	$content .= '<ul id="'.$el_id.'">';
 
 	$parents = array();
-	if($cat) {
-		$p = $cat;
-		do { array_push($parents, $p); } while($p = $p->GetParent());
+	if(!is_null($cur_cat)) {
+		$p = $cur_cat;
+		do { array_push($parents, $p); } while(!is_null($p = $p->GetParent()) && !$p->Equals($root_cat));
 	}
+	
 	$cat_tpl = WPFB_Core::GetParsedTpl('cat', 'filebrowser');
 	$file_tpl = WPFB_Core::GetParsedTpl('file', 'filebrowser');
 	
-	self::FileBrowserList($content, $parents, $cat_tpl, $file_tpl);
+	self::FileBrowserList($content, $parents, $cat_tpl, $file_tpl, $root_cat);
 		
 	$content .= '</ul><div style="clear:both;"></div>';
 }
@@ -253,6 +274,30 @@ static function CatSelTree($args=null, $root_cat_id = 0, $depth = 0)
 		}
 	}
 	return $out;
+}
+
+
+static function InitFileTreeView($id, $root=0)
+{
+	static $tv_plugin_loaded = false;
+	
+	WPFB_Core::$load_js = true;
+	
+	if(!$tv_plugin_loaded) {
+		wp_print_scripts('jquery-treeview-async');
+		wp_print_styles('jquery-treeview');
+		$tv_plugin_loaded = true;
+	}
+	
+	?>
+<script type="text/javascript">
+//<![CDATA[
+jQuery(document).ready(function(){jQuery("#<?php echo $id ?>").treeview({url: "<?php echo WPFB_PLUGIN_URI."wpfb-ajax.php" ?>",
+ajax:{data:{action:"tree",type:"browser",base:<?php echo intval($root); ?>},type:"post",complete:function(){if(typeof(wpfb_setupLinks)=='function')wpfb_setupLinks();}},
+animated: "medium"});});
+//]]>
+</script>
+<?php
 }
 
 /*

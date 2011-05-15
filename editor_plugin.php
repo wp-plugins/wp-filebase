@@ -202,7 +202,7 @@ function tabclick(a)
 	var showEls = {
 		'fileselect': (currentTab == 'file' || currentTab == 'fileurl'),
 		'filetplselect': (currentTab == 'file'),
-		'catselect': (currentTab == 'list'),
+		'catselect': (currentTab == 'list' /* || currentTab == 'browser'*/),
 		'listtplselect': (currentTab == 'list')
 	};
 
@@ -358,6 +358,16 @@ function insListTag() {
 	
 	return insertTag(tag);
 }
+
+function insBrowserTag()
+{
+	var tag = {tag:currentTab};
+	var root = jQuery('#browser-root').val();
+	if(root && root.length != 0)
+		tag.id = root;
+	return insertTag(tag);
+}
+
 //]]>
 </script>
 
@@ -371,6 +381,7 @@ function insListTag() {
 		<li><a href="#file" onclick="return tabclick(this)"><?php _e('Single file', WPFB) ?></a></li>
 		<li><a href="#fileurl" onclick="return tabclick(this)"><?php _e('File URL', WPFB) ?></a></li>
 		<li><a href="#list" onclick="return tabclick(this)"><?php _e('File list', WPFB) ?></a></li>
+		<li><a href="#browser" onclick="return tabclick(this)"><?php _e('File Tree View', WPFB) ?></a></li>
 	</ul>
 <?php } ?>
 </div>
@@ -483,6 +494,15 @@ WPFB_Admin::PrintForm('file', $file, array('in_editor'=>true, 'post_id'=>$post_i
 	</p>
 	
 	<p><a class="button" style="float: right;" href="javascript:void(0)" onclick="return insListTag()"><?php echo _e('Insert') ?></a></p>
+</form>
+
+
+<form id="browser">
+	<p>Select the root category of the tree view file browser:<br />	
+	<select name="browser-root" id="browser-root"><?php echo WPFB_Output::CatSelTree(array('none_label' => __('All'))); ?></select>
+	</p>
+	
+	<p><a class="button" style="float: right;" href="javascript:void(0)" onclick="return insBrowserTag()"><?php echo _e('Insert') ?></a></p>
 </form>
 
 

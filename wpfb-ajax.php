@@ -32,8 +32,17 @@ switch ( $action = $_REQUEST['action'] ) {
 	case 'tree':
 		$type = $_REQUEST['type'];
 		
-		wpfb_loadclass('File','Category','Output');		
-		$parent_id = (empty($_REQUEST['root']) || $_REQUEST['root'] == 'source') ? 0 : intval(substr(strrchr($_REQUEST['root'],'-'),1));
+		wpfb_loadclass('File','Category','Output');
+		
+		$base_id = (empty($_REQUEST['base']) ? 0 : $_REQUEST['base']);
+				
+		if(empty($_REQUEST['root']) || $_REQUEST['root'] == 'source')
+			$parent_id = $base_id;
+		else {
+			$root = $_REQUEST['root'];
+			$parent_id = is_numeric($root) ? intval($root) : intval(substr(strrchr($root,'-'),1));
+		}
+			
 		$browser = ($type=='browser');
 		$filesel = (!$browser && $type=='fileselect');
 		$catsel = (!$filesel && $type=='catselect');

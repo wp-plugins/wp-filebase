@@ -7,6 +7,8 @@ static function InitClass()
 	wp_register_widget_control(WPFB_PLUGIN_NAME, WPFB_PLUGIN_NAME .' '. __('File list'), array(__CLASS__, 'WidgetFileListControl'), array('description' => __('Lists the latest or most popular files', WPFB)));
 	wp_register_widget_control(WPFB_PLUGIN_NAME.'_cats', WPFB_PLUGIN_NAME.' ' . __('Category list'), array(__CLASS__, 'WidgetCatListControl'), array('description' => __('Simple listing of file categories', WPFB)));
 	
+	add_action('admin_print_scripts', array('WPFB_AdminLite', 'PrintCKEditorPlugin'));
+	
 	self::CheckChangedVer();
 }
 
@@ -80,5 +82,19 @@ private static function CheckChangedVer()
 static function JsRedirect($url) {
 	echo '<script type="text/javascript"> window.location = "',$url,'"; </script><h1><a href="',$url,'">',$url,'</a></h1>'; 
 }
+
+static function PrintCKEditorPlugin() {
+	if(has_filter('ckeditor_external_plugins') === false) return;	
+	?>
+<script type="text/javascript">
+//<![CDATA[
+	/* CKEditor Plugin */
+	if(typeof(ckeditorSettings) == 'object') {
+		ckeditorSettings.externalPlugins.wpfilebase = ajaxurl+'/../../wp-content/plugins/wp-filebase/extras/ckeditor/';
+		ckeditorSettings.additionalButtons.push(["WPFilebase"]);
+	}
+//]]>
+</script>
+	<?php
 }
-?>
+}

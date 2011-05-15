@@ -1,5 +1,13 @@
 Comments
 
+- exclude extension ölists
+- update version on file sync cahnged
+- user upload paths
+- hide thumbs.db
+-disable automatic sync by default
+shocats=1 ?
+ajax tree view in multiple posts
+
 add alert if treeview ajax failuire
 
 shocats tag does not work if all cats selected

@@ -31,6 +31,9 @@ static function SettingsSchema()
 	'thumbnail_size'		=> array('default' => 120, 'title' => __('Thumbnail size'), 'type' => 'number', 'class' => 'num', 'size' => 8),
 	'base_auto_thumb'		=> array('default' => true, 'title' => __('Auto-detect thumbnails'), 'type' => 'checkbox', 'desc' => __('Images are considered as thumbnails for files with the same name when syncing. (e.g `file.jpg` &lt;=&gt; `file.zip`)', WPFB)),
 	
+	'fext_blacklist'		=> array('default' => 'db,tmp', 'title' => __('Extension Blacklist', WPFB), 'desc' => __('Files with an extension in this list are skipped while synchronisation. (seperate with comma)', WPFB), 'type' => 'text', 'class' => 'code', 'size' => 100),
+	
+	
 	// display
 	'auto_attach_files' 	=> array('default' => true,'title' => __('Show attached files', WPFB), 'type' => 'checkbox', 'desc' => __('If enabled, all associated files are listed below an article', WPFB)),
 	'filelist_sorting'		=> array('default' => 'file_display_name', 'title' => __('Default sorting', WPFB), 'type' => 'select', 'desc' => __('The file property lists are sorted by', WPFB), 'options' => self::FileSortFields()),
@@ -89,7 +92,7 @@ static function SettingsSchema()
 	'admin_bar'	=> array('default' => true, 'title' => __('Add WP-Filebase to admin menu bar', WPFB), 'type' => 'checkbox', 'desc' => __('Display some quick actions for file management in the admin menu bar.', WPFB)),
 	//'file_context_menu'	=> array('default' => true, 'title' => '', 'type' => 'checkbox', 'desc' => ''),
 	
-	'cron_sync'	=> array('default' => true, 'title' => __('Automatic Sync', WPFB), 'type' => 'checkbox', 'desc' => __('Schedules a cronjob to hourly synchronize the filesystem and the database.', WPFB)),
+	'cron_sync'	=> array('default' => false, 'title' => __('Automatic Sync', WPFB), 'type' => 'checkbox', 'desc' => __('Schedules a cronjob to hourly synchronize the filesystem and the database.', WPFB)),
 	
 	
 	'languages'				=> array('default' => "English|en\nDeutsch|de", 'title' => __('Languages'), 'type' => 'textarea', 'desc' => &$multiple_entries_desc),
@@ -506,7 +509,7 @@ static function InsertFile($data)
 	{
 		$file->file_size = filesize($file->GetLocalPath());
 		$file->file_hash = md5_file($file->GetLocalPath());
-		$file->file_date = !empty($file_date) ? $file_date : gmdate('Y-m-d H:i:s', filemtime($file->GetLocalPath()));
+		$file->SetModifiedTime(!empty($file_date) ? $file_date : gmdate('Y-m-d H:i:s', filemtime($file->GetLocalPath())));
 	}
 	
 	if($remote_redirect) {
@@ -518,6 +521,7 @@ static function InsertFile($data)
 		// no redirection, URI is not neede anymore
 		$data->file_remote_uri = '';
 		$file->file_remote_uri = '';
+		
 	}
 	
 	if(!empty($data->file_languages)) $file->file_language = implode('|', $data->file_languages);
@@ -642,7 +646,7 @@ static function Sync($hash_sync=false)
 		if($file->GetThumbPath())
 			$file_paths[] = str_replace('\\', '/', $file->GetThumbPath());
 		
-		// TODO: check for file changes
+		// TODO: check for file changes remotly
 		if($file->IsRemote())
 			continue;
 			
@@ -656,17 +660,18 @@ static function Sync($hash_sync=false)
 		$file_size = (int)@filesize($file_path);
 		$file_time = filemtime($file_path);
 		
-		if( ($hash_sync && $file->file_hash != $file_hash) || $file->file_size != $file_size)
+		if( ($hash_sync && $file->file_hash != $file_hash) || $file->file_size != $file_size || $file->GetModifiedTime() != $file_time)
 		{
 			$file->file_size = $file_size;
+			$file->file_date = gmdate('Y-m-d H:i:s', $file_time);
 			$file->file_hash = $hash_sync ? $file_hash : @md5_file($file_path);
 			
 			$result = $file->DBSave();
 			
 			if(!empty($result['error']))
-				$result['error'][] = $file;
+				$result['error'][$file->file_id] = $file;
 			else
-				$result['changed'][] = $file;
+				$result['changed'][$file->file_id] = $file;
 		}
 	}
 	
@@ -747,12 +752,18 @@ static function Sync($hash_sync=false)
 		}
 	}
 	
+	$fext_blacklist = array_map('strtolower', array_map('trim', explode(',', WPFB_Core::GetOpt('fext_blacklist'))));
+	
 	for($i = 0; $i < count($uploaded_files); $i++)
 	{
 		$fn = $uploaded_files[$i];
 		$fbn = basename($fn);
 		if(strlen($fn) < 2 || $fbn{0} == '.' || $fbn == '_wp-filebase.css' || strpos($fbn, '_caticon.') !== false || in_array($fn, $file_paths) || !is_file($fn) || !is_readable($fn))
-			continue;	
+			continue;
+			
+		// check for blacklisted extension		
+		if(!empty($fext_blacklist) && in_array(trim(strrchr($fbn, '.'),'.'), $fext_blacklist))
+			continue;
 					
 		$res = self::AddExistingFile($fn, empty($thumbnails[$fn]) ? null : $thumbnails[$fn]);			
 		if(empty($res['error']))

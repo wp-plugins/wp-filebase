@@ -162,7 +162,7 @@ jQuery(document).ready( function() {
 	</p>
 	<?php
 	
-	$common_tags = array('upload_path', 'thumbnail_size', 'base_auto_thumb',/*'cat_drop_down'*/'cron_sync');
+	$common_tags = array('upload_path', 'thumbnail_size', 'base_auto_thumb',/*'cat_drop_down'*/'cron_sync','fext_blacklist');
 	if(function_exists('wp_admin_bar_render'))
 		$common_tags[] = 'admin_bar';
 	

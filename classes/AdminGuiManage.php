@@ -244,7 +244,7 @@ static function Display()
 				
 				echo '<h2>' . __($t) . '</h2><ul>';
 				foreach($group as $item)
-					echo '<li>' . (is_object($item) ? $item->GetLocalPathRel() : $item) . '</li>';
+					echo '<li>' . (is_object($item) ? ('<a href="'.$item->GetEditUrl().'">'.$item->GetLocalPathRel().'</a>') : $item) . '</li>';
 				echo '</ul>';
 			}
 			
