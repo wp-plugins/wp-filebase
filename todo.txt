@@ -1,16 +1,12 @@
 Comments
-
-- exclude extension ölists
+- shortcode: file by path, not only id!!
 - update version on file sync cahnged
 - user upload paths
-- hide thumbs.db
 -disable automatic sync by default
 shocats=1 ?
 ajax tree view in multiple posts
 
-add alert if treeview ajax failuire
-
-shocats tag does not work if all cats selected
+showcats tag does not work if all cats selected
 
 -check sortings
 http://forum.wpml.org/topic.php?id=2894
@@ -67,15 +63,7 @@ rename hotlink to deeplink?
  
  
  ################### low
- index documents, find files
- 
- list sorting
- 
- // Final::
- check for old function calls
- test tag converter notice!!
- check css editor
- check hotlinking!!
+ index docum ents, find files
  
  fix analytics url bug
  

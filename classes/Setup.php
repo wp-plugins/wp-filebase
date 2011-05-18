@@ -52,6 +52,32 @@ static function AddTpls() {
 		'thumbnail' => '<div class="wpfilebase-fileicon"><a href="%file_url%" title="Download %file_display_name%"><img align="middle" src="%file_icon_url%" /></a></div>'."\n",
 		'simple'	=> '<p><img src="%file_icon_url%" style="height:20px;vertical-align:middle;" /> <a href="%file_url%" title="Download %file_display_name%">%file_display_name%</a> (%file_size%)</p>',
 		'3-col-row' => '<tr><td><a href="%file_url%">%file_display_name%</a></td><td>%file_size%</td><td>%file_hits%</td></tr>',
+		'mp3' => '<div class="wpfilebase-attachment">
+ <div class="wpfilebase-fileicon"><a href="%file_url%" title="Download %file_display_name%"><img align="middle" src="%file_icon_url%" alt="%file_display_name%" height="80"/></a></div>
+ <div class="wpfilebase-rightcol">
+  <div class="wpfilebase-filetitle">
+   <a href="%file_url%" title="Download %file_display_name%">%file_info/tags/id3v2/title%</a><br />
+%file_info/tags/id3v2/artist%<br />
+%file_info/tags/id3v2/album%<br />
+   <!-- IF %file_post_id% AND %post_id% != %file_post_id% --><a href="%file_post_url%" class="wpfilebase-postlink">%\'View post\'%</a><!-- ENDIF -->
+  </div>
+ </div>
+ <div class="wpfilebase-fileinfo">
+  %file_info/playtime_string%<br />
+  %file_info/bitrate%<br />
+  %file_size%<br />
+  %file_hits% %\'Downloads\'%<br />
+ </div>
+ <div style="clear: both;"></div>
+</div>',
+	
+	'flv-player' => "<!-- the player only works when permalinks are enabled!!! -->
+ <object width='%file_info/video/resolution_x%' height='%file_info/video/resolution_y%' id='flvPlayer%uid%'>
+  <param name='allowFullScreen' value='true'>
+   <param name='allowScriptAccess' value='always'> 
+  <param name='movie' value='%wpfb_url%extras/flvplayer/OSplayer.swf?movie=%file_url_encoded%&btncolor=0x333333&accentcolor=0x31b8e9&txtcolor=0xdddddd&volume=30&autoload=on&autoplay=off&vTitle=%file_display_name%&showTitle=yes'>
+  <embed src='%wpfb_url%extras/flvplayer/OSplayer.swf?movie=%file_url_encoded%&btncolor=0x333333&accentcolor=0x31b8e9&txtcolor=0xdddddd&volume=30&autoload=on&autoplay=off&vTitle=%file_display_name%&showTitle=yes' width='%file_info/video/resolution_x%' height='%file_info/video/resolution_y%' allowFullScreen='true' type='application/x-shockwave-flash' allowScriptAccess='always'>
+ </object>",
 	);
 	
 	$tpls_cat = array(
@@ -86,7 +112,13 @@ static function AddTpls() {
 <div class="tablenav-pages">%page_nav%</div>',
 			'file_tpl_tag' => '3-col-row',
 			'cat_tpl_tag' => '3-col-row'
-		)
+		),		
+		'mp3-list' => array(
+			'header' => '',
+			'footer' => '',
+			'file_tpl_tag' => 'mp3',
+			'cat_tpl_tag' => 'default'
+		),
 	);		
 	add_option(WPFB_OPT_NAME.'_list_tpls', $list_tpls, null, 'no'/*autoload*/); 
 		
@@ -143,6 +175,7 @@ static function SetupDBTables()
 	$queries = array();
 	$tbl_cats = $wpdb->prefix . 'wpfb_cats';
 	$tbl_files = $wpdb->prefix . 'wpfb_files';
+	$tbl_files_id3 = $wpdb->prefix . 'wpfb_files_id3';
 	
 	$queries[] = "CREATE TABLE IF NOT EXISTS `$tbl_cats` (
   `cat_id` int(8) unsigned NOT NULL auto_increment,
@@ -193,7 +226,15 @@ static function SetupDBTables()
   `file_last_dl_time` datetime NOT NULL default '0000-00-00 00:00:00',
   PRIMARY KEY  (`file_id`),
   FULLTEXT KEY `FULLTEXT` (`file_description`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1";
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1";	
+	
+	$queries[] = "CREATE TABLE IF NOT EXISTS `$tbl_files_id3` (
+  `file_id` bigint(20) unsigned NOT NULL auto_increment,
+  `analyzetime` INT(11) NOT NULL DEFAULT '0',
+  `value` TEXT NOT NULL,
+  `keywords` TEXT NOT NULL,
+  PRIMARY KEY  (`file_id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8";
 
 
 	// errors of queries starting with @ are supressed
@@ -246,7 +287,7 @@ static function SetupDBTables()
 static function DropDBTables()
 {
 	global $wpdb;	
-	$tables = array($wpdb->wpfilebase_files, $wpdb->wpfilebase_cats);		
+	$tables = array($wpdb->wpfilebase_files, $wpdb->wpfilebase_files_id3, $wpdb->wpfilebase_cats);		
 	foreach($tables as $tbl)
 		$wpdb->query("DROP TABLE IF EXISTS `$tbl`");
 }

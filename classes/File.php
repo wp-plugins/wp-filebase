@@ -129,7 +129,7 @@ class WPFB_File extends WPFB_Item {
 			return;
 		}
 			
-		$this->DeleteThumbnail();
+		$this->DeleteThumbnail(); // delete old thumbnail
 		
 		$thumb = null;
 		$thumb_size = (int)WPFB_Core::GetOpt('thumbnail_size');
@@ -232,16 +232,50 @@ class WPFB_File extends WPFB_Item {
 			$parent->NotifyFileRemoved($this);
 		
 		// remove file entry
-		$wpdb->query("DELETE FROM " . $wpdb->wpfilebase_files . " WHERE file_id = " . (int)$this->file_id);
+		$wpdb->query("DELETE FROM $wpdb->wpfilebase_files WHERE file_id = " . (int)$this->file_id);
+		
+		$wpdb->query("DELETE FROM $wpdb->wpfilebase_files_id3 WHERE file_id = " . (int)$this->file_id);
 		// remove all sub file entries TODO
 		//$wpdb->query("DELETE FROM " . $wpdb->wpfilebase_subfiles . " WHERE subfile_parent_file = " . (int)$this->file_id);
 			
 		return $this->Delete();
 	}
 	
+	
+	private function getInfoValue(&$path)
+	{
+		if(!isset($this->info))
+		{
+			global $wpdb;
+			if($this->file_id <= 0) return join('->', $path);			
+			$info = $wpdb->get_var("SELECT value FROM $wpdb->wpfilebase_files_id3 WHERE file_id = $this->file_id");
+			$this->info = is_null($info) ? 0 : unserialize(base64_decode($info));
+		}
+		
+		if(empty($this->info))
+			return null;
+		
+		$val = $this->info;
+		foreach($path as $p)
+		{
+			if(!isset($val[$p])) {
+				if(isset($val[0]) && count($val) == 1) // if single array skip to first element
+					$val = $val[0];
+				else
+					return null;				
+			}
+			$val = $val[$p];
+		}		
+		if(is_array($val)) $val = join(', ', $val);
+		if($p == 'bitrate') {
+			$val /= 1000;
+			$val = round($val).' kBit/s';
+		}
+		return $val;
+	}
     
-    private function _get_tpl_var($name)
-    {
+    private function getTplVar($name)
+    {		
 		switch($name) {
 			case 'file_url':			return $this->GetUrl();
 			case 'file_url_rel':		return WPFB_Core::GetOpt('download_base') . '/' . str_replace('\\', '/', $this->GetLocalPathRel());
@@ -265,14 +299,23 @@ class WPFB_File extends WPFB_Item {
 			case 'file_extension':		return strtolower(substr(strrchr($this->file_name, '.'), 1));
 			case 'file_type': 			return wpfb_call('Download', 'GetFileType', $this->file_name);
 			
+			case 'file_url_encoded':	return urlencode($this->GetUrl());
+			
 			case 'uid':					return self::$tpl_uid;
 		}
+		
+    	if(strpos($name, 'file_info/') === 0)
+		{
+			$path = explode('/',substr($name, 10));
+			return $this->getInfoValue($path);
+		}
+		
 		return isset($this->$name) ? $this->$name : '';
     }
 	
 	function get_tpl_var($name) {
 		static $no_esc = array('file_languages', 'file_platforms', 'file_requirements', 'file_license', 'file_small_icon');
-		return in_array($name, $no_esc) ? $this->_get_tpl_var($name) : htmlspecialchars($this->_get_tpl_var($name));
+		return in_array($name, $no_esc) ? $this->getTplVar($name) : htmlspecialchars($this->getTplVar($name));
 	}
 	
 	function DownloadDenied($msg_id) {

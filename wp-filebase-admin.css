@@ -29,6 +29,11 @@
 
 #wpfb-tabs {
 	border: 1px solid #e3e3e3;
+	
+	-moz-border-radius: 5px;
+	-khtml-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	border-radius: 5px;
 }
 
 #wpfb-tabs legend {
@@ -39,7 +44,7 @@
 .wpfb-tab-menu {
 	background:#e3e3e3;
 	border-bottom:none;
-	margin:0 0 3px;
+	margin:0 0 3px; 
 	padding:3px 1em 0;
 }
 .wpfb-tab-menu li {height:25px;display:inline;line-height:200%;list-style:none;text-align:center;white-space:nowrap; margin-right: 15px;}

@@ -7,6 +7,9 @@ $in_widget = !empty($in_widget);
 $in_editor = !empty($in_editor);
 
 $exform = $update || (!$in_editor && !empty($exform));
+
+$multi_edit = !empty($multi_edit);
+//$item_ids
 	
 if(empty($item))
 	$file = new WPFB_File();
@@ -49,9 +52,10 @@ function WPFB_switchFileUpload(i)
 
 
 <input type="hidden" name="action" value="<?php echo $action ?>" />
-<?php if($update) { ?><input type="hidden" name="file_id" value="<?php echo $file->file_id ?>" /><?php } ?>
-<?php wp_nonce_field($action . ($update ? $file->file_id : '')); ?>
+<?php if($update) { ?><input type="hidden" name="file_id" value="<?php echo $multi_edit ? $item_ids : $file->file_id; ?>" /><?php } ?>
+<?php wp_nonce_field($action . ($update ? ($multi_edit ? $item_ids : $file->file_id) : '')); ?>
 <table class="form-table">
+<?php if(!$multi_edit) { ?>
 	<tr id="wpfilebase-form-upload-row">
 		<th scope="row" valign="top" id="wpfilebase-upload-menu">
 			<a href="#" <?php echo ($file->IsRemote() ? '' : 'class="current"'); ?> onclick="return WPFB_switchFileUpload(0)"><?php _e('Upload')?></a>
@@ -88,6 +92,7 @@ function WPFB_switchFileUpload(i)
 		</td>
 		<?php } else { ?><th scope="row"></th><td colspan="3"><?php _e('The following fields are optional.', WPFB) ?></td><?php } ?>
 	</tr>
+<?php } /*multi_edit*/ ?>
 	<tr class="form-field">
 		<th scope="row" valign="top"><label for="file_display_name"><?php _e('Title') ?></label></th>
 		<td width="60%"><input name="file_display_name" id="file_display_name" type="text" value="<?php echo esc_attr($file->file_display_name); ?>" size="<?php echo ($in_editor||$in_widget) ? 20 : 40 ?>" /></td>
@@ -179,4 +184,35 @@ function WPFB_switchFileUpload(i)
 	<?php } ?>
 </table>
 <p class="submit"><input type="submit" class="button-primary" name="submit-btn" value="<?php echo $title ?>" <?php if(false && !$in_editor) { ?>onclick="this.form.submit(); return false;"<?php } ?>/></p>
+
+<?php
+if($update)
+{
+	wpfb_loadclass('GetID3');
+	$info = WPFB_GetID3::GetFileInfo($file);
+	if(!empty($info)) {		
+		add_meta_box('wpfb_file_info_paths', __('File Info Tags (ID3 Tags)', WPFB), array('WPFB_AdminGuiFiles','FileInfoPathsBox'), 'wpfb_file_form', 'normal', 'core');
+	?>
+		<div id="dashboard-widgets-wrap">
+			<div id="dashboard-widgets" class="metabox-holder">
+				<div id="post-body">
+					<div id="dashboard-widgets-main-content" class="postbox-container">
+						<?php do_meta_boxes('wpfb_file_form', 'normal', $info); ?>
+					</div>
+				</div>
+			</div>
+		</div>
+		<script type="text/javascript">
+			//<![CDATA[
+			jQuery(document).ready( function($) {
+				// postboxes setup					
+				postboxes.add_postbox_toggles('wpfb_file_form');
+				jQuery('.postbox h3, .postbox .handlediv').parent('.postbox').toggleClass('closed');
+			});
+			//]]>
+		</script>
+	<?php
+	}
+}
+?>
 </form>

@@ -162,19 +162,20 @@ jQuery(document).ready( function() {
 	</p>
 	<?php
 	
-	$common_tags = array('upload_path', 'thumbnail_size', 'base_auto_thumb',/*'cat_drop_down'*/'cron_sync','fext_blacklist');
+	$misc_tags = array('hide_links','base_auto_thumb','cron_sync','fext_blacklist','disable_id3','search_id3');
 	if(function_exists('wp_admin_bar_render'))
-		$common_tags[] = 'admin_bar';
+		$misc_tags[] = 'admin_bar';
 	
 	$option_categories = array(
-		__('Common', WPFB)					=> $common_tags,
-		__('Display', WPFB)					=> array('auto_attach_files', 'filelist_sorting', 'filelist_sorting_dir', 'filelist_num', /* TODO: remove? 'parse_tags_rss',*/ 'decimal_size_format'),
+		__('Common', WPFB)					=> array('upload_path', /*'cat_drop_down'*/),
+		__('Display', WPFB)					=> array('thumbnail_size','auto_attach_files', 'filelist_sorting', 'filelist_sorting_dir', 'filelist_num', /* TODO: remove? 'parse_tags_rss',*/ 'decimal_size_format'),
 		__('File Browser',WPFB)				=> array('file_browser_post_id','file_browser_cat_sort_by','file_browser_cat_sort_dir','file_browser_file_sort_by','file_browser_file_sort_dir'),
-		__('Download', WPFB)				=> array('disable_permalinks', 'download_base', 'force_download', 'range_download', 'hide_links', 'ignore_admin_dls', 'accept_empty_referers','allowed_referers'),
+		__('Download', WPFB)				=> array('disable_permalinks', 'download_base', 'force_download', 'range_download', 'http_nocache', 'ignore_admin_dls', 'accept_empty_referers','allowed_referers'),
 		__('Form Presets', WPFB)			=> array('languages', 'platforms', 'licenses', 'requirements'),
 		__('Limits', WPFB)					=> array('bitrate_unregistered', 'bitrate_registered', 'traffic_day', 'traffic_month', 'traffic_exceeded_msg', 'file_offline_msg', 'daily_user_limits', 'daily_limit_subscriber', 'daily_limit_contributor', 'daily_limit_author', 'daily_limit_editor', 'daily_limit_exceeded_msg'),
 		__('Security', WPFB)				=> array('allow_srv_script_upload', 'hide_inaccessible', 'inaccessible_msg', 'inaccessible_redirect', 'login_redirect_src', 'protect_upload_path'),
-		__('Templates and Scripts', WPFB)	=> array('template_file', 'template_cat', 'dlclick_js')
+		__('Templates and Scripts', WPFB)	=> array('template_file', 'template_cat', 'dlclick_js'),
+		__('Misc')							=> $misc_tags
 	);
 	?>
 	<div id="wpfb-tabs">

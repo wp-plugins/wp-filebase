@@ -11,6 +11,8 @@ static function PostsJoin($join)
 {
 	global $wpdb;	
 	$join .= " LEFT JOIN $wpdb->wpfilebase_files ON ( $wpdb->wpfilebase_files.file_post_id = $wpdb->posts.ID ) ";
+	if(WPFB_Core::GetOpt('search_id3')) 
+		$join .= " LEFT JOIN $wpdb->wpfilebase_files_id3 ON ( $wpdb->wpfilebase_files_id3.file_id = $wpdb->wpfilebase_files.file_id ) ";
 	return $join;
 }
 
@@ -38,7 +40,7 @@ static function _GetSearchTerms($s)
 static function SearchWhereSql($s=null) {
 	global $wp_query, $wpdb;
 	
-	$search_fields = array('name', 'thumbnail', 'display_name', 'description', 'requirement', 'version', 'author', 'language', 'platform', 'license');	
+	static $search_fields = array('name', 'thumbnail', 'display_name', 'description', 'requirement', 'version', 'author', 'language', 'platform', 'license');	
 	
 	if(empty($s)) {
 		$s = empty($wp_query->query_vars['s']) ? (empty($_GET['s']) ? null : stripslashes($_GET['s'])) : $wp_query->query_vars['s'];
@@ -50,12 +52,24 @@ static function SearchWhereSql($s=null) {
 	//print_r($search_terms);
 	$where = '';
 	
+	$t = $wpdb->escape($s);
+			
 	foreach($search_fields as $sf)
 	{
 		$col = "{$wpdb->wpfilebase_files}.file_{$sf}";
-		$t = $wpdb->escape($s);
 		$where .= " OR ({$col} LIKE '{$p}{$t}{$p}') OR (";
 		
+		$and = '';
+		foreach($search_terms as $term) {
+			$where .= " {$and} {$col} LIKE '{$p}{$term}{$p}'";
+			if(empty($and)) $and = 'AND';
+		}
+		$where .= ")";
+	}
+	
+	if(WPFB_Core::GetOpt('search_id3')) {
+		$col = "{$wpdb->wpfilebase_files_id3}.keywords";
+		$where .= " OR ({$col} LIKE '{$p}{$t}{$p}') OR (";		
 		$and = '';
 		foreach($search_terms as $term) {
 			$where .= " {$and} {$col} LIKE '{$p}{$term}{$p}'";

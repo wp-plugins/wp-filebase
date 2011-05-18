@@ -303,6 +303,8 @@ function SendFile($file_path, $bandwidth = 0, $etag = null, $force_download=fals
 	error_reporting(0);
 	while(@ob_end_clean()){}
 	
+	$no_cache = WPFB_Core::GetOpt('http_nocache');
+	
 	// remove some headers
 	if(function_exists('header_remove')) {
 		header_remove();
@@ -324,29 +326,36 @@ function SendFile($file_path, $bandwidth = 0, $etag = null, $force_download=fals
 		$etag = md5("$size|$time|$file_type");
 	
 	// set basic headers
-	header("Pragma: public");
-	header("Cache-Control: public");
+	header("Pragma: " . ($no_cache ? "no-cache" : "public"));
+	header("Cache-Control: " . ($no_cache ? "no-cache, must-revalidate, max-age=0" : "public"));
+	if($no_cache)
+		header( 'Expires: Wed, 11 Jan 1984 05:00:00 GMT' );		
+		
 	header("Connection: close");
 	header("Content-Type: " . $file_type . ((strpos($file_type, 'text/') !== false) ? '; charset=' : '')); 	// charset fix
-	header("Last-Modified: " . gmdate("D, d M Y H:i:s", $time) . " GMT");
-	header("ETag: $etag");
+	header("Last-Modified: " . gmdate("D, d M Y H:i:s", $no_cache ? time() : $time) . " GMT");
 	
-	$if_mod_since = !empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) ? $_SERVER['HTTP_IF_MODIFIED_SINCE'] : false;
-	$if_none_match = !empty($_SERVER['HTTP_IF_NONE_MATCH']) ? $_SERVER['HTTP_IF_NONE_MATCH'] : false;
-	
-	if($if_mod_since || $if_none_match) {
-		$not_modified = true;
+	if(!$no_cache)
+	{
+		header("ETag: $etag");
 		
-		if($not_modified && $if_mod_since)
-			$not_modified = (@strtotime($if_mod_since) >= $time);
+		$if_mod_since = !empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) ? $_SERVER['HTTP_IF_MODIFIED_SINCE'] : false;
+		$if_none_match = !empty($_SERVER['HTTP_IF_NONE_MATCH']) ? $_SERVER['HTTP_IF_NONE_MATCH'] : false;
+		
+		if($if_mod_since || $if_none_match) {
+			$not_modified = true;
 			
-		if($not_modified && $if_none_match)
-			$not_modified = ($if_none_match == $etag);
-			
-		if($not_modified) {
-			header("Content-Length: " . $size);
-			header("HTTP/1.x 304 Not Modified");
-			exit;
+			if($not_modified && $if_mod_since)
+				$not_modified = (@strtotime($if_mod_since) >= $time);
+				
+			if($not_modified && $if_none_match)
+				$not_modified = ($if_none_match == $etag);
+				
+			if($not_modified) {
+				header("Content-Length: " . $size);
+				header("HTTP/1.x 304 Not Modified");
+				exit;
+			}
 		}
 	}
 	

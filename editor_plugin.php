@@ -304,7 +304,7 @@ function insertTag(tagObj)
 	for(var t in tagObj) {
 		v = tagObj[t];
 		if(v != '' && t != 'linktext') {
-			q = (!isNaN(v) || v.search(/^[a-z0-9]+$/i) != -1) ? "" : "'";			
+			q = (!isNaN(v) || v.search(/^[a-z0-9-]+$/i) != -1) ? "" : "'";			
 			str += ' '+t+"="+q+v+q;
 		}
 	}

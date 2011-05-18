@@ -1,10 +1,10 @@
-﻿=== WP-Filebase ===
+﻿=== WP-Filebase Download Manager ===
 Contributors: fabifott
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=money%40fabi-s%2ede&item_name=WP-Filebase&no_shipping=0&no_note=1&tax=0&currency_code=USD&lc=US&bn=PP%2dDonationsBF&charset=UTF%2d8
-Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, traffic, widget, filelist, list, thumb, thumbnail, attachment, attachments, category, categories, media, template, ftp, http
+Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, traffic, widget, filelist, list, thumb, thumbnail, attachment, attachments, category, categories, media, template, ftp, http, mp3, id3
 Requires at least: 3.1
 Tested up to: 3.1.2
-Stable tag: 0.2.8.5
+Stable tag: 0.2.9
 
 Adds a powerful downloads manager supporting file categories, download counter, widgets, sorted file lists and more to your WordPress blog.
 
@@ -12,6 +12,15 @@ Adds a powerful downloads manager supporting file categories, download counter, 
 
 WP-Filebase is an allround file manager for Wordpress.
 It keeps files structured in categories, offers a template system to create sortable, paginated file lists and can sideload files from other websites.
+The plugin is made for easy management of many files and consistent output using templates.
+
+With WP-Filebase you can...
+
+*	create dynamic paginated and sortable file lists
+*	build photo galleries
+*	embed flash (or other formats) videos using a template player
+*	easily publish MP3 and other audio files with automatic ID3 tag detection
+*	restrict downloads for certain user roles
 
 Some more features:
 
@@ -20,6 +29,7 @@ Some more features:
 *	Built-in download counter
 *	File List Widget
 *	Ajax file tree browser
+*	Reads ID3 Tags and other file info of the most common file types (JPEG, videos etc...)
 *	Customizable template system
 *	Insert flexible shortcodes with the Visual Editor Plugin
 *	Sortable paginated file lists
@@ -92,6 +102,15 @@ Goto WP-Filebase Settings and disable Permalinks under "Download". Try to disabl
 4. The Editor Button to insert tags for filelists and download urls
 
 == Changelog ==
+
+= 0.2.9 =
+* New Feature: Files are scanned for ID3 tags and other data that can be displayed in templates
+* Automatic thumbnails out of MP3 cover arts
+* New default templates for MP3 files
+* New default template for FLV videos (including player)
+* Added option for disabling HTTP Caching
+* Re-structured setting tabs
+* Thumbnail fix
 
 = 0.2.8.5 =
 * Added support for multiple embedded AJAX file tree views (file browsers)

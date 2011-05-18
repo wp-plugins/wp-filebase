@@ -122,7 +122,9 @@ static function DownloadRedirect()
 		$file = WPFB_File::GetFile((int)$_GET['wpfb_dl']);
 		@ob_end_clean(); // FIX: clean the OB so any output before the actual download is truncated (OB is started in wp-filebase.php)
 	} else {
-		$dl_url_path = parse_url(home_url(WPFB_Core::GetOpt('download_base').'/'), PHP_URL_PATH);
+		$base = WPFB_Core::GetOpt('download_base');
+		if(!$base || is_admin()) return;
+		$dl_url_path = parse_url(home_url($base.'/'), PHP_URL_PATH);
 		$pos = strpos($_SERVER['REQUEST_URI'], $dl_url_path);
 		if($pos !== false && $pos == 0) {
 			$filepath = trim(urldecode(substr($_SERVER['REQUEST_URI'], strlen($dl_url_path))), '/');
@@ -450,6 +452,8 @@ static function AdminBar() {
 		$wp_admin_bar->add_menu( array( 'parent' => WPFB, 'id' => WPFB.'-attachments', 'title' => __('Manage attachments', WPFB), 'href' => $link,
 		'meta' => array('onclick' => 'window.open("'.$link.'", "wpfb-manage-attachments", "width=680,height=400,menubar=no,location=no,resizable=no,status=no,toolbar=no,scrollbars=yes");return false;')));
 	}
+	
+	$wp_admin_bar->add_menu(array('parent' => WPFB, 'id' => WPFB.'-add-file', 'title' => __('Sync Filebase', WPFB), 'href' => admin_url('admin.php?page=wpfilebase_manage&action=sync')));
 	
 	$wp_admin_bar->add_menu(array('parent' => WPFB, 'id' => WPFB.'-toggle-context-menu', 'title' => __(self::GetOpt('file_context_menu')?'Disable file context menu':'Enable file context menu', WPFB), 'href' => '',
 	'meta' => array('onclick' => 'return wpfb_toggleContextMenu();')));

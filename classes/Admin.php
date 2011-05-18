@@ -79,6 +79,8 @@ static function SettingsSchema()
 	'inaccessible_redirect'	=> array('default' => false, 'title' => __('Redirect to login', WPFB), 'type' => 'checkbox', 'desc' => __('Guests trying to download inaccessible files are redirected to the login page if this option is enabled.', WPFB)),
 	'login_redirect_src'	=> array('default' => false, 'title' => __('Redirect to referring page after login', WPFB), 'type' => 'checkbox', 'desc' => __('Users are redirected to the page where they clicked on the download link after logging in.', WPFB)),
 	
+	'http_nocache'			=> array('default' => false, 'title' => __('Disable HTTP Caching', WPFB), 'type' => 'checkbox', 'desc' => __('Enable this if you have problems with downloads while using Wordpress with a cache plugin.', WPFB)),
+	
 	'parse_tags_rss'		=> array('default' => true, 'title' => __('Parse template tags in RSS feeds', WPFB), 'type' => 'checkbox', 'desc' => __('If enabled WP-Filebase content tags are parsed in RSS feeds.', WPFB)),
 	
 	'allow_srv_script_upload'	=> array('default' => false, 'title' => __('Allow script upload', WPFB), 'type' => 'checkbox', 'desc' => __('If you enable this, scripts like PHP or CGI can be uploaded. <b>WARNING:</b> Enabling script uploads is a <b>security risk</b>!', WPFB)),
@@ -93,6 +95,10 @@ static function SettingsSchema()
 	//'file_context_menu'	=> array('default' => true, 'title' => '', 'type' => 'checkbox', 'desc' => ''),
 	
 	'cron_sync'	=> array('default' => false, 'title' => __('Automatic Sync', WPFB), 'type' => 'checkbox', 'desc' => __('Schedules a cronjob to hourly synchronize the filesystem and the database.', WPFB)),
+	
+	'disable_id3' =>  array('default' => false, 'title' => __('Disable ID3 tag detection', WPFB), 'type' => 'checkbox', 'desc' => __('This disables all meta file info reading. Use this option if you have issues adding large files.', WPFB)),
+	
+	'search_id3' =>  array('default' => false, 'title' => __('Search ID3 Tags', WPFB), 'type' => 'checkbox', 'desc' => __('Search in file meta data, like ID3 for MP3 files, EXIF for JPEG... (this option does not increase significantly server load since all data is cached in a MySQL table)', WPFB)),
 	
 	
 	'languages'				=> array('default' => "English|en\nDeutsch|de", 'title' => __('Languages'), 'type' => 'textarea', 'desc' => &$multiple_entries_desc),
@@ -223,6 +229,7 @@ static function TplVarsDesc($for_cat=false)
 	'file_type'				=> sprintf(__('File content type (e.g. \'%s\')', WPFB), 'image/png'),
 	
 	'file_url'				=> __('Download URL', WPFB),
+	'file_url_encoded'		=> __('Download URL encoded for use in query strings', WPFB),
 	'file_post_url'			=> __('URL of the post/page this file belongs to', WPFB),
 	'file_icon_url'			=> __('URL of the thumbnail or icon', WPFB),
 	'file_path'				=> __('Category path and file name (e.g cat1/cat2/file.ext)', WPFB),
@@ -231,6 +238,7 @@ static function TplVarsDesc($for_cat=false)
 	
 	'uid'					=> __('A unique ID number to identify elements within a template', WPFB),
 	'post_id'				=> __('ID of the current post or page', WPFB),
+	'wpfb_url'				=> sprintf(__('Plugin root URL (%s)',WPFB), WPFB_PLUGIN_URI)
 	);
 }
 
@@ -290,6 +298,7 @@ static function TplFieldsSelect($input, $short=false, $for_cat=false)
 	foreach(self::TplVarsDesc($for_cat) as $tag => $desc)
 		$out .= '<option value="'.$tag.'" title="'.$desc.'">'.$tag.($short ? '' : ' ('.$desc.')').'</option>';
 	$out .= '</select>';
+	$out .= '<small>(For some files there are more tags available. You find a list of all tags below the form when editing a file.)</small>';
 	return $out;
 }
 
@@ -454,7 +463,7 @@ static function InsertFile($data)
 	
 	// do some simple file stuff
 	if($update && (!empty($data->file_delete_thumb) || $upload_thumb)) $file->DeleteThumbnail(); // delete thumbnail if user wants to	
-	if($update && ($upload||$remote_upload)) $file->delete(); // if we update, delete the old file
+	if($update && ($upload||$remote_upload)) $file->Delete(); // if we update, delete the old file
 	
 
 	// handle display name and version
@@ -476,7 +485,7 @@ static function InsertFile($data)
 	// if there is an uploaded file 
 	if($upload) {
 		if(@file_exists($file->GetLocalPath())) return array( 'error' => sprintf( __( 'File %s already exists. You have to delete it first!', WPFB), $file->GetLocalPath() ) );
-		if(!@move_uploaded_file($file_src_path, $file->GetLocalPath()) || !@file_exists($file->GetLocalPath())) return array( 'error' => sprintf( __( 'Unable to move file %s! Is the upload directory writeable?', WPFB), $file->file_name ) );		
+		if(!@move_uploaded_file($file_src_path, $file->GetLocalPath()) || !@file_exists($file->GetLocalPath())) return array( 'error' => sprintf( __( 'Unable to move file %s! Is the upload directory writeable?', WPFB), $file->file_name ) );
 	} elseif($remote_upload) {
 		require_once(ABSPATH . 'wp-admin/includes/file.php');			
 		$result = self::SideloadFile($data->file_remote_uri);
@@ -509,7 +518,23 @@ static function InsertFile($data)
 	{
 		$file->file_size = filesize($file->GetLocalPath());
 		$file->file_hash = md5_file($file->GetLocalPath());
+		
 		$file->SetModifiedTime(!empty($file_date) ? $file_date : gmdate('Y-m-d H:i:s', filemtime($file->GetLocalPath())));
+		
+		if(!WPFB_Core::GetOpt('disable_id3'))
+		{
+			wpfb_loadclass('GetID3');
+			$file_info = WPFB_GetID3::AnalyzeFile($file->GetLocalPath());
+		}
+		
+		if(!$upload_thumb && empty($data->file_thumbnail) && !empty($file_info['tags']['id3v2']['picture']))
+		{
+			$cover = $file->GetLocalPath();
+			$cover = substr($cover,0,strrpos($cover,'.')).'.jpg';
+			file_put_contents($cover, $file_info['tags']['id3v2']['picture'][0]['data']);
+			$file->CreateThumbnail($cover, true);
+			@unlink($cover);
+		}
 	}
 	
 	if($remote_redirect) {
@@ -564,7 +589,10 @@ static function InsertFile($data)
 	$file->Lock(false);
 	$result = $file->DBSave();	
 	if(!empty($result['error'])) return $result;		
-	$file_id = (int)$result['file_id'];	
+	$file_id = (int)$result['file_id'];
+	
+	if(!empty($file_info))
+		WPFB_GetID3::StoreFileInfo($file_id, $file_info);
 	
 	return array( 'error' => false, 'file_id' => $file_id);
 }
@@ -630,7 +658,7 @@ static function SideloadFile($url) {
 static function Sync($hash_sync=false)
 {
 	@set_time_limit(0);
-	
+	wpfb_loadclass("GetID3");
 	require_once(ABSPATH . 'wp-admin/includes/file.php');
 	
 	$result = array('missing_files' => array(), 'missing_folders' => array(), 'changed' => array(), 'not_added' => array(), 'error' => array(), 'updated_categories' => array());
@@ -659,19 +687,24 @@ static function Sync($hash_sync=false)
 		if($hash_sync) $file_hash = @md5_file($file_path);
 		$file_size = (int)@filesize($file_path);
 		$file_time = filemtime($file_path);
+		$file_analyzetime = WPFB_Core::GetOpt('disable_id3') ? $file_time : WPFB_GetID3::GetFileAnalyzeTime($file);
+		if(is_null($file_analyzetime)) $file_analyzetime = 0;
 		
-		if( ($hash_sync && $file->file_hash != $file_hash) || $file->file_size != $file_size || $file->GetModifiedTime() != $file_time)
+		if( ($hash_sync && $file->file_hash != $file_hash) || $file->file_size != $file_size || $file->GetModifiedTime() != $file_time || $file_analyzetime < $file_time)
 		{
 			$file->file_size = $file_size;
 			$file->file_date = gmdate('Y-m-d H:i:s', $file_time);
 			$file->file_hash = $hash_sync ? $file_hash : @md5_file($file_path);
 			
-			$result = $file->DBSave();
+			if(!WPFB_Core::GetOpt('disable_id3'))
+				WPFB_GetID3::UpdateCachedFileInfo($file);
 			
-			if(!empty($result['error']))
-				$result['error'][$file->file_id] = $file;
+			$res = $file->DBSave();
+			
+			if(!empty($res['error']))
+				$result['error'][$id] = $file;
 			else
-				$result['changed'][$file->file_id] = $file;
+				$result['changed'][$id] = $file;
 		}
 	}
 	

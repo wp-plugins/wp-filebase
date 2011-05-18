@@ -8,6 +8,7 @@ class WPFB_ListTpl {
 	var $cat_tpl_tag;
 		
 	static function Get($tag) {
+		$tag = trim($tag, '\'');
 		$tpls = get_option(WPFB_OPT_NAME.'_list_tpls');
 		return isset($tpls[$tag]) ? new WPFB_ListTpl($tag, $tpls[$tag]) : null;
 	}

@@ -154,7 +154,7 @@ static function Display()
 			<p>
 			<?php echo WPFB_PLUGIN_NAME . ' ' . WPFB_VERSION ?> Copyright &copy; 2011 by Fabian Schlieper <a href="http://fabi.me/">
 			<?php if(strpos($_SERVER['SERVER_PROTOCOL'], 'HTTPS') === false) { ?><img src="http://fabi.me/misc/wpfb_icon.gif?lang=<?php if(defined('WPLANG')) {echo WPLANG;} ?>" alt="" /><?php } ?> fabi.me</a><br/>
-			Includes code of the thumbnail generator <a href="http://phpthumb.sourceforge.net">phpThumb()</a> by James Heinrich
+			Includes the great file analyzer <a href="http://www.getid3.org/">getID3()</a> by James Heinrich
 			</p><?php
 			break;
 			
@@ -286,4 +286,5 @@ static function ProgressBar($progress, $label)
 	$progress = round(100 * $progress);
 	echo "<div class='wpfilebase-progress'><div class='progress'><div class='bar' style='width: $progress%'></div></div><div class='label'><strong>$progress %</strong> ($label)</div></div>";
 }
+
 }

@@ -198,4 +198,27 @@ static function Display()
 </div> <!-- wrap -->
 <?php
 }
+
+
+static function PrintFileInfo($info, $path='file_info')
+{
+	foreach($info as $key => $val)
+	{
+		$p = $path.'/'.$key;
+		if(is_array($val) && count($val) == 1 && isset($val[0])) // if its a single array, just take the first element
+			$val = $val[0];
+		echo '<b>',$p,"</b> = ",$val,"\n";
+		if(is_array($val) || is_object($val))
+		{			
+			self::PrintFileInfo($val, $p);
+		}
+	}
+}
+
+static function FileInfoPathsBox($info)
+{
+	?><p>The following tags can be used in templates. For example, if you want to display the Title of a MP3 File, put <code>%file_info/tags/id3v2/artist%</code> inside the template code.</p>
+	<p><pre><?php self::PrintFileInfo($info); ?></pre></p>
+	<?php
+}
 }

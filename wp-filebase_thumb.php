@@ -1,6 +1,12 @@
 <?php
-require(dirname(__FILE__).'/../../../wp-config.php');
+ob_start();  // suppress any errors
+
+error_reporting(0);
+require(dirname(__FILE__).'/../../../wp-load.php');
+error_reporting(0);
 wpfb_loadclass('File','Category','Download');
+
+@ob_end_clean(); // suppress any errors
 
 $item = null;
 
@@ -22,7 +28,8 @@ if(isset($_GET['fid'])) {
 	
 if($item == null || !$item->CurUserCanAccess(true))
 	exit;
-	
+
+
 // if no thumbnail, redirect
 if(empty($item->file_thumbnail) && empty($item->cat_icon))
 {

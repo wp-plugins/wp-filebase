@@ -32,9 +32,10 @@ static function Parse($tpl)
 	
 	// parse special vars
 	$tpl = str_replace('%post_id%', '\'.get_the_ID().\'', $tpl);
+	$tpl = str_replace('%wpfb_url%', '\'.(WPFB_PLUGIN_URI).\'', $tpl);
 	
 	// parse variables
-	$tpl = preg_replace('/%([a-z0-9_]+?)%/i', '\'.$f->get_tpl_var(\'$1\').\'', $tpl);
+	$tpl = preg_replace('/%([a-z0-9_\/]+?)%/i', '\'.$f->get_tpl_var(\'$1\').\'', $tpl);
 	
 	// remove html comments
 	$tpl = preg_replace('/<\!\-\-[\s\S]+?\-\->/', '', $tpl);
@@ -55,7 +56,7 @@ static function ParseTplExp($exp)
 	// remove critical functions TODO: still a bit unsecure, only allow some functions
 	$exp = str_replace(array('eval','mysql_query', 'mysql', '$wpdb', 'fopen', 'readfile', 'include','include_once','require(','require_once('), '', $exp);
 	
-	$exp = preg_replace('/%([a-z0-9_]+?)%/i', '($f->get_tpl_var(\'$1\'))', $exp);
+	$exp = preg_replace('/%([a-z0-9_\/]+?)%/i', '($f->get_tpl_var(\'$1\'))', $exp);
 	$exp = preg_replace('/([^\w])AND([^\w])/', '$1&&$2', $exp);
 	$exp = preg_replace('/([^\w])OR([^\w])/', '$1||$2', $exp);
 	$exp = preg_replace('/([^\w])NOT([^\w])/', '$1!$2', $exp);
