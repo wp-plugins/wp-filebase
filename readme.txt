@@ -10,6 +10,8 @@ Adds a powerful downloads manager supporting file categories, download counter, 
 
 == Description ==
 
+**Important:** If you are running Version 0.2.8.5 and 0.2.9 please update to latest version immediately. There was a security issue which has been fixed in version 0.2.9.1.
+
 WP-Filebase is an allround file manager for Wordpress.
 It keeps files structured in categories, offers a template system to create sortable, paginated file lists and can sideload files from other websites.
 The plugin is made for easy management of many files and consistent output using templates.
