@@ -12,7 +12,7 @@ class WPFB_Category extends WPFB_Item {
 	//var $cat_files;
 	var $cat_num_files = 0;
 	var $cat_num_files_total = 0;
-	var $cat_required_level = 0;
+	var $cat_user_roles = 0;
 	var $cat_icon;
 	var $cat_exclude_browser = 0;
 	
@@ -83,7 +83,7 @@ class WPFB_Category extends WPFB_Item {
 	function DBSave()
 	{ // validate some values before saving (fixes for mysql strict mode)
 		$this->cat_exclude_browser = (int)!empty($this->cat_exclude_browser);
-		$this->cat_required_level = intval($this->cat_required_level);
+		//$this->cat_required_level = intval($this->cat_required_level);
 		$this->cat_parent = intval($this->cat_parent);
 		$this->cat_num_files = intval($this->cat_num_files);
 		$this->cat_num_files_total = intval($this->cat_num_files_total);
@@ -166,7 +166,7 @@ class WPFB_Category extends WPFB_Item {
 			case 'cat_small_icon': 	$esc=false; return '<img align="" src="'.$this->GetIconUrl('small').'" style="height:32px;vertical-align:middle;" />';
 			case 'cat_num_files':		return $this->cat_num_files;
 			case 'cat_num_files_total':	return $this->cat_num_files_total;
-			case 'cat_required_level':	return ($this->cat_required_level - 1);			
+			//case 'cat_required_level':	return ($this->cat_required_level - 1);			
 			case 'uid':					return self::$tpl_uid;				
 		}
 		return isset($this->$name) ? $this->$name : '';

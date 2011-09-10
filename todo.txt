@@ -1,5 +1,9 @@
+-file list limit
+- better syncing many files!
+- attachements before page content
 Comments
 - shortcode: file by path, not only id!!
+-inline upload
 - update version on file sync cahnged
 - user upload paths
 -disable automatic sync by default

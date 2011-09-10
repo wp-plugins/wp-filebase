@@ -37,10 +37,12 @@ static function _GetSearchTerms($s)
 	return $search_terms;
 }
 
+// creates sql for searching files
 static function SearchWhereSql($s=null) {
 	global $wp_query, $wpdb;
 	
 	static $search_fields = array('name', 'thumbnail', 'display_name', 'description', 'requirement', 'version', 'author', 'language', 'platform', 'license');	
+	
 	
 	if(empty($s)) {
 		$s = empty($wp_query->query_vars['s']) ? (empty($_GET['s']) ? null : stripslashes($_GET['s'])) : $wp_query->query_vars['s'];
@@ -49,7 +51,6 @@ static function SearchWhereSql($s=null) {
 	$exact = !empty($wp_query->query_vars['exact']);
 	$p = $exact ? '' : '%';
 	$search_terms = self::_GetSearchTerms($s);
-	//print_r($search_terms);
 	$where = '';
 	
 	$t = $wpdb->escape($s);
@@ -57,6 +58,21 @@ static function SearchWhereSql($s=null) {
 	foreach($search_fields as $sf)
 	{
 		$col = "{$wpdb->wpfilebase_files}.file_{$sf}";
+		$where .= " OR ({$col} LIKE '{$p}{$t}{$p}') OR (";
+		
+		$and = '';
+		foreach($search_terms as $term) {
+			$where .= " {$and} {$col} LIKE '{$p}{$term}{$p}'";
+			if(empty($and)) $and = 'AND';
+		}
+		$where .= ")";
+	}
+	
+	// custom fields!! (actually a copy of the loop above!)
+	$cfs = array_keys(WPFB_Core::GetCustomFields());
+	foreach($cfs as $sf)
+	{
+		$col = "{$wpdb->wpfilebase_files}.file_custom_{$sf}";
 		$where .= " OR ({$col} LIKE '{$p}{$t}{$p}') OR (";
 		
 		$and = '';
@@ -81,6 +97,7 @@ static function SearchWhereSql($s=null) {
 	return $where;
 }
 
+// injects extra sql for file attachments search
 static function PostsSearch($sql)
 {
 	global $wp_query, $wpdb;

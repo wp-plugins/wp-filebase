@@ -158,7 +158,6 @@ class WPFB_ListTpl {
 	}
 	
 	function Sample($cat, $file) {
-		//print_r($this);
 		$cat_tpl = WPFB_Core::GetParsedTpl('cat', $this->cat_tpl_tag);
 		$file_tpl = WPFB_Core::GetParsedTpl('file', $this->file_tpl_tag);
 		$footer = str_replace('%page_nav%', paginate_links(array(

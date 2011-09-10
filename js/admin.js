@@ -49,7 +49,7 @@ function WPFB_ShowHide(el, show)
 	if(!show)
 		newCs += 'hidden';
 	else
-		newCs = newCs.substring(0, newCs.length - 1)
+		newCs = newCs.substring(0, newCs.length - 1);
 	el.className = newCs;
 }
 

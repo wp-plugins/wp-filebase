@@ -186,7 +186,7 @@ static function SetupDBTables()
   `cat_parent` int(8) unsigned NOT NULL default '0',
   `cat_num_files` int(8) unsigned NOT NULL default '0',
   `cat_num_files_total` int(8) unsigned NOT NULL default '0',
-  `cat_required_level` tinyint(2) NOT NULL default '0',
+  `cat_user_roles` varchar(255) NOT NULL default '',
   `cat_icon` varchar(255) default NULL,
   `cat_exclude_browser` enum('0','1') NOT NULL default '0',
   PRIMARY KEY  (`cat_id`)
@@ -210,7 +210,7 @@ static function SetupDBTables()
   `file_language` varchar(255) default NULL,
   `file_platform` varchar(255) default NULL,
   `file_license` varchar(255) NOT NULL default '',
-  `file_required_level` tinyint(2) unsigned default NULL,
+  `file_user_roles` varchar(255) NOT NULL default '',
   `file_offline` enum('0','1') NOT NULL default '0',
   `file_direct_linking` enum('0','1') NOT NULL default '0',
   `file_force_download` enum('0','1') NOT NULL default '0',
@@ -268,6 +268,12 @@ static function SetupDBTables()
 	// since 0.2.8
 	$queries[] = "@ALTER TABLE `$tbl_files` ADD `file_category_name` varchar(127) NOT NULL default '' AFTER `file_category`";
 	
+	
+	// since 0.2.9.1
+	$queries[] = "@ALTER TABLE `$tbl_files` ADD `file_user_roles` varchar(255) NOT NULL default '' AFTER `file_license`";
+	$queries[] = "@ALTER TABLE `$tbl_cats` ADD `cat_user_roles` varchar(255) NOT NULL default '' AFTER `cat_num_files_total`";
+	
+	
 	$queries[] = "OPTIMIZE TABLE `$tbl_cats`";
 	$queries[] = "OPTIMIZE TABLE `$tbl_files`";
 
@@ -281,6 +287,23 @@ static function SetupDBTables()
 			$wpdb->query($sql);
 		}
 			
+	}
+
+	// convert all required_level -> user_roles
+	if(!!$wpdb->get_var("SHOW COLUMNS FROM `$tbl_files` LIKE 'file_required_level'")) {		
+		$files = $wpdb->get_results("SELECT file_id,file_required_level FROM $tbl_files WHERE file_required_level <> 0");
+		foreach ( (array) $files as $file ) {
+			$wpdb->query("UPDATE `$tbl_files` SET `file_user_roles` = '".WPFB_Core::UserLevel2Role($file->file_required_level - 1)."' WHERE `file_id` = $file->file_id");
+		}
+		$wpdb->query("ALTER TABLE `$tbl_files` DROP `file_required_level`");
+	}
+	
+	if(!!$wpdb->get_var("SHOW COLUMNS FROM `$tbl_cats` LIKE 'cat_required_level'")) {		
+		$cats = $wpdb->get_results("SELECT cat_id,cat_required_level FROM $tbl_cats WHERE cat_required_level <> 0");
+		foreach ( (array) $cats as $cat ) {
+			$wpdb->query("UPDATE `$tbl_cats` SET `cat_user_roles` = '".WPFB_Core::UserLevel2Role($cat->cat_required_level - 1)."' WHERE `cat_id` = $cat->cat_id");
+		}
+		$wpdb->query("ALTER TABLE `$tbl_cats` DROP `cat_required_level`");
 	}
 }
 
@@ -344,12 +367,12 @@ static function ContentReplaceOldTags(&$content)
 			// convert!!
 			$tag_type = $tag[0];
 			if($tag_type == 'filelist') $tag_type = 'list';			
-			$tag_content = "[wpfilebase tag='$tag_type'";
+			$tag_content = "[wpfilebase tag=$tag_type";
 			
 			$id = !empty($args['file']) ? $args['file'] : (!empty($args['cat']) ? $args['cat'] : 0);		
-			if($id > 0) $tag_content .= " id='$id'";
+			if($id > 0) $tag_content .= " id=$id";
 			
-			if(!empty($args['tpl'])) $tag_content .= " tpl='".$args['tpl']."'";
+			if(!empty($args['tpl'])) $tag_content .= " tpl=".$args['tpl']."";
 			
 			$tag_content .= ']';
 			
@@ -413,10 +436,12 @@ static function OnActivateOrVerChange() {
 	WPFB_Setup::SetupDBTables();
 	WPFB_Setup::AddOptions();
 	WPFB_Setup::AddTpls();
+	WPFB_Admin::SettingsUpdated();
 	WPFB_Setup::ProtectUploadPath();
 	WPFB_Admin::FlushRewriteRules();
 	WPFB_Admin::UpdateItemsPath();
-	WPFB_Admin::SyncCats();
+	if(WPFB_Category::GetNumCats() < 500) // avoid long activation time
+		WPFB_Admin::SyncCats();
 	
 	if (!wp_next_scheduled(WPFB.'_cron'))	
 		wp_schedule_event(time(), 'hourly', WPFB.'_cron');	

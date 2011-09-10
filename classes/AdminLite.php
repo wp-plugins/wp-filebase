@@ -4,13 +4,21 @@ static function InitClass()
 {
 	wp_enqueue_style(WPFB.'-admin', WPFB_PLUGIN_URI.'wp-filebase-admin.css', array(), WPFB_VERSION, 'all' );
 	
-	if (isset($_GET['page']) && $_GET['page'] == 'wpfilebase_files') {
-		wp_enqueue_script( 'postbox' );
-		wp_admin_css( 'css/dashboard' );
+	if (isset($_GET['page']))
+	{
+		$page = $_GET['page'];
+		if($page == 'wpfilebase_files') {
+			wp_enqueue_script( 'postbox' );
+			wp_admin_css( 'css/dashboard' );
+		} elseif($page == 'wpfilebase' && isset($_GET['action']) && $_GET['action'] == 'sync') {
+			do_action('wpfilebase_sync');
+			wp_die("Filebase synced.");
+		}
 	}
 		
 	wp_register_widget_control(WPFB_PLUGIN_NAME, WPFB_PLUGIN_NAME .' '. __('File list'), array(__CLASS__, 'WidgetFileListControl'), array('description' => __('Lists the latest or most popular files', WPFB)));
 	wp_register_widget_control(WPFB_PLUGIN_NAME.'_cats', WPFB_PLUGIN_NAME.' ' . __('Category list'), array(__CLASS__, 'WidgetCatListControl'), array('description' => __('Simple listing of file categories', WPFB)));
+	//wp_register_widget_control(WPFB_PLUGIN_NAME.'_upload', WPFB_PLUGIN_NAME.' ' . __('Category list'), array(__CLASS__, 'WidgetUploadControl'), array('description' => __('Simple listing of file categories', WPFB)));
 	
 	add_action('admin_print_scripts', array('WPFB_AdminLite', 'PrintCKEditorPlugin'));
 	
@@ -73,6 +81,13 @@ static function WidgetCatListControl()
 	WPFB_Core::LoadLang();
 	wpfb_loadclass('Widget');
 	WPFB_Widget::CatListCntrl();
+}
+
+static function WidgetUploadControl()
+{
+	WPFB_Core::LoadLang();
+	wpfb_loadclass('Widget');
+	WPFB_Widget::UploadCntrl();
 }
 
 private static function CheckChangedVer()

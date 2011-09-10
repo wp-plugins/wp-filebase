@@ -63,7 +63,7 @@ class WPFB_Item {
 		return reset($items);
 	}
 	
-	static function GetByPath($path, $parent_id=0)
+	static function GetByPath($path)
 	{
 		global $wpdb;
 		$path = $wpdb->escape(trim(str_replace('\\','/',$path),'/'));
@@ -130,6 +130,12 @@ class WPFB_Item {
 			$values[$var] = &$this->$var;
 		}
 		
+		if($this->is_file) {
+			$cvars = WPFB_Core::GetCustomFields(true);
+			foreach($cvars as $var => $cn)
+				$values[$var] = empty($this->$var) ? '' : $this->$var;
+		}
+		
 		$update = !empty($this->$id_var);
 		$tbl = $this->is_file?$wpdb->wpfilebase_files:$wpdb->wpfilebase_cats;
 		if ($update)
@@ -158,27 +164,26 @@ class WPFB_Item {
 	
 	function CurUserCanAccess($for_tpl=false)
 	{
-		static $usr_level = -1;
+		global $current_user;
+		if($current_user->ID > 0 && empty($current_user->roles[0]))
+			$current_user = new WP_User($current_user->ID);// load the roles!
 		
-		if($for_tpl && !WPFB_Core::GetOpt('hide_inaccessible')) return true;
-		
-		if($usr_level == -1) {
-			global $current_user;
-			if($current_user) foreach(array_keys($current_user->caps) as $r){
-				$usr_level = max($usr_level, WPFB_Core::UserRole2Level($r)+1);
-			} else $usr_level = 0;
-		}		
-		$level = $this->is_file?$this->file_required_level:$this->cat_required_level;
-		return ( ($level <= 0 || $usr_level >= $level) && ($this->is_category || !$this->file_offline) );
+		if(($for_tpl && !WPFB_Core::GetOpt('hide_inaccessible')) || in_array('administrator',$current_user->roles)) return true;		
+		$frs = $this->GetUserRoles();
+		if(empty($frs[0])) return true; // item is for everyone!		
+		foreach($current_user->roles as $ur) { // check user roles against item roles
+			if(in_array($ur, $frs))
+				return true;
+		}
+		return false;
 	}
 	
 	function GetUrl()
 	{
 		$ps = WPFB_Core::GetOpt('disable_permalinks') ? null : get_option('permalink_structure');		
 		if($this->is_file) {
-			$url = trailingslashit(get_option('home'));	
-			if(!empty($ps)) $url .= WPFB_Core::GetOpt('download_base').'/'.$this->GetLocalPathRel();
-			else $url = add_query_arg(array('wpfb_dl' => $this->file_id), $url);
+			if(!empty($ps)) $url = home_url(WPFB_Core::GetOpt('download_base').'/'.$this->GetLocalPathRel());
+			else $url = add_query_arg(array('wpfb_dl' => $this->file_id), home_url());
 		} else {
 			$url = get_permalink(WPFB_Core::GetOpt('file_browser_post_id'));	
 			if(!empty($ps)) $url .= $this->GetLocalPathRel().'/';
@@ -186,11 +191,6 @@ class WPFB_Item {
 			$url .= "#wpfb-cat-$this->cat_id";	
 		}			
 		return $url;
-	}
-	
-	function GetRequiredRole()
-	{
-		return WPFB_Core::UserLevel2Role( ($this->is_file?$this->file_required_level:$this->cat_required_level) - 1);
 	}
 	
 	function GenTpl($parsed_tpl=null, $context='')
@@ -288,7 +288,22 @@ class WPFB_Item {
 		return $files;
 	}
 	
-	function ChangeCategoryOrName($new_cat_id, $new_name=null, $add_existing=false)
+	function GetUserRoles() {
+		if(isset($this->roles_array)) return $this->roles_array; //caching
+		$rs = $this->is_file?$this->file_user_roles:$this->cat_user_roles;
+		return ($this->roles_array = empty($rs) ? array() : explode('|', $rs));
+	}
+	
+	function SetUserRoles($roles) {
+		if(!is_array($roles)) $roles = explode('|',$roles);
+		$this->roles_array = array_filter(array_map('trim',$roles),'strlen'); // remove empty
+		$roles = implode('|', $roles);
+		if($this->is_file) $this->file_user_roles = $roles;
+		else $this->cat_user_roles = $roles;
+		if(!$this->locked) $this->DBSave();
+	}
+	
+	function ChangeCategoryOrName($new_cat_id, $new_name=null, $add_existing=false, $overwrite=false)
 	{
 		// 1. apply new values
 		// 2. check for name collision and rename
@@ -328,17 +343,27 @@ class WPFB_Item {
 			$i = 1;
 			if(!$add_existing) {
 				$name = $this->GetName();
-				// rename item if filename collision
-				while(@file_exists($new_path)) {
-					$i++;	
-					if($this->is_file) {
-						$p = strrpos($name, '.');
-						$this->file_name = ($p <= 0) ? "$name($i)" : (substr($name, 0, $p)."($i)".substr($name, $p));
-					} else
-						$this->cat_folder = "$name($i)";				
-					
-					$new_path_rel = $this->GetLocalPathRel(true);
-					$new_path = $this->GetLocalPath();
+				if($overwrite) {
+					if(@file_exists($new_path)) {
+						$ex_file = WPFB_File::GetByPath($new_path_rel);
+						if(!is_null($ex_file))
+							$ex_file->Remove();
+						else 
+							@unlink($new_path);
+					}
+				} else {
+					// rename item if filename collision
+					while(@file_exists($new_path)) {
+						$i++;	
+						if($this->is_file) {
+							$p = strrpos($name, '.');
+							$this->file_name = ($p <= 0) ? "$name($i)" : (substr($name, 0, $p)."($i)".substr($name, $p));
+						} else
+							$this->cat_folder = "$name($i)";				
+						
+						$new_path_rel = $this->GetLocalPathRel(true);
+						$new_path = $this->GetLocalPath();
+					}
 				}
 			}
 			

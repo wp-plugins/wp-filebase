@@ -3,7 +3,6 @@ class WPFB_AdminGuiManage {
 static function Display()
 {
 	global $wpdb, $user_ID;
-	
 	wpfb_loadclass('File', 'Category', 'Admin', 'Output');
 	
 	$_POST = stripslashes_deep($_POST);
@@ -69,7 +68,7 @@ static function Display()
 					echo '</a></p></div><div style="clear:both;"></div>';
 				}
 		?>
-		
+	<?php if(self::PluginHasBeenUsedAWhile()) { ?>		
 <div id="wpfb-support-col">
 <div id="wpfb-liking-toggle"></div>
 <h3><?php _e('Like this plugin?',WPFB) ?></h3>
@@ -82,6 +81,7 @@ static function Display()
 	</div>
 </div>
 </div>
+<?php } ?>
 
 <div id="col-container">
 
@@ -225,7 +225,7 @@ static function Display()
 		case 'sync':
 			echo '<h2>'.__('Synchronisation').'</h2>';
 			
-			$result = WPFB_Admin::Sync(!empty($_GET['hash_sync']));
+			$result = WPFB_Admin::Sync(!empty($_GET['hash_sync']), true);
 			$num_changed = $num_added = $num_errors = 0;
 			foreach($result as $tag => $group)
 			{
@@ -264,12 +264,12 @@ static function Display()
 			if( $num_errors == 0)
 				echo '<p>' . __('Filebase successfully synced.', WPFB) . '</p>';
 				
+				// first files should be deleted, then cats!
 				if(!empty($result['missing_files'])) {
-				echo '<p>' . sprintf(__('%d Files could not be found.', WPFB), count($result['missing_files'])) . ' <a href="'.$clean_uri.'&amp;action=del&amp;files='.join(',',array_keys($result['missing_files'])).'" class="button">'.__('Remove entries from database').'</a></p>';
-			}
-				if(!empty($result['missing_folders'])) {
-				echo '<p>' . sprintf(__('%d Category Folders could not be found.', WPFB), count($result['missing_folders'])) . ' <a href="'.$clean_uri.'&amp;action=del&amp;cats='.join(',',array_keys($result['missing_folders'])).'" class="button">'.__('Remove entries from database').'</a></p>';
-			}
+					echo '<p>' . sprintf(__('%d Files could not be found.', WPFB), count($result['missing_files'])) . ' <a href="'.$clean_uri.'&amp;action=del&amp;files='.join(',',array_keys($result['missing_files'])).'" class="button">'.__('Remove entries from database').'</a></p>';
+				} elseif(!empty($result['missing_folders'])) {
+					echo '<p>' . sprintf(__('%d Category Folders could not be found.', WPFB), count($result['missing_folders'])) . ' <a href="'.$clean_uri.'&amp;action=del&amp;cats='.join(',',array_keys($result['missing_folders'])).'" class="button">'.__('Remove entries from database').'</a></p>';
+				}
 			
 			if(empty($_GET['hash_sync']))
 				echo '<p><a href="' . add_query_arg('hash_sync',1) . '" class="button">' . __('Complete file sync', WPFB) . '</a> ' . __('Checks files for changes, so more reliable but might take much longer. Do this if you uploaded/changed files with FTP.', WPFB) . '</p>';			
@@ -287,4 +287,11 @@ static function ProgressBar($progress, $label)
 	echo "<div class='wpfilebase-progress'><div class='progress'><div class='bar' style='width: $progress%'></div></div><div class='label'><strong>$progress %</strong> ($label)</div></div>";
 }
 
+static function PluginHasBeenUsedAWhile()
+{
+	global $wpdb;
+	if(WPFB_File::GetNumFiles() < 5) return false;
+	$first_file_time = mysql2date('U',$wpdb->get_var("SELECT file_date FROM $wpdb->wpfilebase_files ORDER BY file_date ASC LIMIT 1"));
+	return ($first_file_time > 1 && (time()-$first_file_time) > (86400 * 4)); // 4 days	
+}
 }

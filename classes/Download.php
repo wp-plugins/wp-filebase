@@ -462,7 +462,6 @@ static function SideloadFile($url, $dest_path)
 	return array('error' => false, 'size' => $size);
 	/*	
 	$url = parse_url($url);
-	print_r($url);
 	
 	$headers = 
 	"GET {$url['path']}{$url['query_string']} HTTP/1.1\r\n".

@@ -34,7 +34,8 @@ switch ( $action = $_REQUEST['action'] ) {
 		
 		wpfb_loadclass('File','Category','Output');
 		
-		$base_id = (empty($_REQUEST['base']) ? 0 : $_REQUEST['base']);
+		// fixed exploit, thanks to Miroslav Stampar http://unconciousmind.blogspot.com/
+		$base_id = empty($_REQUEST['base']) ? 0 : intval($_REQUEST['base']);		
 				
 		if(empty($_REQUEST['root']) || $_REQUEST['root'] == 'source')
 			$parent_id = $base_id;

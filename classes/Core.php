@@ -9,6 +9,9 @@ static function InitClass()
 
 	WPFB_Core::LoadLang();
 	
+	// for Developers: New wp-filebase actions
+	add_action('wpfilebase_sync', array(__CLASS__, 'Sync'));
+	
 	//add_action('wp_head', array(__CLASS__, 'Header'));
 	add_action('wp_footer', array(__CLASS__, 'Footer'));
 	add_action('parse_query', array(__CLASS__, 'ParseQuery')); // search
@@ -55,7 +58,9 @@ static function InitClass()
 	// widgets
 	wp_register_sidebar_widget(WPFB_PLUGIN_NAME, WPFB_PLUGIN_NAME .' '. __('File list', WPFB), array(__CLASS__, 'FileWidget'), array('description' => __('Lists the latest or most popular files', WPFB)));
 	wp_register_sidebar_widget(WPFB_PLUGIN_NAME.'_cats', WPFB_PLUGIN_NAME.' ' . __('Category list', WPFB), array(__CLASS__, 'CatWidget'), array('description' => __('Simple listing of file categories', WPFB)));
-			
+	//wp_register_sidebar_widget(WPFB_PLUGIN_NAME.'_upload', WPFB_PLUGIN_NAME.' ' . __('File upload', WPFB), array(__CLASS__, 'UploadWidget'), array('description' => __('Supplies a form for uploading files', WPFB)));
+	
+		
 	// for admin
 	if (current_user_can('edit_posts') || current_user_can('edit_pages'))
 		self::MceAddBtns();
@@ -63,13 +68,21 @@ static function InitClass()
 	add_action('wp_dashboard_setup', array(__CLASS__, 'AdminDashboardSetup'));	
 
 	self::DownloadRedirect();
+	
+	if(current_user_can('upload_files')) {
+		if(!empty($_GET['wpfb_upload_file']) || !empty($_GET['wpfb_add_cat'])) {
+			wpfb_call('Admin', empty($_GET['wpfb_upload_file'])?'ProcessWidgetAddCat':'ProcessWidgetUpload');
+		}
+	}
 }
+
+static function Nothing() { return ''; }
 
 static function ParseQuery(&$query)
 {
 	// conditional loading of the search hooks
 	global $wp_query;
-	if (!empty($wp_query->query_vars['s']))
+	if (!empty($wp_query->query_vars['s']) && self::GetOpt('search_integration'))
 		wpfb_loadclass('Search');
 }
 
@@ -91,7 +104,7 @@ static function AdminInit() {
 	if(!empty($_GET['page']) && strpos($_GET['page'], 'wpfilebase_') !== false)
 		wpfb_loadclass('Admin');
 }
-static function AdminMenu() { wpfb_call('AdminLite', 'SetupMenu'); }
+static function AdminMenu() {wpfb_call('AdminLite', 'SetupMenu');}
 
 static function LoadLang() {
 	static $loaded = false;
@@ -111,6 +124,7 @@ static function GetOpt($name = null) {
 
 static function FileWidget($args) { return wpfb_call('Widget', 'FileList', $args); }
 static function CatWidget($args) { return wpfb_call('Widget', 'CatList', $args); }
+//static function UploadWidget($args) { return wpfb_call('Widget', 'Upload', $args); } // uses new class-style widgets
 
 static function DownloadRedirect()
 {
@@ -127,15 +141,16 @@ static function DownloadRedirect()
 		$dl_url_path = parse_url(home_url($base.'/'), PHP_URL_PATH);
 		$pos = strpos($_SERVER['REQUEST_URI'], $dl_url_path);
 		if($pos !== false && $pos == 0) {
-			$filepath = trim(urldecode(substr($_SERVER['REQUEST_URI'], strlen($dl_url_path))), '/');
+			$filepath = trim(substr($_SERVER['REQUEST_URI'], strlen($dl_url_path)), '/');
 			if(!empty($filepath)) {
 				wpfb_loadclass('File','Category');
 				$file = WPFB_File::GetByPath($filepath);
+				if(empty($file)) $file = WPFB_File::GetByPath(urldecode($filepath));
 			}
 		}
 	}
 	
-	if(!empty($file) && is_object($file)) {
+	if(!empty($file) && is_object($file) && !empty($file->is_file)) {
 		$file->Download();		
 		exit;
 	} else {
@@ -158,7 +173,6 @@ static function Ext2TypeFilter($arr) {
 add_filter('the_posts', 'wpfilebase_posts_filter');
 function wpfilebase_posts_filter($posts) {
 	global $id, $wpfb_loaded_output;
-	print_r($posts);
 	if(!empty($wpfb_loaded_output) || empty($posts))
 		return $posts;
 	$fb_id = WPFB_Core::GetOpt('file_browser_post_id');
@@ -191,7 +205,7 @@ function ContentFilter($content)
 	}
 	*/
 	
-	if(!empty($id) && $id > 0 && (is_single() || is_page()))
+	if(!empty($id) && $id > 0 && (is_single() || is_page()) && !post_password_required())
 	{
 		if($id == WPFB_Core::GetOpt('file_browser_post_id'))
 		{
@@ -202,7 +216,11 @@ function ContentFilter($content)
 		if(WPFB_Core::GetOpt('auto_attach_files'))
 		{
 			wpfb_loadclass('Output');
-			$content .= WPFB_Output::PostAttachments(true);
+			
+			if(WPFB_Core::GetOpt('attach_pos') == 0)
+				$content = WPFB_Output::PostAttachments(true) . $content;
+			else
+				$content .= WPFB_Output::PostAttachments(true);
 		}
 	}
 
@@ -328,7 +346,7 @@ static function GetFileListSortSql($sort=null)
 	static $fields = array(
 		'file_id','file_name','file_size','file_date','file_path','file_display_name','file_hits',
 		'file_description','file_version','file_author','file_license',
-		'file_required_level','file_category','file_category_name','file_post_id',
+		'file_category','file_category_name','file_post_id',
 		'file_added_by','file_hits','file_last_dl_time');
 	
 	if(!empty($_REQUEST['wpfb_file_sort']))
@@ -460,8 +478,43 @@ static function AdminBar() {
 	
 }
 
+static function Sync() { return wpfb_call('Admin', 'Sync'); }
+
 static function Cron() {
 	if(self::GetOpt('cron_sync'))
-		wpfb_call('Admin', 'Sync');
+		self::Sync();
+}
+
+static function GetMaxUlSize() {
+	$val = ini_get('upload_max_filesize');
+    if (is_numeric($val))
+        return $val;
+
+	$val_len = strlen($val);
+	$max_bytes = substr($val, 0, $val_len - 1);
+	$unit = strtolower(substr($val, $val_len - 1));
+	switch($unit) {
+		case 'k':
+			$max_bytes *= 1024;
+			break;
+		case 'm':
+			$max_bytes *= 1048576;
+			break;
+		case 'g':
+			$max_bytes *= 1073741824;
+			break;
+	}
+	return $max_bytes;
+}
+
+public function GetCustomFields($full_field_names=false) {
+	$custom_fields = explode("\n",WPFB_Core::GetOpt('custom_fields'));
+	$arr = array();
+	if(empty($custom_fields[0])) return array();
+	foreach($custom_fields as $cf) {
+		$cfa = explode("|", $cf);
+		$arr[$full_field_names?('file_custom_'.trim($cfa[1])):trim($cfa[1])] = $cfa[0];
+	}
+	return $arr;
 }
 }

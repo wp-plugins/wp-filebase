@@ -108,12 +108,12 @@ static function Display()
 			
 			$where = wpfb_call('Search','SearchWhereSql');
 			if(!empty($where))
-				$extra_sql .= "WHERE 0 $where";		
+				$extra_sql .= " LEFT JOIN $wpdb->wpfilebase_files_id3 ON ( $wpdb->wpfilebase_files_id3.file_id = $wpdb->wpfilebase_files.file_id ) WHERE 0 $where";		
 			
 			if(!empty($_GET['order']) && in_array($_GET['order'], array_keys(get_class_vars('WPFB_File'))))
-				$extra_sql .= "ORDER BY " . $_GET['order'] . " " . (!empty($_GET['desc']) ? "DESC" : "ASC");	
+				$extra_sql .= "ORDER BY $wpdb->wpfilebase_files." . $_GET['order'] . " " . (!empty($_GET['desc']) ? "DESC" : "ASC");	
 			else
-				$extra_sql .= "ORDER BY file_id DESC";
+				$extra_sql .= "ORDER BY $wpdb->wpfilebase_files.file_id DESC";
 
 			$files = &WPFB_File::GetFiles($extra_sql . " LIMIT $pagestart, $filesperpage");
 
@@ -145,6 +145,7 @@ static function Display()
 				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_size') ?>"><?php _e('Size'/*def*/) ?></a></th>    		
 				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_description') ?>"><?php _e('Description'/*def*/) ?></a></th>
 				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_category_name') ?>"><?php _e('Category'/*def*/) ?></a></th>
+				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_user_roles') ?>"><?php _e('File Access',WPFB) ?></a></th>
 				<th scope="col" class="num"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_hits') ?>"><?php _e('Hits', WPFB) ?></a></th>
 				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_last_dl_time') ?>"><?php _e('Last download', WPFB) ?></a></th>
 				<!-- TODO <th scope="col" class="num"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_') ?>"><?php _e('Rating'/*def*/) ?></th> -->
@@ -160,6 +161,7 @@ static function Display()
 						$rating = '-';
 						
 					$cat = $file->GetParent();
+					$user_roles = $file->GetUserRoles();
 				?>
 				<tr id='file-<?php echo $file_id ?>'<?php if($file->file_offline) { echo " class='offline'"; } ?>>
 						    <th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $file_id ?>' /></th>
@@ -172,6 +174,7 @@ static function Display()
 							<td><?php echo WPFB_Output::FormatFilesize($file->file_size); ?></td>
 							<td><?php echo empty($file->file_description) ? '-' : esc_html($file->file_description); ?></td>
 							<td><?php echo ($file->file_category > 0) ? ('<a href="'.$cat->GetEditUrl().'">'.esc_html($file->file_category_name).'</a>') : '-'; ?></td>
+							<td><?php echo empty($user_roles) ? ("<i>".__('Everyone',WPFB)."</i>") : join(', ', WPFB_Output::RoleNames($user_roles)) ?></td>
 							<td class='num'><?php echo $file->file_hits; ?></td>
 							<td><?php echo ( (!empty($file->file_last_dl_time) && $file->file_last_dl_time > 0) ? mysql2date(get_option('date_format'), $file->file_last_dl_time) : '-') ?></td>
 							<!-- TODO <td class='num'><?php echo $rating ?></td> -->
@@ -217,7 +220,7 @@ static function PrintFileInfo($info, $path='file_info')
 
 static function FileInfoPathsBox($info)
 {
-	?><p>The following tags can be used in templates. For example, if you want to display the Title of a MP3 File, put <code>%file_info/tags/id3v2/artist%</code> inside the template code.</p>
+	?><p>The following tags can be used in templates. For example, if you want to display the Artist of a MP3 File, put <code>%file_info/tags/id3v2/artist%</code> inside the template code.</p>
 	<p><pre><?php self::PrintFileInfo($info); ?></pre></p>
 	<?php
 }

@@ -69,7 +69,7 @@ class WPFB_GetID3 {
 
 		foreach($info as $key => &$val)
 		{
-			if(empty($val) || in_array(strtolower($key), $skip_keys))
+			if(empty($val) || in_array(strtolower($key), $skip_keys) || strpos($key, "UndefinedTag") !== false)
 			{
 				unset($info[$key]);
 				continue;
@@ -80,7 +80,7 @@ class WPFB_GetID3 {
 			else if(is_string($val))
 			{
 				$a = ord($val{0});
-				if($a < 32 || $a > 126)  // check for binary data
+				if($a < 32 || $a > 126 || $val{0} == '?' || strpos($val, chr(01)) !== false || strpos($val, chr(0x09)) !== false)  // check for binary data
 				{
 					unset($info[$key]);
 					continue;

@@ -32,6 +32,8 @@ static function SettingsSchema()
 	'base_auto_thumb'		=> array('default' => true, 'title' => __('Auto-detect thumbnails'), 'type' => 'checkbox', 'desc' => __('Images are considered as thumbnails for files with the same name when syncing. (e.g `file.jpg` &lt;=&gt; `file.zip`)', WPFB)),
 	
 	'fext_blacklist'		=> array('default' => 'db,tmp', 'title' => __('Extension Blacklist', WPFB), 'desc' => __('Files with an extension in this list are skipped while synchronisation. (seperate with comma)', WPFB), 'type' => 'text', 'class' => 'code', 'size' => 100),
+
+	'attach_pos'			=> array('default' => 1, 'title' => __('Attachment Position', WPFB), 'desc' => __('', WPFB), 'type' => 'select', 'options' => array(__('Before the Content',WPFB),__('After the Content',WPFB))),
 	
 	
 	// display
@@ -59,7 +61,7 @@ static function SettingsSchema()
 	'disable_permalinks'	=> array('default' => false, 'title' => __('Disable download permalinks', WPFB), 'type' => 'checkbox', 'desc' => __('Enable this if you have problems with permalinks.', WPFB)),
 	'download_base'			=> array('default' => 'download', 'title' => __('Download URL base', WPFB), 'type' => 'text', 'desc' => sprintf(__('The url prefix for file download links. Example: <code>%s</code> (Only used when Permalinks are enabled.)', WPFB), get_option('home').'/%value%/category/file.zip')),
 	
-	'file_browser_post_id'		=> array('default' => '', 'title' => __('Post ID of the file browser', WPFB), 'type' => 'number', 'unit' => '<span id="file_browser_post_title">'.(($fbid=WPFB_Core::GetOpt('file_browser_post_id'))?get_the_title($fbid):'').'</span> <a href="javascript:;" class="button" onclick="WPFB_PostBrowser(\'file_browser_post_id\',\'file_browser_post_title\')">' . __('Select') . '</a>', 'desc' => __('Specify the ID of the post or page where the file browser should be placed. If you want to disable this feature leave the field blank.', WPFB)),
+	'file_browser_post_id'		=> array('default' => '', 'title' => __('Post ID of the file browser', WPFB), 'type' => 'number', 'unit' => '<span id="file_browser_post_title">'.(($fbid=WPFB_Core::GetOpt('file_browser_post_id'))?('<a href="'.get_permalink($fbid).'">'.get_the_title($fbid).'</a>'):'').'</span> <a href="javascript:;" class="button" onclick="WPFB_PostBrowser(\'file_browser_post_id\',\'file_browser_post_title\')">' . __('Select') . '</a>', 'desc' => __('Specify the ID of the post or page where the file browser should be placed. If you want to disable this feature leave the field blank.', WPFB)),
 	
 	'file_browser_cat_sort_by'		=> array('default' => 'cat_name', 'title' => __('File browser category sorting', WPFB), 'type' => 'select', 'desc' => __('The category property categories in the file browser are sorted by', WPFB), 'options' => self::CatSortFields()),
 	'file_browser_cat_sort_dir'	=> array('default' => 0, 'title' => __('Sort Order:'/*def*/), 'type' => 'select', 'desc' => '', 'options' => array(0 => __('Ascending'), 1 => __('Descending'))),
@@ -96,9 +98,11 @@ static function SettingsSchema()
 	
 	'cron_sync'	=> array('default' => false, 'title' => __('Automatic Sync', WPFB), 'type' => 'checkbox', 'desc' => __('Schedules a cronjob to hourly synchronize the filesystem and the database.', WPFB)),
 	
+	'search_integration' =>  array('default' => true, 'title' => __('Search Integration', WPFB), 'type' => 'checkbox', 'desc' => __('Searches in attached files and lists the associated posts and pages when searching the site.', WPFB)),
+	
 	'disable_id3' =>  array('default' => false, 'title' => __('Disable ID3 tag detection', WPFB), 'type' => 'checkbox', 'desc' => __('This disables all meta file info reading. Use this option if you have issues adding large files.', WPFB)),
 	
-	'search_id3' =>  array('default' => false, 'title' => __('Search ID3 Tags', WPFB), 'type' => 'checkbox', 'desc' => __('Search in file meta data, like ID3 for MP3 files, EXIF for JPEG... (this option does not increase significantly server load since all data is cached in a MySQL table)', WPFB)),
+	'search_id3' =>  array('default' => true, 'title' => __('Search ID3 Tags', WPFB), 'type' => 'checkbox', 'desc' => __('Search in file meta data, like ID3 for MP3 files, EXIF for JPEG... (this option does not increase significantly server load since all data is cached in a MySQL table)', WPFB)),
 	
 	
 	'languages'				=> array('default' => "English|en\nDeutsch|de", 'title' => __('Languages'), 'type' => 'textarea', 'desc' => &$multiple_entries_desc),
@@ -112,6 +116,10 @@ Flash|flash|http://get.adobe.com/flashplayer/
 Open Office|ooffice|http://download.openoffice.org/
 .NET Framework 3.5|.net35|http://www.microsoft.com/downloads/details.aspx?FamilyID=333325fd-ae52-4e35-b531-508d977d32a6",
 	'title' => __('Requirements', WPFB), 'type' => 'textarea', 'desc' => $multiple_entries_desc . ' ' . __('You can optionally add |<i>URL</i> to each line to link to the required software/file.', WPFB), 'nowrap' => true),
+	
+	'custom_fields'			=> array('default' => "Custom Field 1|cf1\nCustom Field 2|cf2", 'title' => __('Custom Fields'), 'type' => 'textarea', 'desc' => 
+	'With custom fields you can add even more file properties.'.' '.$multiple_entries_desc),
+	
 	
 	
 	'template_file'			=> array('default' =>
@@ -194,12 +202,12 @@ static function TplVarsDesc($for_cat=false)
 	'cat_num_files'			=> __('Number of files in the category', WPFB),
 	'cat_num_files_total'			=> __('Number of files in the category and all child categories', WPFB),
 	
-	'cat_required_level'	=> __('The minimum user level to view this category (-1 = guest, 0 = Subscriber ...)', WPFB),
+	//'cat_required_level'	=> __('The minimum user level to view this category (-1 = guest, 0 = Subscriber ...)', WPFB),
 	
 	'cat_id'				=> __('The category ID', WPFB),
 	'uid'					=> __('A unique ID number to identify elements within a template', WPFB),
 	);
-	else return array(	
+	else return array_merge(array(	
 	'file_name'				=> __('Name of the file', WPFB),
 	'file_size'				=> __('Formatted file size', WPFB),
 	'file_date'				=> __('Formatted file date', WPFB),
@@ -212,7 +220,7 @@ static function TplVarsDesc($for_cat=false)
 	'file_platforms'		=> __('Supported platforms (operating systems)', WPFB),
 	'file_requirements'		=> __('Requirements to use this file', WPFB),
 	'file_license'			=> __('License', WPFB),
-	'file_required_level'	=> __('The minimum user level to download this file (-1 = guest, 0 = Subscriber ...)', WPFB),
+	//'file_required_level'	=> __('The minimum user level to download this file (-1 = guest, 0 = Subscriber ...)', WPFB),
 	'file_offline'			=> __('1 if file is offline, otherwise 0', WPFB),
 	'file_direct_linking'	=> __('1 if direct linking is allowed, otherwise 0', WPFB),
 	'file_category'			=> __('The category name', WPFB),
@@ -239,12 +247,12 @@ static function TplVarsDesc($for_cat=false)
 	'uid'					=> __('A unique ID number to identify elements within a template', WPFB),
 	'post_id'				=> __('ID of the current post or page', WPFB),
 	'wpfb_url'				=> sprintf(__('Plugin root URL (%s)',WPFB), WPFB_PLUGIN_URI)
-	);
+	), WPFB_Core::GetCustomFields(true));
 }
 
 static function FileSortFields()
 {
-	return array(
+	return array_merge(array(
 	'file_display_name'		=> __('Title', WPFB),
 	'file_name'				=> __('Name of the file', WPFB),
 	'file_version'			=> __('File version', WPFB),
@@ -265,13 +273,12 @@ static function FileSortFields()
 	'file_license'			=> __('License', WPFB),
 	
 	'file_post_id'			=> __('ID of the post/page this file belongs to', WPFB),
-	'file_required_level'	=> __('The minimum user level to download this file (-1 = guest, 0 = Subscriber ...)', WPFB),
 	'file_added_by'			=> __('User ID of the uploader', WPFB),
 	
 	//'file_offline'			=> __('Offline &gt; Online', WPFB),
 	//'file_direct_linking'	=> __('Direct linking &gt; redirect to post', WPFB),
 	
-	);
+	), WPFB_Core::GetCustomFields(true));
 }
 
 static function CatSortFields()
@@ -288,7 +295,7 @@ static function CatSortFields()
 	'cat_num_files'		=> __('Number of files directly in the category', WPFB),
 	'cat_num_files_total' => __('Number of all files in the category and all sub-categories', WPFB),
 	
-	'cat_required_level' => __('The minimum user level to access (-1 = guest, 0 = Subscriber ...)', WPFB)
+	//'cat_required_level' => __('The minimum user level to access (-1 = guest, 0 = Subscriber ...)', WPFB)
 	);
 }
 
@@ -335,9 +342,7 @@ static function MoveDir($from, $to)
 }
 
 static function InsertCategory($catarr)
-{
-	global $wpdb;
-	
+{	
 	$catarr = wp_parse_args($catarr, array('cat_id' => 0, 'cat_name' => '', 'cat_description' => '', 'cat_parent' => 0, 'cat_folder' => ''));
 	extract($catarr, EXTR_SKIP);
 
@@ -354,6 +359,7 @@ static function InsertCategory($catarr)
 		$cat_folder = preg_replace('/\s/', ' ', $cat_folder);
 		if(!preg_match('/^[0-9a-z-_.+,\s]+$/i', $cat_folder)) return array( 'error' => __('The category folder name contains invalid characters.', WPFB) );	
 	}
+	wpfb_loadclass('Output');
 	if (empty($cat_name)) $cat_name = WPFB_Output::Filename2Title($cat_folder, false);
 	elseif(empty($cat_folder)) $cat_folder = strtolower(str_replace(' ', '_', $cat_name));
 	
@@ -361,22 +367,20 @@ static function InsertCategory($catarr)
 	$cat->cat_name = trim($cat_name);
 	$cat->cat_description = trim($cat_description);
 	$cat->cat_exclude_browser = (int)!empty($cat_exclude_browser);	
-	$cat->cat_required_level = empty($cat_members_only) ? 0 : (WPFB_Core::UserRole2Level($cat_required_role)+1);
+	//$cat->cat_required_level = empty($cat_members_only) ? 0 : (WPFB_Core::UserRole2Level($cat_required_role)+1);
+	// only reset user roles if checkbox disabled but role selector exists!
+	if(isset($cat_user_roles)) {
+		$cat->SetUserRoles(empty($cat_members_only) ? array() : $cat_user_roles);
+	}
 	
 	if($update && !empty($cat_child_apply_perm))
 	{
-		$files = $cat->GetChildFiles(true);
-		foreach($files as $child)
-		{
-			$child->file_required_level = $cat->cat_required_level;
-			$child->DBSave();
-		}		
-		$cats = $cat->GetChildCats(true);
-		foreach($cats as $child)
-		{
-			$child->cat_required_level = $cat->cat_required_level;
-			$child->DBSave();
-		}
+		$cur = $cat->GetUserRoles();
+		$childs = $cat->GetChildFiles(true);
+		foreach($childs as $child) $child->SetUserRoles($cur);
+		
+		$childs = $cat->GetChildCats(true);
+		foreach($childs as $child) $child->SetUserRoles($cur);
 	}
 		
 	// handle parent cat
@@ -479,7 +483,7 @@ static function InsertFile($data)
 	$new_cat = null;
 	if ($file_category > 0 && ($new_cat=WPFB_Category::GetCat($file_category)) == null) $file_category = 0;
 	
-	$result = $file->ChangeCategoryOrName($file_category, $file_name, $add_existing);
+	$result = $file->ChangeCategoryOrName($file_category, $file_name, $add_existing, !empty($data->overwrite));
 	if(!empty($result['error'])) return $result;	
 
 	// if there is an uploaded file 
@@ -553,9 +557,12 @@ static function InsertFile($data)
 	if(!empty($data->file_platforms)) $file->file_platform = implode('|', $data->file_platforms);
 	if(!empty($data->file_requirements)) $file->file_requirement = implode('|', $data->file_requirements);
 	
-	$file->file_offline = (int)(!empty($data->file_offline));
+	// only reset user roles if checkbox disabled but role selector exists!
+	if(isset($data->file_user_roles)) {
+		$file->SetUserRoles(empty($data->file_members_only) ? array() : $data->file_user_roles);
+	}
 	
-	$file->file_required_level = empty($data->file_members_only) ? 0 : (WPFB_Core::UserRole2Level($data->file_required_role)+1);
+	$file->file_offline = (int)(!empty($data->file_offline));
 	
 	if(!isset($data->file_direct_linking))
 		$data->file_direct_linking = 1; // allow direct linking by default
@@ -566,7 +573,15 @@ static function InsertFile($data)
 	{
 		$vn = 'file_' . $var_names[$i];
 		if(isset($data->$vn)) $file->$vn = $data->$vn;
-	}		
+	}
+	
+	// custom fields!
+	$var_names = array_keys(WPFB_Core::GetCustomFields(true));
+	for($i = 0; $i < count($var_names); $i++)
+	{
+		$vn = $var_names[$i];
+		if(isset($data->$vn)) $file->$vn = $data->$vn;
+	}	
 
 	// set the user id
 	if(!$update && !empty($current_user)) $file->file_added_by = $current_user->ID;	
@@ -655,9 +670,17 @@ static function SideloadFile($url) {
 	return array('error'=>false,'file'=>$newname);
 }
 
-static function Sync($hash_sync=false)
+static function DEcho($str) {
+	echo $str;
+	@ob_flush();
+	@flush();	
+}
+
+static function Sync($hash_sync=false, $output=false)
 {
+	@ini_set('max_execution_time', '0');
 	@set_time_limit(0);
+	
 	wpfb_loadclass("GetID3");
 	require_once(ABSPATH . 'wp-admin/includes/file.php');
 	
@@ -666,6 +689,7 @@ static function Sync($hash_sync=false)
 	$files = &WPFB_File::GetFiles();
 	$cats =& WPFB_Category::GetCats();
 	
+	if($output) self::DEcho('<p>Checking for file changes... ');
 	$file_paths = array();
 	foreach($files as $id => /* & PHP 4 compability */ $file)
 	{
@@ -707,6 +731,7 @@ static function Sync($hash_sync=false)
 				$result['changed'][$id] = $file;
 		}
 	}
+	if($output) self::DEcho('done!</p>');
 	
 	foreach($cats as $id => $cat) {
 		$cat_path = $cat->GetLocalPath(true);
@@ -717,33 +742,61 @@ static function Sync($hash_sync=false)
 		}		
 	}
 	
+	if($output) self::DEcho('<p>Searching for new files... ');
+	
 	// search for not added files
-	$upload_dir = str_replace('\\', '/', WPFB_Core::UploadDir());	
-	$uploaded_files = str_replace('\\', '/', list_files($upload_dir));
+	$upload_dir = str_replace('\\', '/', WPFB_Core::UploadDir());
 	$upload_dir_len = strlen($upload_dir);
 	
-	$thumbnails = array();
+	$all_files = str_replace('\\', '/', list_files($upload_dir));
+	$num_all_files = count($all_files);
 	
+	$new_files = array();
+	$num_new_files = 0;
+	$num_files_to_add = 0;
 	
+	// 1ps filter	
+	$fext_blacklist = array_map('strtolower', array_map('trim', explode(',', WPFB_Core::GetOpt('fext_blacklist'))));
+	for($i = 0; $i < $num_all_files; $i++)
+	{
+		$fn = $all_files[$i];
+		$fbn = basename($fn);
+		if(strlen($fn) < 2 || $fbn{0} == '.'
+				|| $fbn == '_wp-filebase.css' || strpos($fbn, '_caticon.') !== false
+				|| in_array($fn, $file_paths)
+				|| !is_file($fn) || !is_readable($fn)
+				|| (!empty($fext_blacklist) && in_array(trim(strrchr($fbn, '.'),'.'), $fext_blacklist)) // check for blacklisted extension
+			)
+			continue;
+		$new_files[$num_new_files] =& $all_files[$i];
+		$num_new_files++;
+	}
+	
+	$num_files_to_add = $num_new_files;
+		
+
+	
+	$thumbnails = array();	
 	// look for thumnails
 	// find files that have names formatted like thumbnails e.g. file-XXxYY.(jpg|jpeg|png|gif)
-	for($i = 1; $i < count($uploaded_files); $i++)
+	for($i = 1; $i < $num_new_files; $i++)
 	{
-		$len = strrpos($uploaded_files[$i], '.');
+		$len = strrpos($new_files[$i], '.');
 		
 		// file and thumbnail should be neighbours in the list, so only check the prev element for matching name
-		if(strlen($uploaded_files[$i-1]) > ($len+2) && substr($uploaded_files[$i-1],0,$len) == substr($uploaded_files[$i],0,$len) && !in_array($uploaded_files[$i-1], $file_paths))
+		if(strlen($new_files[$i-1]) > ($len+2) && substr($new_files[$i-1],0,$len) == substr($new_files[$i],0,$len) && !in_array($new_files[$i-1], $file_paths))
 		{
-			$suffix = substr($uploaded_files[$i-1], $len);
+			$suffix = substr($new_files[$i-1], $len);
 			
 			$matches = array();
-			if(preg_match('/^-([0-9]+)x([0-9]+)\.(jpg|jpeg|png|gif)$/i', $suffix, $matches) && ($is = getimagesize($uploaded_files[$i-1])))
+			if(preg_match('/^-([0-9]+)x([0-9]+)\.(jpg|jpeg|png|gif)$/i', $suffix, $matches) && ($is = getimagesize($new_files[$i-1])))
 			{
 				if($is[0] == $matches[1] && $is[1] == $matches[2])
 				{
 					//ok, found a thumbnail here
-					$thumbnails[$uploaded_files[$i]] = basename($uploaded_files[$i-1]);
-					$uploaded_files[$i-1] = ''; // remove the file from the list
+					$thumbnails[$new_files[$i]] = basename($new_files[$i-1]);
+					$new_files[$i-1] = ''; // remove the file from the list
+					$num_files_to_add--;
 					continue;
 				}
 			}			
@@ -752,32 +805,34 @@ static function Sync($hash_sync=false)
 	
 
 	if(WPFB_Core::GetOpt('base_auto_thumb')) {
-		for($i = 0; $i < count($uploaded_files); $i++)
+		for($i = 0; $i < $num_new_files; $i++)
 		{
-			$len = strrpos($uploaded_files[$i], '.');
-			$ext = strtolower(substr($uploaded_files[$i], $len+1));
+			$len = strrpos($new_files[$i], '.');
+			$ext = strtolower(substr($new_files[$i], $len+1));
 
 			if($ext != 'jpg' && $ext != 'png' && $ext != 'gif') {
-				$prefix = substr($uploaded_files[$i], 0, $len);
+				$prefix = substr($new_files[$i], 0, $len);
 
 				for($ii = $i-1; $ii >= 0; $ii--)
 				{
-					if(substr($uploaded_files[$ii],0, $len) != $prefix) break;						
-					$e = strtolower(substr($uploaded_files[$ii], $len+1));
+					if(substr($new_files[$ii],0, $len) != $prefix) break;						
+					$e = strtolower(substr($new_files[$ii], $len+1));
 					if($e == 'jpg' || $e == 'png' || $e == 'gif') {
-						$thumbnails[$uploaded_files[$i]] = basename($uploaded_files[$ii]);
-						$uploaded_files[$ii] = ''; // remove the file from the list		
+						$thumbnails[$new_files[$i]] = basename($new_files[$ii]);
+						$new_files[$ii] = ''; // remove the file from the list
+						$num_files_to_add--;	
 						break;				
 					}
 				}
 				
-				for($ii = $i+1; $ii < count($uploaded_files); $ii++)
+				for($ii = $i+1; $ii < $num_new_files; $ii++)
 				{
-					if(substr($uploaded_files[$ii],0, $len) != $prefix) break;						
-					$e = strtolower(substr($uploaded_files[$ii], $len+1));
+					if(substr($new_files[$ii],0, $len) != $prefix) break;						
+					$e = strtolower(substr($new_files[$ii], $len+1));
 					if($e == 'jpg' || $e == 'png' || $e == 'gif') {
-						$thumbnails[$uploaded_files[$i]] = basename($uploaded_files[$ii]);
-						$uploaded_files[$ii] = ''; // remove the file from the list		
+						$thumbnails[$new_files[$i]] = basename($new_files[$ii]);
+						$new_files[$ii] = ''; // remove the file from the list
+						$num_files_to_add--;
 						break;				
 					}
 				}
@@ -785,28 +840,43 @@ static function Sync($hash_sync=false)
 		}
 	}
 	
-	$fext_blacklist = array_map('strtolower', array_map('trim', explode(',', WPFB_Core::GetOpt('fext_blacklist'))));
+	if($output && $num_files_to_add > 0) {
+		echo "<p>";
+		printf(__('%d Files total, %d new.'), $num_all_files, $num_files_to_add);
+		echo "</p>";
+		
+		include(WPFB_PLUGIN_ROOT.'extras/progressbar.class.php');
+		$progress_bar = new progressbar(0, $num_files_to_add);
+		$progress_bar->print_code();
+	} else {
+		if($output) self::DEcho('done!</p>');
+	}
 	
-	for($i = 0; $i < count($uploaded_files); $i++)
+	$progress_buffer = 0;
+	for($i = 0; $i < $num_new_files; $i++)
 	{
-		$fn = $uploaded_files[$i];
+		$fn = $new_files[$i];
+		if(empty($fn)) continue;
 		$fbn = basename($fn);
-		if(strlen($fn) < 2 || $fbn{0} == '.' || $fbn == '_wp-filebase.css' || strpos($fbn, '_caticon.') !== false || in_array($fn, $file_paths) || !is_file($fn) || !is_readable($fn))
-			continue;
-			
-		// check for blacklisted extension		
-		if(!empty($fext_blacklist) && in_array(trim(strrchr($fbn, '.'),'.'), $fext_blacklist))
-			continue;
 					
 		$res = self::AddExistingFile($fn, empty($thumbnails[$fn]) ? null : $thumbnails[$fn]);			
 		if(empty($res['error']))
 			$result['added'][] = substr($fn, $upload_dir_len);
 		else
 			$result['error'][] = $res['error'];
-
+		
+		$progress_buffer++;
+		if($progress_buffer > 10) {
+			$progress_bar->step($progress_buffer);
+			$progress_buffer = 0;
+		}
 	}
 	
+	if(!empty($progress_bar))
+		$progress_bar->complete();
+	
 	// chmod
+	if($output) self::DEcho('<p>Setting permissions...');
 	@chmod ($upload_dir, octdec(WPFB_PERM_DIR));
 	for($i = 0; $i < count($file_paths); $i++)
 	{
@@ -816,10 +886,13 @@ static function Sync($hash_sync=false)
 			if(!is_writable($file_paths[$i]) && !is_writable(dirname($file_paths[$i])))
 				$result['warnings'][] = sprintf(__('File <b>%s</b> is not writable!', WPFB), substr($file_paths[$i], $upload_dir_len));
 		}
-	}	
+	}
+	if($output) self::DEcho('done!</p>');
 	
 	// sync categories
+	if($output) self::DEcho('<p>Syncing categories... ');
 	$result['updated_categories'] = self::SyncCats();
+	if($output) self::DEcho('done!</p>');
 	
 	wpfb_call('Setup','ProtectUploadPath');
 	
@@ -1021,28 +1094,6 @@ static function Mkdir($dir)
 	return array('error' => !(@mkdir($dir, octdec(WPFB_PERM_DIR)) && @chmod($dir, octdec(WPFB_PERM_DIR))), 'dir' => $dir, 'parent' => $parent);
 }
 
-static function GetMaxUlSize() {
-	$val = ini_get('upload_max_filesize');
-    if (is_numeric($val))
-        return $val;
-
-	$val_len = strlen($val);
-	$max_bytes = substr($val, 0, $val_len - 1);
-	$unit = strtolower(substr($val, $val_len - 1));
-	switch($unit) {
-		case 'k':
-			$max_bytes *= 1024;
-			break;
-		case 'm':
-			$max_bytes *= 1048576;
-			break;
-		case 'g':
-			$max_bytes *= 1073741824;
-			break;
-	}
-	return $max_bytes;
-}
-
 static function ParseTpls() {
 	wpfb_loadclass('TplLib');
 	
@@ -1085,15 +1136,17 @@ static function PrintPayPalButton() {
 		 */
 		
 		// find out current language for the donate btn
-		if(defined('WPLANG') && WPLANG && WPLANG != '') {
+		if(defined('WPLANG') && WPLANG && WPLANG != '' && strpos(WPLANG, '_') > 0) {
 			if(in_array(WPLANG, $supported_langs))
 				$lang = WPLANG;
 			else {
 				$l = strtolower(substr(WPLANG, 0, strpos(WPLANG, '_')));
-				foreach($supported_langs as $sl) {
-					$pos = strpos($sl,$l);
-					if($pos !== false && $pos == 0) {
-						$lang = $sl;
+				if(!empty($l)) {
+					foreach($supported_langs as $sl) {
+						$pos = strpos($sl,$l);
+						if($pos !== false && $pos == 0) {
+							$lang = $sl;
+						}
 					}
 				}
 			}
@@ -1135,5 +1188,83 @@ static function PrintFlattrButton() {
 <noscript><p style="text-align: center;"><a href="http://flattr.com/thing/157167/WP-Filebase" target="_blank">
 <img src="http://api.flattr.com/button/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0" /></a></p></noscript>
 <?php
+}
+
+// this is used for post filter
+public function ProcessWidgetUpload($_posts = null, $_query = null){	
+	$content = '';
+	$title = '';
+	
+	$result = WPFB_Admin::InsertFile(array_merge($_POST, $_FILES));
+	if(isset($result['error']) && $result['error']) {
+		$content .= '<div id="message" class="updated fade"><p>'.$result['error'].'</p></div>';
+		$title .= __('Error ');
+	} else {
+		// success!!!!
+		$content = 'The File has been successfully uploaded.';
+		$file = WPFB_File::GetFile($result['file_id']);
+		$content .= $file->GenTpl();
+		$title = trim(__('File added.', WPFB),'.');
+	}
+	
+	wpfb_loadclass('Output');
+	WPFB_Output::GeneratePage($title, $content);
+}
+
+public function ProcessWidgetAddCat() {
+	$content = '';
+	$title = '';
+	
+	$result = WPFB_Admin::InsertCategory($_POST);
+	if(isset($result['error']) && $result['error']) {
+		$content .= '<div id="message" class="updated fade"><p>'.$result['error'].'</p></div>';
+		$title .= __('Error ');
+	} else {
+		// success!!!!
+		$content = 'New Category created.';
+		$cat = WPFB_Category::GetCat($result['cat_id']);
+		$content .= $cat->GenTpl();
+		$title = trim(__('Category added.', WPFB),'.');
+	}
+	
+	wpfb_loadclass('Output');
+	WPFB_Output::GeneratePage($title, $content);	
+}
+
+public function SyncCustomFields($remove=false) {
+	global $wpdb;
+	
+	$messages = array();
+	
+	$cols = $wpdb->get_col("SHOW COLUMNS FROM $wpdb->wpfilebase_files LIKE 'file_custom_%'");
+	
+	$custom_fields = WPFB_Core::GetCustomFields();
+	foreach($custom_fields as $ct => $cn) {		
+		if(!in_array('file_custom_'.$ct, $cols)) {
+			$messages[] = sprintf(__($wpdb->query("ALTER TABLE $wpdb->wpfilebase_files ADD `file_custom_".$wpdb->escape($ct)."` TEXT NOT NULL") ?
+			"Custom field '%s' added." : "Could not add custom field '%s'!"), $cn);
+		}
+	}
+	
+	if(!$remove) {
+		foreach($cols as $cf) {
+			$ct = substr($cf, 12); // len(file_custom_)
+			if(!isset($custom_fields[$ct]))
+				$messages[] = sprintf(__($wpdb->query("ALTER TABLE $wpdb->wpfilebase_files DROP `$cf`") ?
+				"Custom field '%s' removed!." : "Could not remove custom field '%s'!"), $ct);
+		}
+	}
+	
+	return $messages;
+}
+
+public function SettingsUpdated() {
+	$messages = array();
+	wpfb_call('Setup','ProtectUploadPath');
+			
+	// custom fields:
+	$messages += WPFB_Admin::SyncCustomFields();
+	
+	return $messages;
 }
 }

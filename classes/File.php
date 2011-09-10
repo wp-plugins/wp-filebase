@@ -19,7 +19,7 @@ class WPFB_File extends WPFB_Item {
 	var $file_platform;
 	var $file_requirement;
 	var $file_license;
-	var $file_required_level = 0;
+	var $file_user_roles;
 	var $file_offline = 0;
 	var $file_direct_linking = 0;
 	var $file_force_download = 0;
@@ -68,8 +68,10 @@ class WPFB_File extends WPFB_Item {
 	static function GetNumFiles($sql_or_cat = -1)
 	{
 		global $wpdb;
+		static $n = -1;
+		if($n >= 0) return $n;
 		if(is_numeric($sql_or_cat)) $sql_or_cat = (($sql_or_cat>=0)?"file_category = $sql_or_cat":"1");
-		return $wpdb->get_var("SELECT COUNT(file_id) FROM $wpdb->wpfilebase_files WHERE $sql_or_cat"); 
+		return ($n = $wpdb->get_var("SELECT COUNT(file_id) FROM $wpdb->wpfilebase_files WHERE $sql_or_cat")); 
 	}
 	
 	static function GetAttachedFiles($post_id)
@@ -80,7 +82,7 @@ class WPFB_File extends WPFB_Item {
 	
 	function DBSave()
 	{ // validate some values before saving (fixes for mysql strict mode)		
-		$ints = array('file_size','file_category','file_post_id','file_required_level','file_added_by','file_update_of','file_hits','file_ratings','file_rating_sum');
+		$ints = array('file_size','file_category','file_post_id','file_added_by','file_update_of','file_hits','file_ratings','file_rating_sum');
 		foreach($ints as $i) $this->$i = intval($this->$i);
 		$this->file_offline = (int)!empty($this->file_offline);
 		$this->file_direct_linking = (int)!empty($this->file_direct_linking);
@@ -291,7 +293,7 @@ class WPFB_File extends WPFB_Item {
 			case 'file_requirements':	return WPFB_Output::ParseSelOpts('requirements', $this->file_requirement, true);
 			case 'file_license':		return WPFB_Output::ParseSelOpts('licenses', $this->file_license, true);
 			
-			case 'file_required_level':	return ($this->file_required_level - 1);
+			//case 'file_required_level':	return ($this->file_required_level - 1);
 			
 			case 'file_date':
 			case 'file_last_dl_time':	return mysql2date(get_option('date_format'), $this->$name);

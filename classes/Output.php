@@ -1,5 +1,8 @@
 <?php
-class WPFB_Output {	
+class WPFB_Output {
+static $page_title = '';
+static $page_content = '';
+
 static function ProcessShortCode($args)
 {
 	$id = intval($args ['id']);
@@ -65,7 +68,6 @@ static function PostAttachments($check_attached = false, $tpl_tag=null)
 static function FileList($args)
 {
 	global $wpdb;
-	//print_r($args);
 	
 	wpfb_loadclass('File','Category','ListTpl');
 	$tpl_tag = empty($args['tpl'])?'default':$args['tpl'];
@@ -313,4 +315,77 @@ static function JSCatUrlsTable() {
 	}
 }
 */
+
+static function GeneratePage($title, $content) {
+	self::$page_content = $content;
+	self::$page_title = $title;
+	add_filter('the_posts',array(__CLASS__,'GeneratePagePostFilter'),9,2);
+	add_filter('edit_post_link', array('WPFB_Core', 'Nothing')); // hide edit link	
+}
+
+static function GeneratePagePostFilter() {
+	global $wp_query;	
+	$now = current_time('mysql');
+	
+	$posts[] = $wp_query->queried_object =
+		(object)array(
+			'ID' => '9999999',
+			'post_author' => '1',
+			'post_date' => $now,
+			'post_date_gmt' => $now,
+			'post_content' => self::$page_content,
+			'post_title' => self::$page_title,
+			'post_excerpt' => '',
+			'post_status' => 'publish',
+			'comment_status' => 'closed',
+			'ping_status' => 'closed',
+			'post_password' => '',
+			'post_name' => $_SERVER['REQUEST_URI'],
+			'to_ping' => '',
+			'pinged' => '',
+			'post_modified' => $now,
+			'post_modified_gmt' => $now,
+			'post_content_filtered' => '',
+			'post_parent' => '0',
+			'menu_order' => '0',
+			'post_type' => 'post',
+			'post_mime_type' => '',
+			'post_category' => '0',
+			'comment_count' => '0',
+			'filter' => 'raw'
+		);
+		
+	// Make WP believe this is a real page, with no comments attached
+	$wp_query->is_page = true;
+	$wp_query->is_single = false;
+	$wp_query->is_home = false;
+	$wp_query->comments = false;
+
+	// Discard 404 errors thrown by other checks
+	unset($wp_query->query["error"]);
+	$wp_query->query_vars["error"]="";
+	$wp_query->is_404=false;
+		
+	// Seems like WP adds its own HTML formatting code to the content, we don't need that here
+	remove_filter('the_content','wpautop');
+		
+	return $posts;
+}
+
+static function RolesDropDown($selected_roles=array()) {
+	global $wp_roles;
+	$all_roles = $wp_roles->roles;
+	foreach ( $all_roles as $role => $details ) {
+		$name = translate_user_role($details['name']);
+		echo "\n\t<option ".(in_array($role, $selected_roles)?"selected='selected'":"")." value='" . esc_attr($role) . "'>$name</option>";
+	} 
+}
+
+static function RoleNames($roles) {
+	global $wp_roles;
+	$names = array();
+	foreach($roles as $role)
+		$names[$role] = translate_user_role($wp_roles->roles[$role]['name']);
+	return $names;
+}
 }

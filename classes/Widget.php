@@ -1,6 +1,15 @@
 <?php
-
 class WPFB_Widget {
+	
+static function InitClass() {
+	add_action('widgets_init', array(__CLASS__, 'RegisterWidgets'));
+}
+
+static function RegisterWidgets()
+{
+	register_widget('WPFB_UploadWidget');
+	register_widget('WPFB_AddCategoryWidget');
+}
 
 function FileList($args)
 {
@@ -221,5 +230,109 @@ function CatListCntrl()
 	</div>
 	<?php
 }
+}
+
+class WPFB_UploadWidget extends WP_Widget {
+
+	function WPFB_UploadWidget() {
+		parent::WP_Widget( false, WPFB_PLUGIN_NAME .' '.__('File Upload'), array('description' => __('Allows users to upload files from the front end.',WPFB)) );
+	}
+
+	function widget( $args, $instance ) {			
+		if(!current_user_can('upload_files'))
+			return;
+
+		wpfb_loadclass('File', 'Category', 'Output');
+		
+        extract( $args );
+        $title = apply_filters('widget_title', $instance['title']);		
+		echo $before_widget;
+		echo $before_title . (empty($title) ? __('Upload File',WPFB) : $title) . $after_title;
+		
+		$prefix = "wpfb-upload-widget-".$this->id_base;
+		$form_url = add_query_arg('wpfb_upload_file', 1);
+		
+		?>		
+		<form enctype="multipart/form-data" name="<?php echo $prefix ?>form" method="post" action="<?php echo $form_url ?>">
+			<input type="hidden" name="overwrite" value="<?php echo !empty($instance['overwrite']) ?>" />
+			<p>
+				<label for="<?php echo $prefix ?>file_upload"><?php _e('Choose File', WPFB) ?></label>
+				<input type="file" name="file_upload" id="<?php echo $prefix ?>file_upload" style="width: 160px" size="10" /><br />
+				<small><?php printf(str_replace('%d%s','%s',__('Maximum upload file size: %d%s'/*def*/)), WPFB_Output::FormatFilesize(WPFB_Core::GetMaxUlSize())) ?></small>
+				<br />
+				<label for="<?php echo $prefix ?>file_category"><?php _e('Category') ?></label>
+				<select name="file_category" id="<?php echo $prefix ?>file_category"><?php echo WPFB_Output::CatSelTree() ?></select>
+			</p>	
+			<p style="text-align:right;"><input type="submit" class="button-primary" name="submit-btn" value="<?php _ex('Add New', 'file') ?>" /></p>
+		</form>
+	<?php
+		echo $after_widget;
+	}
+
+	function update( $new_instance, $old_instance ) {
+		$instance = $old_instance;
+		$instance['title'] = strip_tags($new_instance['title']);
+		$instance['overwrite'] = !empty($new_instance['overwrite']);
+        return $instance;
+	}
+	
+	function form( $instance ) {
+		if(!isset($instance['title'])) $instance['title'] = __('Upload File',WPFB);
+		?><div>
+			<p><label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title:'); ?> <input type="text" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" value="<?php echo esc_attr($instance['title']); ?>" /></label></p>
+			<p><input type="checkbox" id="<?php echo $this->get_field_id('overwrite'); ?>" name="<?php echo $this->get_field_name('overwrite'); ?>" value="1" <?php checked(!empty($instance['overwrite'])) ?> /> <label for="<?php echo $this->get_field_id('overwrite'); ?>"><?php _e('Overwrite existing files', WPFB) ?></label></p>
+		</div><?php
+	}
+}
+
+class WPFB_AddCategoryWidget extends WP_Widget {
+
+	function WPFB_AddCategoryWidget() {
+		parent::WP_Widget( false, WPFB_PLUGIN_NAME .' '.__('Add Category',WPFB), array('description' => __('Allows users to create file categories from the front end.',WPFB)) );
+	}
+
+	function widget( $args, $instance ) {			
+		if(!current_user_can('upload_files'))
+			return;
+
+		wpfb_loadclass('File', 'Category', 'Output');
+		
+        extract( $args );
+        $title = apply_filters('widget_title', $instance['title']);		
+		echo $before_widget;
+		echo $before_title . (empty($title) ? __('Add File Category',WPFB) : $title) . $after_title;
+		
+		$prefix = "wpfb-add-cat-widget-".$this->id_base;
+		$form_url = add_query_arg('wpfb_add_cat', 1);
+		
+		?>		
+		<form enctype="multipart/form-data" name="<?php echo $prefix ?>form" method="post" action="<?php echo $form_url ?>">
+			<p>
+				<label for="<?php echo $prefix ?>cat_name"><?php _e('New category name'/*def*/) ?></label>
+				<input name="cat_name" id="<?php echo $prefix ?>cat_name" type="text" value="" />
+			</p>
+			<p>
+				<label for="<?php echo $prefix ?>cat_parent"><?php _e('Parent Category'/*def*/) ?></label>
+	  			<select name="cat_parent" id="<?php echo $prefix ?>cat_parent"><?php echo WPFB_Output::CatSelTree(array('selected'=>0,'exclude'=>0)) ?></select>
+	  		</p>
+			<p style="text-align:right;"><input type="submit" class="button-primary" name="submit-btn" value="<?php _e('Add New Category'/*def*/) ?>" /></p>
+		</form>
+	<?php
+		echo $after_widget;
+	}
+
+	function update( $new_instance, $old_instance ) {
+		$instance = $old_instance;
+		$instance['title'] = strip_tags($new_instance['title']);
+		//$instance['overwrite'] = !empty($new_instance['overwrite']);
+        return $instance;
+	}
+	
+	function form( $instance ) {
+		if(!isset($instance['title'])) $instance['title'] = __('Add File Category',WPFB);
+		?><div>
+			<p><label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title:'); ?> <input type="text" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" value="<?php echo esc_attr($instance['title']); ?>" /></label></p>
+		</div><?php
+	}
 }
 ?>

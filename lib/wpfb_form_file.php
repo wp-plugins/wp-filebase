@@ -22,7 +22,7 @@ if(!empty($post_id))
 $action = ($update ? 'updatefile' : 'addfile');
 $title = $update ? __('Edit File', WPFB) : __('Add File', WPFB);
 
-$file_members_only = (!empty($file->file_required_level) && $file->file_required_level > 0);
+$file_members_only = !empty($file->file_user_roles);
 
 $form_url = $in_editor ? remove_query_arg(array('file_id', 'page', 'action')) : add_query_arg('page', 'wpfilebase_files', admin_url('admin.php'));
 
@@ -66,7 +66,7 @@ function WPFB_switchFileUpload(i)
 		<div id="file-upload-wrap" <?php echo ($file->IsRemote() ? 'class="hidden"' : ''); ?>>
 			<label for="file_upload"><?php _e('Choose File', WPFB) ?></label>
 			<input type="file" name="file_upload" id="file_upload" /><br />
-			<?php printf(str_replace('%d%s','%s',__('Maximum upload file size: %d%s'/*def*/)), WPFB_Output::FormatFilesize(WPFB_Admin::GetMaxUlSize())) ?>
+			<?php printf(str_replace('%d%s','%s',__('Maximum upload file size: %d%s'/*def*/)), WPFB_Output::FormatFilesize(WPFB_Core::GetMaxUlSize())) ?>
 			<?php if($update) { echo '<br /><b><a href="'.$file->GetUrl().'">' . $file->file_name . '</a></b> (' . $file->GetFormattedSize() . ')'; } ?>
 		</div>
 		<div id="file-remote-wrap" <?php echo ($file->IsRemote() ? '' : 'class="hidden"'); ?>>
@@ -169,19 +169,29 @@ function WPFB_switchFileUpload(i)
 		<th scope="row" valign="top"><label for="file_offline"><?php _e('Offline', WPFB) ?></label></th>
 		<td><input type="checkbox" name="file_offline" value="1" <?php checked('1', $file->file_offline); ?>/></td>
 		
-		<th scope="row" valign="top"><label for="file_members_only"><?php _e('For members only', WPFB) ?></label></th>
+		<th scope="row" valign="top"><label for="file_members_only"><?php _e('For members only', WPFB) ?></label>
+		<input type="checkbox" name="file_members_only" value="1" <?php checked(true, $file_members_only) ?> onclick="WPFB_CheckBoxShowHide(this, 'file_user_roles')" /></th>
 		<td>
-			<input type="checkbox" name="file_members_only" value="1" <?php checked(true, $file_members_only) ?> onclick="WPFB_CheckBoxShowHide(this, 'file_required_role')" />
-			<!-- <label for="file_required_level"<?php if(!$file_members_only) { echo ' class="hidden"'; } ?>><?php printf(__('Minimum user level: (see %s)', WPFB), '<a href="http://codex.wordpress.org/Roles_and_Capabilities#Role_to_User_Level_Conversion" target="_blank">Role to User Level Conversion</a>') ?> <input type="text" name="file_required_level" class="small-text<?php if(!$file_members_only) { echo ' hidden'; } ?>" id="file_required_level" value="<?php echo max(0, intval($file->file_required_level) - 1); ?>" /></label> -->
-
-			<label for="file_required_role"<?php if(!$file_members_only) { echo ' class="hidden"'; } ?>><?php _e('Minimum user role:', WPFB) ?>		
-				<select name="file_required_role" id="file_required_role" class="<?php if(!$file_members_only) { echo ' hidden'; } ?>">
-						<?php wp_dropdown_roles($file->GetRequiredRole()) ?>
-				</select>
-			</label>
+			<?php _e('Limit file access by selecting one or more user roles.')?><br />
+			<!-- <label for="file_user_roles"<?php if(!$file_members_only) { echo ' class="hidden"'; } ?>><?php _e('Roles', WPFB) ?></label> -->
+			<select name="file_user_roles[]" id="file_user_roles" size="40" multiple="multiple" style="height: 80px;" class="<?php if(!$file_members_only) { echo 'hidden'; } ?>">
+			<?php WPFB_Output::RolesDropDown($file->GetUserRoles());
+			?></select><br />
+			<label for="file_user_roles" class="<?php if(!$file_members_only) { echo 'hidden'; } ?>"><?php _e("Select multiple roles by holding the CTRL/COMMAND key.")?></label>
 		</td>
 	</tr>
 	<?php } ?>
+	
+	<?php 
+	$custom_fields = WPFB_Core::GetCustomFields();
+	foreach($custom_fields as $ct => $cn) {
+		$hid = 'file_custom_'.esc_attr($ct);
+	?>
+	<tr class="form-field">
+		<th scope="row" valign="top"><label for="<?php echo $hid; ?>"><?php echo esc_html($cn) ?></label></th>
+		<td colspan="3"><textarea name="<?php echo $hid; ?>" id="<?php echo $hid; ?>" rows="2" cols="50" style="width: 97%;"><?php echo empty($file->$hid) ? '' : esc_html($file->$hid); ?></textarea></td>
+	</tr> <?php
+	} ?>
 </table>
 <p class="submit"><input type="submit" class="button-primary" name="submit-btn" value="<?php echo $title ?>" <?php if(false && !$in_editor) { ?>onclick="this.form.submit(); return false;"<?php } ?>/></p>
 

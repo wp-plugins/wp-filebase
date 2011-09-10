@@ -12,7 +12,7 @@ $title = $update ? __('Edit Category') : __('Add Category');/*def*/
 $form_name = $update ? 'editcat' : 'addcat';
 $nonce_action = $update ? ('update-filecat_' . $file_category->cat_id) : 'add-filecat';	
 
-$cat_members_only = ($file_category->cat_required_level > 0);
+$cat_members_only = !empty($file_category->cat_user_roles);
 
 $form_action = add_query_arg('page', 'wpfilebase_cats', remove_query_arg(array('cat_id', 'page', 'action')));
 ?>
@@ -55,18 +55,17 @@ $form_action = add_query_arg('page', 'wpfilebase_cats', remove_query_arg(array('
 			</td>
 		</tr>
 		<tr>
-			<th scope="row" valign="top"><label for="cat_members_only"><?php _e('For members only', WPFB) ?></label></th>		
-			<td>
-				<input type="checkbox" name="cat_members_only" value="1" <?php checked($cat_members_only) ?> onclick="WPFB_CheckBoxShowHide(this, 'cat_required_role')" />
-				<!-- <label for="cat_required_level"<?php if(!$cat_members_only) { echo ' class="hidden"'; } ?>><?php printf(__('Minimum user level: (see %s)', WPFB), '<a href="http://codex.wordpress.org/Roles_and_Capabilities#Role_to_User_Level_Conversion" target="_blank">Role to User Level Conversion</a>') ?> <input type="text" name="cat_required_level" class="small-text<?php if(!$cat_members_only) { echo ' hidden'; } ?>" id="cat_required_level" value="<?php echo max(0, intval($file_category->cat_required_level) - 1); ?>" /></label> -->
-	
-				<label for="cat_required_role"<?php if(!$cat_members_only) { echo ' class="hidden"'; } ?>><?php _e('Minimum user role:', WPFB) ?>		
-					<select name="cat_required_role" id="cat_required_role" class="<?php if(!$cat_members_only) { echo ' hidden'; } ?>">
-							<?php wp_dropdown_roles($file_category->GetRequiredRole()) ?>
-					</select>
-				</label>
-			</td>
+			
+		<th scope="row" valign="top"><label for="cat_members_only"><?php _e('For members only', WPFB) ?></label>
+		<input type="checkbox" name="cat_members_only" value="1" <?php checked(true, $cat_members_only) ?> onclick="WPFB_CheckBoxShowHide(this, 'cat_user_roles')" /></th>
+		<td>
+			<select name="cat_user_roles[]" id="cat_user_roles" size="40" multiple="multiple" style="height: 80px;" class="<?php if(!$cat_members_only) { echo 'hidden'; } ?>">
+			<?php WPFB_Output::RolesDropDown($file_category->GetUserRoles());
+			?></select><br />
+			<label for="cat_user_roles" class="<?php if(!$cat_members_only) { echo 'hidden'; } ?>"><?php _e("Select multiple roles by holding the CTRL/COMMAND key.")?></label>
+		</td>
 		</tr>
+		
 		<?php if($update) { ?>
 		<tr>
 			<th scope="row" valign="top"><label for="cat_child_apply_perm"><?php _e('Apply permission to all child files', WPFB) ?></label></th>

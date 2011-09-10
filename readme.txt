@@ -3,8 +3,8 @@ Contributors: fabifott
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=money%40fabi-s%2ede&item_name=WP-Filebase&no_shipping=0&no_note=1&tax=0&currency_code=USD&lc=US&bn=PP%2dDonationsBF&charset=UTF%2d8
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, traffic, widget, filelist, list, thumb, thumbnail, attachment, attachments, category, categories, media, template, ftp, http, mp3, id3
 Requires at least: 3.1
-Tested up to: 3.1.2
-Stable tag: 0.2.9
+Tested up to: 3.2.1
+Stable tag: 0.2.9.1
 
 Adds a powerful downloads manager supporting file categories, download counter, widgets, sorted file lists and more to your WordPress blog.
 
@@ -34,7 +34,7 @@ Some more features:
 *	Insert flexible shortcodes with the Visual Editor Plugin
 *	Sortable paginated file lists
 *	Associate files to posts and automatically attach them to the content
-*	User level restrictions
+*	User Role access restrictions, limit file access to certain user roles 
 *	Upload files in your browser, with FTP or from URL (sideloading)
 *	Traffic limits and bandwidth throttle
 *	Permalink structure
@@ -102,6 +102,21 @@ Goto WP-Filebase Settings and disable Permalinks under "Download". Try to disabl
 4. The Editor Button to insert tags for filelists and download urls
 
 == Changelog ==
+
+= 0.2.9.1 =
+* New widgets: upload files and create categories from the front-end
+* *Custom Fields* add even more file properties, searchable and sortable
+* Multiple roles file permissions (select one or more user roles for limiting file access) 
+* Italian translation
+* Turkish translation (thanks to Mahir B. Aşut)
+* New option `Attachment Position`
+* New option: Search Integration now switchable
+* Fixed password protected post attachments
+* Fixed admin file search
+* Fixed file downloads with special characters in URL
+* Fixed SQL exploit, thanks to [Miroslav Stampar](http://unconciousmind.blogspot.com/)
+* Minor bug fixes
+* For developers: new action `wpfilebase_sync` to sync WP-Filebase from your plugin
 
 = 0.2.9 =
 * New Feature: Files are scanned for ID3 tags and other data that can be displayed in templates
