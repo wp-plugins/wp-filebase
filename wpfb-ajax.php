@@ -222,7 +222,6 @@ switch ( $action = $_REQUEST['action'] ) {
 		wpfb_loadclass('File');
 		if(!current_user_can('upload_files') || empty($_REQUEST['post_id']) || empty($_REQUEST['file_id']) || !($file = WPFB_File::GetFile($_REQUEST['file_id'])))
 			die('-1');
-		$file->file_post_id = $_REQUEST['post_id'];
-		$file->DBSave();
+		$file->SetPostId($_REQUEST['post_id']);
 		die('1');
 }

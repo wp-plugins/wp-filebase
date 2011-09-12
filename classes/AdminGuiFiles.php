@@ -173,7 +173,7 @@ static function Display()
 							<td><?php echo esc_html($file->file_name); ?></td>
 							<td><?php echo WPFB_Output::FormatFilesize($file->file_size); ?></td>
 							<td><?php echo empty($file->file_description) ? '-' : esc_html($file->file_description); ?></td>
-							<td><?php echo ($file->file_category > 0) ? ('<a href="'.$cat->GetEditUrl().'">'.esc_html($file->file_category_name).'</a>') : '-'; ?></td>
+							<td><?php echo (!is_null($cat)) ? ('<a href="'.$cat->GetEditUrl().'">'.esc_html($file->file_category_name).'</a>') : '-'; ?></td>
 							<td><?php echo empty($user_roles) ? ("<i>".__('Everyone',WPFB)."</i>") : join(', ', WPFB_Output::RoleNames($user_roles)) ?></td>
 							<td class='num'><?php echo $file->file_hits; ?></td>
 							<td><?php echo ( (!empty($file->file_last_dl_time) && $file->file_last_dl_time > 0) ? mysql2date(get_option('date_format'), $file->file_last_dl_time) : '-') ?></td>

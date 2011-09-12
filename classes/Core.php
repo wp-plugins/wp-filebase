@@ -340,14 +340,18 @@ static function UserRole2Level($role)
 	}
 }
 
-static function GetFileListSortSql($sort=null)
+static function GetFileListSortSql($sort=null, $attach_order=false)
 {
 	global $wpdb;
-	static $fields = array(
+	static $fields;
+	
+	if(empty($fields)) {
+		$fields = array_merge(array(
 		'file_id','file_name','file_size','file_date','file_path','file_display_name','file_hits',
 		'file_description','file_version','file_author','file_license',
-		'file_category','file_category_name','file_post_id',
-		'file_added_by','file_hits','file_last_dl_time');
+		'file_category','file_category_name','file_post_id','file_attach_order',
+		'file_added_by','file_hits','file_last_dl_time'), array_keys(WPFB_Core::GetCustomFields(true)));
+	}
 	
 	if(!empty($_REQUEST['wpfb_file_sort']))
 		$sort = $_REQUEST['wpfb_file_sort'];
@@ -369,7 +373,7 @@ static function GetFileListSortSql($sort=null)
 	
 	$sort = $wpdb->escape($sort);
 	$sortdir = $desc ? 'DESC' : 'ASC';	
-	return "ORDER BY `$sort` $sortdir";
+	return $attach_order ? "ORDER BY file_attach_order ASC, `$sort` $sortdir" : "ORDER BY `$sort` $sortdir";
 }
 
 static function PrintJS() {

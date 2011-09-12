@@ -568,7 +568,10 @@ static function InsertFile($data)
 		$data->file_direct_linking = 1; // allow direct linking by default
 	$file->file_direct_linking = (int)!empty($data->file_direct_linking);
 
-	$var_names = array('remote_uri', 'author', 'date', 'post_id', 'description', 'hits', 'license');
+	if(isset($data->file_post_id))
+		$file->SetPostId(intval($data->file_post_id));
+	
+	$var_names = array('remote_uri', 'author', 'date', 'description', 'hits', 'license');
 	for($i = 0; $i < count($var_names); $i++)
 	{
 		$vn = 'file_' . $var_names[$i];
@@ -698,6 +701,9 @@ static function Sync($hash_sync=false, $output=false)
 		if($file->GetThumbPath())
 			$file_paths[] = str_replace('\\', '/', $file->GetThumbPath());
 		
+		if($file->file_category > 0 && is_null($file->GetParent()))
+			$result['warnings'][] = sprintf(__('Category (ID %d) of file %s does not exist!'), $file->file_category, $file->GetRelPath()); 
+			
 		// TODO: check for file changes remotly
 		if($file->IsRemote())
 			continue;

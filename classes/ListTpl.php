@@ -41,7 +41,7 @@ class WPFB_ListTpl {
 	
 	static function ParseHeaderFooter($str) {
 		global $wp_query;	
-		$str = preg_replace('/%sortlink:([a-z_]+)%/e', __CLASS__.'::GenSortlink(\'$1\')', $str);
+		$str = preg_replace('/%sortlink:([a-z0-9_]+)%/ie', __CLASS__.'::GenSortlink(\'$1\')', $str);
 		if(strpos($str, '%search_form%') !== false) {
 			$search = !empty($_GET['wpfb_s']);
 			if($search) {
@@ -71,7 +71,7 @@ class WPFB_ListTpl {
 	}
 	
 	function Generate($categories, $show_cats, $file_order, $num)
-	{		
+	{
 		$content = self::ParseHeaderFooter($this->header);
 		
 		if($show_cats) $cat_tpl = WPFB_Core::GetParsedTpl('cat', $this->cat_tpl_tag);
@@ -83,15 +83,19 @@ class WPFB_ListTpl {
 			$limit = " LIMIT $start, $num";
 		} else $limit = '';
 		
-		if(!empty($_GET['wpfb_s']))
+		$join = '';
+		if(!empty($_GET['wpfb_s'])) {
+			if(WPFB_Core::GetOpt('search_id3'))
+				$join = wpfb_call('Search','ID3Join');
 			$where = "WHERE (0 ".wpfb_call('Search','SearchWhereSql',$_GET['wpfb_s']).") ";
-		else 
+		} else { 
 			$where = 'WHERE 1 ';
+		}
 		
 		$sort_and_limit = WPFB_Core::GetFileListSortSql($file_order).$limit;
 		$num_total_files = 0;
 		if(is_null($categories)) { // if null, just list all files!
-			$files = WPFB_File::GetFiles($where.$sort_and_limit);
+			$files = WPFB_File::GetFiles("$join $where $sort_and_limit");
 			$num_total_files = WPFB_File::GetNumFiles();// TODO: total number is not correct if user cannot access some files!
 			foreach($files as $file) {
 				if($file->CurUserCanAccess(true))

@@ -27,6 +27,7 @@ class WPFB_File extends WPFB_Item {
 	var $file_category_name;
 	var $file_update_of = 0; // TODO
 	var $file_post_id = 0;
+	var $file_attach_order = 0;
 	var $file_added_by = 0;
 	var $file_hits = 0;
 	var $file_ratings = 0; // TODO
@@ -77,12 +78,12 @@ class WPFB_File extends WPFB_Item {
 	static function GetAttachedFiles($post_id)
 	{
 		$post_id = intval($post_id);
-		return WPFB_File::GetFiles("WHERE file_post_id = $post_id " . WPFB_Core::GetFileListSortSql());
+		return WPFB_File::GetFiles("WHERE file_post_id = $post_id " . WPFB_Core::GetFileListSortSql(null, true));
 	}
 	
 	function DBSave()
 	{ // validate some values before saving (fixes for mysql strict mode)		
-		$ints = array('file_size','file_category','file_post_id','file_added_by','file_update_of','file_hits','file_ratings','file_rating_sum');
+		$ints = array('file_size','file_category','file_post_id','file_attach_order','file_added_by','file_update_of','file_hits','file_ratings','file_rating_sum');
 		foreach($ints as $i) $this->$i = intval($this->$i);
 		$this->file_offline = (int)!empty($this->file_offline);
 		$this->file_direct_linking = (int)!empty($this->file_direct_linking);
@@ -276,17 +277,17 @@ class WPFB_File extends WPFB_Item {
 		return $val;
 	}
     
-    private function getTplVar($name)
+    public function get_tpl_var($name)
     {		
 		switch($name) {
-			case 'file_url':			return $this->GetUrl();
-			case 'file_url_rel':		return WPFB_Core::GetOpt('download_base') . '/' . str_replace('\\', '/', $this->GetLocalPathRel());
-			case 'file_post_url':		return !($url = $this->GetPostUrl()) ? $this->GetUrl() : $url;			
-			case 'file_icon_url':		return $this->GetIconUrl();
-			case 'file_small_icon':		return '<img src="'.$this->GetIconUrl('small').'" style="vertical-align:middle;height:32px;" />';
+			case 'file_url':			return htmlspecialchars($this->GetUrl());
+			case 'file_url_rel':		return htmlspecialchars(WPFB_Core::GetOpt('download_base') . '/' . str_replace('\\', '/', $this->GetLocalPathRel()));
+			case 'file_post_url':		return htmlspecialchars(!($url = $this->GetPostUrl()) ? $this->GetUrl() : $url);			
+			case 'file_icon_url':		return htmlspecialchars($this->GetIconUrl());
+			case 'file_small_icon':		return '<img src="'.esc_attr($this->GetIconUrl('small')).'" style="vertical-align:middle;height:32px;" />';
 			case 'file_size':			return $this->GetFormattedSize();
-			case 'file_path':			return $this->GetLocalPathRel();
-			case 'file_category':		return is_object($parent = $this->GetParent()) ? $parent->cat_name : '';
+			case 'file_path':			return htmlspecialchars($this->GetLocalPathRel());
+			case 'file_category':		return htmlspecialchars(is_object($parent = $this->GetParent()) ? $parent->cat_name : '');
 			
 			case 'file_languages':		return WPFB_Output::ParseSelOpts('languages', $this->file_language);
 			case 'file_platforms':		return WPFB_Output::ParseSelOpts('platforms', $this->file_platform);
@@ -295,13 +296,15 @@ class WPFB_File extends WPFB_Item {
 			
 			//case 'file_required_level':	return ($this->file_required_level - 1);
 			
+			case 'file_description':	return nl2br($this->file_description);
+			
 			case 'file_date':
-			case 'file_last_dl_time':	return mysql2date(get_option('date_format'), $this->$name);
+			case 'file_last_dl_time':	return htmlspecialchars(mysql2date(get_option('date_format'), $this->$name));
 			
 			case 'file_extension':		return strtolower(substr(strrchr($this->file_name, '.'), 1));
 			case 'file_type': 			return wpfb_call('Download', 'GetFileType', $this->file_name);
 			
-			case 'file_url_encoded':	return urlencode($this->GetUrl());
+			case 'file_url_encoded':	return htmlspecialchars(urlencode($this->GetUrl()));
 			
 			case 'uid':					return self::$tpl_uid;
 		}
@@ -309,16 +312,11 @@ class WPFB_File extends WPFB_Item {
     	if(strpos($name, 'file_info/') === 0)
 		{
 			$path = explode('/',substr($name, 10));
-			return $this->getInfoValue($path);
-		}
-		
-		return isset($this->$name) ? $this->$name : '';
+			return htmlspecialchars($this->getInfoValue($path));
+		} elseif(strpos($name, 'file_custom') === 0) // dont esc custom
+			return isset($this->$name) ? $this->$name : '';		
+		return isset($this->$name) ? htmlspecialchars($this->$name) : '';
     }
-	
-	function get_tpl_var($name) {
-		static $no_esc = array('file_languages', 'file_platforms', 'file_requirements', 'file_license', 'file_small_icon');
-		return in_array($name, $no_esc) ? $this->getTplVar($name) : htmlspecialchars($this->getTplVar($name));
-	}
 	
 	function DownloadDenied($msg_id) {
 		if(WPFB_Core::GetOpt('inaccessible_redirect') && !is_user_logged_in()) {
@@ -413,7 +411,10 @@ class WPFB_File extends WPFB_Item {
 	function SetPostId($id)
 	{
 		$id = intval($id);
-		$this->file_post_id = $id;
+		if($this->file_post_id == $id) return;
+		$this->file_post_id = $id;	
+		if($id > 0)
+			$this->file_attach_order = count(self::GetAttachedFiles($id)) + 1;		
 		if(!$this->locked) $this->DBSave();
 	}
 	

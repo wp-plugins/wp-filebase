@@ -47,6 +47,18 @@ case 'delfile':
 case 'addfile':
 	if ( !current_user_can('upload_files') ) wp_die(__('Cheatin&#8217; uh?'));
 	break;
+case 'change-order':
+	foreach($_POST as $n => $v) {
+		if(strpos($n, 'file_attach_order-') === 0)
+		{
+			$file_id = intval(substr($n, strlen('file_attach_order-')));
+			$file = WPFB_File::GetFile($file_id);
+			if(!is_null($file)) {
+				$file->file_attach_order = intval($v);
+				$file->DBSave();
+			}
+		}
+	}
 }
 
 $post_attachments = ($post_id > 0) ? WPFB_File::GetAttachedFiles($post_id) : array();
@@ -214,9 +226,18 @@ function tabclick(a)
 	return false;
 }
 
+var reloadTimer = -1;
+function delayedReload() {
+	if(reloadTimer != -1)
+		window.clearTimeout(reloadTimer);
+	reloadTimer = window.setTimeout("window.location.reload()", 10000);
+}
+
 function selectFile(id, name)
 {
 	var theTag = {"tag":currentTab, "id":id};
+	var el = jQuery('span.file','#wpfb-file-'+id).first();
+	
 	if(<?php echo $manage_attachments?'true':'false' ?> || currentTab == 'attach') {
 		jQuery.ajax({
 			url: "<?php echo WPFB_PLUGIN_URI."wpfb-ajax.php" ?>",
@@ -226,7 +247,8 @@ function selectFile(id, name)
 				file_id:id
 			},
 			async: false});
-		window.location.reload();
+		//delayedReload();
+		el.css('background-image', 'url(<?php echo admin_url('images/yes.png') ?>)');
 		return;
 	} else if(currentTab == 'fileurl') {
 		var linkText = prompt('<?php _e('Enter link text:', WPFB) ?>', name);
@@ -413,7 +435,7 @@ if($action =='addfile' || $action =='updatefile')
 	
 if($action != 'editfile' && (!empty($post_attachments) || $manage_attachments)) {
 	?>
-	<form action="" method="get">	
+	<form action="<?php echo add_query_arg(array('action'=>'change-order')) ?>" method="post">	
 	<h3 class="media-title"><?php _e('Files', WPFB) ?></h3>
 	<div id="media-items">
 	<?php 
@@ -426,10 +448,14 @@ if($action != 'editfile' && (!empty($post_attachments) || $manage_attachments)) 
 			<a class='toggle describe-toggle-on' href="<?php echo add_query_arg(array('file_id'=>$pa->file_id,'action'=>'rmfile')) ?>" title="<?php _e('Remove') ?>"><img src="<?php echo WPFB_PLUGIN_URI.'extras/jquery/contextmenu/page_white_delete.png'; ?>" /></a>
 			<a class='toggle describe-toggle-on' href="<?php echo add_query_arg(array('file_id'=>$pa->file_id,'action'=>'editfile')) ?>" title="<?php _e('Edit') ?>"><img src="<?php echo WPFB_PLUGIN_URI.'extras/jquery/contextmenu/page_white_edit.png'; ?>" /></a>
 
-			<div class='filename'><span class='title'><?php echo $pa->file_display_name ?></span></div>
+			<div class='filename'>
+				<input type="text" size="3" name="file_attach_order-<?php echo $pa->file_id ?>" value="<?php echo $pa->file_attach_order ?>" style="text-align: right; width: 30px;" />
+				<span class='title'><?php echo $pa->file_display_name ?></span>
+			</div>
 		</div>
 	<?php }	?>
 	</div>
+	<input type="submit" name="change-order" value="<?php _e('Change Order') ?>" />
 	</form>
 	<?php
 }

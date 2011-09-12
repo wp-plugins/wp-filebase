@@ -12,7 +12,7 @@ static function PostsJoin($join)
 	global $wpdb;	
 	$join .= " LEFT JOIN $wpdb->wpfilebase_files ON ( $wpdb->wpfilebase_files.file_post_id = $wpdb->posts.ID ) ";
 	if(WPFB_Core::GetOpt('search_id3')) 
-		$join .= " LEFT JOIN $wpdb->wpfilebase_files_id3 ON ( $wpdb->wpfilebase_files_id3.file_id = $wpdb->wpfilebase_files.file_id ) ";
+		$join .= self::ID3Join();
 	return $join;
 }
 
@@ -120,5 +120,10 @@ static function PostsSearch($sql)
 	*/
 	
 	return $sql;
+}
+
+static function ID3Join() {
+	global $wpdb;
+	return " LEFT JOIN $wpdb->wpfilebase_files_id3 ON ( $wpdb->wpfilebase_files_id3.file_id = $wpdb->wpfilebase_files.file_id ) ";
 }
 }

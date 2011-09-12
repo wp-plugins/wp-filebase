@@ -218,6 +218,7 @@ static function SetupDBTables()
   `file_category_name` varchar(127) NOT NULL default '',
   `file_update_of` bigint(20) unsigned default NULL,
   `file_post_id` bigint(20) unsigned default NULL,
+  `file_attach_order` int(8) NOT NULL default '0',
   `file_added_by` bigint(20) unsigned default NULL,
   `file_hits` bigint(20) unsigned NOT NULL default '0',
   `file_ratings` bigint(20) unsigned NOT NULL default '0',
@@ -272,6 +273,8 @@ static function SetupDBTables()
 	// since 0.2.9.1
 	$queries[] = "@ALTER TABLE `$tbl_files` ADD `file_user_roles` varchar(255) NOT NULL default '' AFTER `file_license`";
 	$queries[] = "@ALTER TABLE `$tbl_cats` ADD `cat_user_roles` varchar(255) NOT NULL default '' AFTER `cat_num_files_total`";
+	
+	$queries[] = "@ALTER TABLE `$tbl_files` ADD `file_attach_order` int(8) NOT NULL default '0'  AFTER `file_post_id`";
 	
 	
 	$queries[] = "OPTIMIZE TABLE `$tbl_cats`";

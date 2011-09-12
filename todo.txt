@@ -1,6 +1,5 @@
 -file list limit
 - better syncing many files!
-- attachements before page content
 Comments
 - shortcode: file by path, not only id!!
 -inline upload
@@ -8,8 +7,6 @@ Comments
 - user upload paths
 -disable automatic sync by default
 shocats=1 ?
-ajax tree view in multiple posts
-
 showcats tag does not work if all cats selected
 
 -check sortings
