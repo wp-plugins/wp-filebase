@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=money
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, traffic, widget, filelist, list, thumb, thumbnail, attachment, attachments, category, categories, media, template, ftp, http, mp3, id3
 Requires at least: 3.1
 Tested up to: 3.2.1
-Stable tag: 0.2.9.2
+Stable tag: 0.2.9.3
 
 Adds a powerful downloads manager supporting file categories, download counter, widgets, sorted file lists and more to your WordPress blog.
 
@@ -53,7 +53,7 @@ For support, please [leave a message on my blog](http://fabi.me/wordpress-plugin
 **Note when updating to 0.2.1:** Since 0.2.1 WP-Filebase uses a different shortcode format. Old tags can be easily converted with the built-in converter. Please backup your database and run the converter right after the update. You should also run a filebase sync!
 **Important:** Don't upgrade to 0.2.1 if you are still running old PHP 4! WP-Filebase 0.2.1 only runs on PHP 5 and later!
 
-If you want to translate WP-Filebase in your language, open `wp-filebase/languages/template.po` with [Poedit](http://www.poedit.net/download.php) and save as `wpfb-xx_YY.po` (`xx` is your language code, `YY` your country). Poedit will create the file `wpfb-xx_YY.po`. Put this file in `wp-filebase/languages` and share it if you like (attach it to an email or post it on my blog).
+If you want to translate WP-Filebase in your language, open `wp-filebase/languages/template.po` with [Poedit](http://www.poedit.net/download.php) and save as `wpfb-xx_YY.po` (`xx` is your language code, `YY` your country). Poedit will create the file `wpfb-xx_YY.mo`. Put this file in `wp-filebase/languages` and share it if you like (attach it to an email or post it on my blog).
 
 **Note:** If you only want to limit traffic or bandwidth of media files you should take a look at my [Traffic Limiter Plugin](http://wordpress.org/extend/plugins/traffic-limiter/ "Traffic Limiter").
 
@@ -104,9 +104,21 @@ Goto WP-Filebase Settings and disable Permalinks under "Download". Try to disabl
 
 == Changelog ==
 
+= 0.2.9.3 =
+* Search integration: File Browser post is listed in search results whith matching files
+* File permissions are inherited from categories when added or moved
+* New Option `Thumbnail Path`
+* New Option `Use path instead of ID in Shortcode`
+* Fixed search issues
+* Fixed custom tags bug
+* Fixed change category bug
+* Fixed ID3 Keyword encoding bug
+* Fixed file list search form
+* Fixed file list with multiple categories
+
 = 0.2.9.2 =
 * New feature: custom order for attached files
-* Removed HTML escape in file description and custom files
+* Removed HTML escaping in file description and custom fields
 * Fixed custom fields search and sorting
 
 = 0.2.9.1 =

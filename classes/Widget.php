@@ -26,8 +26,15 @@ function FileList($args)
 	
 	// load all categories
 	WPFB_Category::GetCats();
-	$files =& WPFB_File::GetFiles( (!empty($options['filelist_cat']) ? ('WHERE file_category = '.(int)$options['filelist_cat']) : '') . ' ORDER BY ' . $options['filelist_order_by'] . ($options['filelist_asc'] ? ' ASC' : ' DESC') . ' LIMIT ' . (int)$options['filelist_limit']);
-
+	$files =& WPFB_File::GetFiles2(
+		!empty($options['filelist_cat']) ?  array('file_category'=>(int)$options['filelist_cat']) : null,
+		WPFB_Core::GetOpt('hide_inaccessible'),
+		array($options['filelist_order_by'] => ($options['filelist_asc'] ? 'ASC' : 'DESC')),
+	 	(int)$options['filelist_limit']
+	);
+	
+	//$files =& WPFB_File::GetFiles( (!empty($options['filelist_cat']) ? ('WHERE file_category = '.(int)$options['filelist_cat']) : '') . ' ORDER BY ' . $options['filelist_order_by'] . ($options['filelist_asc'] ? ' ASC' : ' DESC') . ' LIMIT ' . (int)$options['filelist_limit']);
+	
 	// add url to template
 	/*
 	if(strpos($options['filelist_template'], '%file_display_name%') !== false)
@@ -46,8 +53,7 @@ function FileList($args)
 	echo '<ul>';
 	$tpl =& $options['filelist_template_parsed'];
 	foreach($files as $file){
-		if($file->CurUserCanAccess(true))
-			echo '<li>',$file->GenTpl($tpl, 'widget'),'</li>';
+		echo '<li>',$file->GenTpl($tpl, 'widget'),'</li>';
 	}
 	echo '</ul>';
 	

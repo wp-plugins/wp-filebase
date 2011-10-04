@@ -5,36 +5,43 @@ static $page_content = '';
 
 static function ProcessShortCode($args)
 {
-	$id = intval($args ['id']);
+	$id = empty($args ['id']) ? -1 : intval($args ['id']);
+	if($id <= 0 && !empty($args['path'])) { // path indentification
+		wpfb_loadclass('File','Category');
+		$args ['id'] = $id = is_null($item = WPFB_Item::GetByPath($args['path'])) ? 0 : $item->GetId();
+	}
+	
 	switch($args['tag']) {
 		case 'list': return do_shortcode(self::FileList($args));
+		
 		case 'file':
 			wpfb_loadclass('File','Category');
 			if($id > 0 && ($file = WPFB_File::GetFile($id)) != null && $file->CurUserCanAccess(true))
 				return do_shortcode($file->GenTpl(WPFB_Core::GetParsedTpl('file',$args['tpl'])));
 			else break;
+			
 		case 'fileurl':
 			if($id > 0 && ($file = wpfb_call('File','GetFile',$id)) != null) return $file->GetUrl();
 			else break;					
+			
 		case 'attachments':	return do_shortcode(self::PostAttachments(false, $args['tpl']));
 		
 		case 'browser':
 				$content = '';
-				self::FileBrowser($content, empty($args['id']) ? 0 : $args['id'], 0);
+				self::FileBrowser($content, $id, 0); // by ref
 				return $content;
 	}	
 	return '';
 }
 
-static function GenFileList(&$files, $tpl_tag=null)
+private static function genFileList(&$files, $tpl_tag=null)
 {
 	if(!empty($tpl_tag)) $tpl = self::GetParsedTpl($tpl_tag);
 	else $tpl = null;	
 		
 	$content = '';
 	foreach(array_keys($files) as $i)
-		if($files[$i]->CurUserCanAccess(true))
-			$content .= $files[$i]->GenTpl($tpl);
+		$content .= $files[$i]->GenTpl($tpl);
 	$content .= '<div style="clear:both;"></div>';
 
 	return $content;
@@ -62,7 +69,7 @@ static function PostAttachments($check_attached = false, $tpl_tag=null)
 		return '';
 
 	$attached = true;
-	return self::GenFileList($files, $tpl_tag);
+	return self::genFileList($files, $tpl_tag);
 }
 
 static function FileList($args)
@@ -82,7 +89,7 @@ static function FileList($args)
 	}
 	
 	if(empty($args['id']) || $args['id'] == -1) {
-		$cats = null;
+		$cats = $args['showcats'] ? WPFB_Category::GetCats() : null;
 	} else {
 		$cats = array();	
 		$cat_ids = explode(',', $args['id']);	
@@ -101,40 +108,44 @@ static function FileBrowser(&$content, $root_cat_id=0, $cur_cat_id=0)
 	
 	wpfb_loadclass('Category','File');
 	
-	$root_cat = ($root_cat_id==0) ? null : WPFB_Category::GetCat($root_cat_id);
-	
-	$cur_cat = null;
-	if($cur_cat_id > 0) {
-		$cur_cat = WPFB_Category::GetCat($cur_cat_id);
-	} else {
-		$url = (is_ssl()?'https':'http').'://'.$_SERVER["HTTP_HOST"].$_SERVER["REQUEST_URI"];		
-		$path = trim(substr($url, strlen(WPFB_Core::GetPostUrl(self::GetPostId()))), '/');
-		if(!empty($path))
-			$cur_cat = WPFB_Category::GetByPath($path);
-	}
-	
-	// make sure cur cat is a child cat of parent
-	if(!is_null($cur_cat) && !is_null($root_cat) && !$root_cat->IsAncestorOf($cur_cat))
-		$cur_cat = null;
-	
-	$el_id = "wpfb-filebrowser-$fb_id";
-	self::InitFileTreeView($el_id, $root_cat);
-	
-	// thats all, JS is loaded in Core::Header
-	$content .= '<ul id="'.$el_id.'">';
-
-	$parents = array();
-	if(!is_null($cur_cat)) {
-		$p = $cur_cat;
-		do { array_push($parents, $p); } while(!is_null($p = $p->GetParent()) && !$p->Equals($root_cat));
-	}
-	
-	$cat_tpl = WPFB_Core::GetParsedTpl('cat', 'filebrowser');
-	$file_tpl = WPFB_Core::GetParsedTpl('file', 'filebrowser');
-	
-	self::FileBrowserList($content, $parents, $cat_tpl, $file_tpl, $root_cat);
+	if(WPFB_Core::$file_browser_search) {
 		
-	$content .= '</ul><div style="clear:both;"></div>';
+	} else {
+		$root_cat = ($root_cat_id==0) ? null : WPFB_Category::GetCat($root_cat_id);
+		
+		$cur_cat = null;
+		if($cur_cat_id > 0) {
+			$cur_cat = WPFB_Category::GetCat($cur_cat_id);
+		} else {
+			$url = (is_ssl()?'https':'http').'://'.$_SERVER["HTTP_HOST"].$_SERVER["REQUEST_URI"];		
+			$path = trim(substr($url, strlen(WPFB_Core::GetPostUrl(self::GetPostId()))), '/');
+			if(!empty($path))
+				$cur_cat = WPFB_Category::GetByPath($path);
+		}
+		
+		// make sure cur cat is a child cat of parent
+		if(!is_null($cur_cat) && !is_null($root_cat) && !$root_cat->IsAncestorOf($cur_cat))
+			$cur_cat = null;
+		
+		$el_id = "wpfb-filebrowser-$fb_id";
+		self::InitFileTreeView($el_id, $root_cat);
+		
+		// thats all, JS is loaded in Core::Header
+		$content .= '<ul id="'.$el_id.'">';
+	
+		$parents = array();
+		if(!is_null($cur_cat)) {
+			$p = $cur_cat;
+			do { array_push($parents, $p); } while(!is_null($p = $p->GetParent()) && !$p->Equals($root_cat));
+		}
+		
+		$cat_tpl = WPFB_Core::GetParsedTpl('cat', 'filebrowser');
+		$file_tpl = WPFB_Core::GetParsedTpl('file', 'filebrowser');
+		
+		self::FileBrowserList($content, $parents, $cat_tpl, $file_tpl, $root_cat);
+			
+		$content .= '</ul><div style="clear:both;"></div>';
+	}
 }
 
 static function FileBrowserList(&$content, &$parents, $cat_tpl, $file_tpl, $root_cat=null)
@@ -160,12 +171,9 @@ static function FileBrowserList(&$content, &$parents, $cat_tpl, $file_tpl, $root
 		$content .= "</li>\n";
 	}
 	
-	$sort_sql = WPFB_Core::GetFileListSortSql((WPFB_Core::GetOpt('file_browser_file_sort_dir')?'>':'<').WPFB_Core::GetOpt('file_browser_file_sort_by'));
-	$files = $root_cat ? $root_cat->GetChildFiles(false,$sort_sql) : WPFB_File::GetFiles("WHERE file_category = 0 $sort_sql");
-	foreach($files as $file) {
-		if($file->CurUserCanAccess(true))
+	$files =  WPFB_File::GetFiles2(array('file_category' => $root_cat ? $root_cat->GetId() : 0), WPFB_Core::GetOpt('hide_inaccessible'), WPFB_Core::GetFileListSortSql((WPFB_Core::GetOpt('file_browser_file_sort_dir')?'>':'<').WPFB_Core::GetOpt('file_browser_file_sort_by')));
+	foreach($files as $file)
 			$content .= '<li id="wpfb-file-'.$file->file_id.'"><span>'.$file->GenTpl($file_tpl, 'ajax')."</span></li>\n";
-	}
 }
 
 // used when retrieving a multi select tpl var
@@ -290,6 +298,8 @@ static function InitFileTreeView($id, $root=0)
 		wp_print_styles('jquery-treeview');
 		$tv_plugin_loaded = true;
 	}
+	
+	if(is_object($root)) $root = $root->GetId();
 	
 	?>
 <script type="text/javascript">

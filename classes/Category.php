@@ -82,6 +82,7 @@ class WPFB_Category extends WPFB_Item {
 	
 	function DBSave()
 	{ // validate some values before saving (fixes for mysql strict mode)
+		if($this->locked > 0) return $this->TriggerLockedError();
 		$this->cat_exclude_browser = (int)!empty($this->cat_exclude_browser);
 		//$this->cat_required_level = intval($this->cat_required_level);
 		$this->cat_parent = intval($this->cat_parent);
@@ -104,14 +105,14 @@ class WPFB_Category extends WPFB_Item {
 		if($parent) $parent->NotifyFileAdded($file);
 	}
 
-	function NotifyFileRemoved(&$file)
+	function NotifyFileRemoved($file)
 	{
-		if($this->IsAncestorOf($file))
-		{
+		//if($this->IsAncestorOf($file)) // FIX: when a file is moved to another category this function is called on old category, so IsAncestorOf will false, since the files is no longer in this category
+		//{
 			if($file->file_category == $this->cat_id) $this->cat_num_files--;
 			$this->cat_num_files_total--;
 			if(!$this->locked) $this->DBSave();
-		}
+		//}
 		
 		$parent = $this->GetParent();
 		if($parent) $parent->NotifyFileRemoved($file);

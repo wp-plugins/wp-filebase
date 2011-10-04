@@ -67,7 +67,7 @@ function WPFB_switchFileUpload(i)
 			<label for="file_upload"><?php _e('Choose File', WPFB) ?></label>
 			<input type="file" name="file_upload" id="file_upload" /><br />
 			<?php printf(str_replace('%d%s','%s',__('Maximum upload file size: %d%s'/*def*/)), WPFB_Output::FormatFilesize(WPFB_Core::GetMaxUlSize())) ?>
-			<?php if($update) { echo '<br /><b><a href="'.$file->GetUrl().'">' . $file->file_name . '</a></b> (' . $file->GetFormattedSize() . ')'; } ?>
+			<?php if($update) { echo '<br /><b><a href="'.$file->GetUrl().'">' . $file->file_name . '</a></b> (' . $file->GetFormattedSize() . ', '.wpfb_call('Download', 'GetFileType', $file->file_name).')'; } ?>
 		</div>
 		<div id="file-remote-wrap" <?php echo ($file->IsRemote() ? '' : 'class="hidden"'); ?>>
 			<label for="file_remote_uri"><?php _e('File URL') ?></label>
@@ -166,8 +166,8 @@ function WPFB_switchFileUpload(i)
 	</tr>
 	<?php if($exform) { ?>
 	<tr>
-		<th scope="row" valign="top"><label for="file_offline"><?php _e('Offline', WPFB) ?></label></th>
-		<td><input type="checkbox" name="file_offline" value="1" <?php checked('1', $file->file_offline); ?>/></td>
+		<th scope="row" valign="top"></th>
+		<td><input type="checkbox" name="file_offline" value="1" <?php checked('1', $file->file_offline); ?>/> <label for="file_offline"><?php _e('Offline', WPFB) ?></label></td>
 		
 		<th scope="row" valign="top"><label for="file_members_only"><?php _e('For members only', WPFB) ?></label>
 		<input type="checkbox" name="file_members_only" value="1" <?php checked(true, $file_members_only) ?> onclick="WPFB_CheckBoxShowHide(this, 'file_user_roles')" /></th>

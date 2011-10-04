@@ -32,7 +32,7 @@ class WPFB_GetID3 {
 			'file_id' => (int)$file_id,
 			'analyzetime' => time(),
 			'value' => $data,
-			'keywords' => join(' ',$keywords)
+			'keywords' => utf8_encode(join(' ', $keywords))
 		));
 	}
 	

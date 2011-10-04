@@ -233,9 +233,19 @@ function delayedReload() {
 	reloadTimer = window.setTimeout("window.location.reload()", 10000);
 }
 
+function getFilePath(id) {
+	var fi = jQuery.parseJSON(jQuery.ajax({url:wpfbConf.ajurl, data:{action:"fileinfo",id:id},async:false}).responseText);
+	return (fi != null && fi.path != '') ? fi.path : '';	
+}
+
+function getCatPath(id) {
+	var ci = jQuery.parseJSON(jQuery.ajax({url:wpfbConf.ajurl, data:{action:"catinfo",id:id},async:false}).responseText);
+	return (ci != null && ci.path != '') ? ci.path : '';	
+}
+
 function selectFile(id, name)
 {
-	var theTag = {"tag":currentTab, "id":id};
+	var theTag = {"tag":currentTab, <?php echo WPFB_Core::GetOpt('use_path_tags') ? '"path": getFilePath(id)' : '"id":id'; ?>};
 	var el = jQuery('span.file','#wpfb-file-'+id).first();
 	
 	if(<?php echo $manage_attachments?'true':'false' ?> || currentTab == 'attach') {
@@ -386,7 +396,8 @@ function insBrowserTag()
 	var tag = {tag:currentTab};
 	var root = jQuery('#browser-root').val();
 	if(root && root.length != 0)
-		tag.id = root;
+		<?php echo WPFB_Core::GetOpt('use_path_tags') ? 'tag.path = getCatPath(root);' : 'tag.id = root;'; ?>
+		
 	return insertTag(tag);
 }
 
@@ -482,8 +493,8 @@ WPFB_Admin::PrintForm('file', $file, array('in_editor'=>true, 'post_id'=>$post_i
 </div>
 <div id="catselect" class="container">
 	<h2><?php _e('Select Category'/*def*/); ?></h2>
-	<p>Select the categories containing the files you would like to list.</p>
-	<p><input type="checkbox" id="list-all-files" name="list-all-files" value="1" onchange="incAllCatsChanged(this.checked)"/> <label for="list-all-files">Include all Categories</label></p>
+	<p><?php _e('Select the categories containing the files you would like to list.',WPFB); ?></p>
+	<p><input type="checkbox" id="list-all-files" name="list-all-files" value="1" onchange="incAllCatsChanged(this.checked)"/> <label for="list-all-files"><?php _e('Include all Categories',WPFB); ?></label></p>
 	<ul id="catbrowser" class="filetree"></ul>
 </div>
 <form id="listtplselect">
@@ -510,13 +521,13 @@ WPFB_Admin::PrintForm('file', $file, array('in_editor'=>true, 'post_id'=>$post_i
 	<label for="list-sort-order-desc" class="radio"><?php _e('Descending'); ?></label>
 	</p>
 	<p>
-	<label for="list-show-cats"><?php _e('Files per page:') ?></label>
+	<label for="list-show-cats"><?php _e('Files per page:',WPFB) ?></label>
 	<input name="list-num" type="text" id="list-num" value="0" class="small-text" />
-	<?php printf(__('Set to 0 to use the default limit (%d), -1 will disable pagination.'), WPFB_Core::GetOpt('filelist_num')) ?>
+	<?php printf(__('Set to 0 to use the default limit (%d), -1 will disable pagination.',WPFB), WPFB_Core::GetOpt('filelist_num')) ?>
 	</p>
 	<p>
 	<input type="checkbox" id="list-show-cats" name="list-show-cats" value="1" />
-	<label for="list-show-cats"><?php _e('List selected categories') ?></label>
+	<label for="list-show-cats"><?php _e('List selected Categories',WPFB) ?></label>
 	</p>
 	
 	<p><a class="button" style="float: right;" href="javascript:void(0)" onclick="return insListTag()"><?php echo _e('Insert') ?></a></p>
@@ -524,7 +535,7 @@ WPFB_Admin::PrintForm('file', $file, array('in_editor'=>true, 'post_id'=>$post_i
 
 
 <form id="browser">
-	<p>Select the root category of the tree view file browser:<br />	
+	<p><?php _e('Select the root category of the tree view file browser:',WPFB); ?><br />	
 	<select name="browser-root" id="browser-root"><?php echo WPFB_Output::CatSelTree(array('none_label' => __('All'))); ?></select>
 	</p>
 	
@@ -538,5 +549,6 @@ WPFB_Admin::PrintForm('file', $file, array('in_editor'=>true, 'post_id'=>$post_i
 do_action('admin_print_footer_scripts');
 ?>
 <script type="text/javascript">if(typeof wpOnload=='function')wpOnload();</script>
+<?php WPFB_Core::PrintJS(); /* only required for wpfbConf */ ?>
 </body>
 </html>

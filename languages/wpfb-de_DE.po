@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: WP-Filebase 0.1.3.0\n"
 "Report-Msgid-Bugs-To: http://wordpress.org/tag/wp-filebase\n"
 "POT-Creation-Date: 2010-01-18 23:16+0000\n"
-"PO-Revision-Date: 2010-02-23 21:26+0100\n"
+"PO-Revision-Date: 2011-10-04 20:51+0100\n"
 "Last-Translator: Fabian Schlieper <fabian@fabi.me>\n"
 "Language-Team: Fabian Schlieper <fabian@fabi.me>\n"
 "MIME-Version: 1.0\n"
@@ -871,4 +871,241 @@ msgstr "Bevor du dieses Widget benutzen kannst, musst du in den WP-Filebase Eins
 
 msgid "If you like WP-Filebase I would appreciate a small donation to support my work. You can additionally add an idea to make WP-Filebase even better. Just click the button below. Thank you!"
 msgstr "Wenn dir WP-Filebase gefällt, würde ich mich über eine kleine Spende als Anerkennung und Unterstützung meiner Arbeit freuen. Du kannst deiner Spende eine Idee zur Verbesserung von WP-Filebase hinzufügen. Klicke einfach den unteren Button. Vielen Dank!"
+
+msgid "Custom field '%s' removed!"
+msgstr "Benutzerdefiniertes Feld '%s' wurde entfernt!"
+
+msgid "Custom field '%s' added."
+msgstr "Benutzerdefiniertes Feld '%s' wurde hinzugefügt."
+
+msgid "Search Integration"
+msgstr "Such-Integration"
+
+msgid "Searches in attached files and lists the associated posts and pages when searching the site."
+msgstr "Suche in angehängten Dateien und Auflistung der zugehörigen Artikel und Seiten"
+
+msgid "Restore Default Settings"
+msgstr "Standardeinstellungen wiederherstellen"
+
+msgid "Attachment Position"
+msgstr "Position der Anhänge"
+
+msgid "After the Content"
+msgstr "Nach dem Inhalt"
+
+msgid "Before the Content"
+msgstr "Vor dem Inhalt"
+
+msgid "Title"
+msgstr "Titel"
+
+msgid "Category Name"
+msgstr "Kategoriename"
+
+msgid "Category ID"
+msgstr "Kategorie-ID"
+
+msgid "Number of files per page"
+msgstr "Anzahl der Dateien pro Seite"
+
+msgid "Relative path of the file"
+msgstr "Relativer Pfad der Datei"
+
+msgid "Length of the file list per page. Set to 0 to disable the limit."
+msgstr "Länge der Dateiliste pro Seite. 0 = unbegrenzt"
+
+msgid "File browser category sorting"
+msgstr "Sortierung von Kategorieren im Dateibrowser"
+
+msgid "The category property categories in the file browser are sorted by"
+msgstr "Die Kategorieeigenschaft, nach der Kategorien im Dateibrowser sortiert werden"
+
+msgid "Name of the Category folder"
+msgstr "Name des Kategorieverzeichnises"
+
+msgid "Relative path of the category folder"
+msgstr "Relativer Pfad des Kategorieverzeichnises"
+
+msgid "File browser file sorting"
+msgstr "Dateisortierung im Dateibrowser"
+
+msgid "The file property files in the file browser are sorted by"
+msgstr "Die Dateieigenschaft, nach der Dateien im Dateibrowser sortiert werden"
+
+msgid "Send HTTP-Range header"
+msgstr "Sende HTTP-Range Header"
+
+msgid "Allows users to pause downloads and continue later. In addition download managers can use multiple connections at the same time."
+msgstr "Erlaubt Benutzer Downloads anzuhalten und später fortzusetzen. Außerdem können Downloadprogramme mehrere Verbindungen aufbauen."
+
+msgid "Disable HTTP Caching"
+msgstr "Deaktivere HTTP Caching"
+
+msgid "Enable this if you have problems with downloads while using Wordpress with a cache plugin."
+msgstr "Aktiviere dies Option wenn du ein Cache-Plugin verwendest und Probleme mit Downloads hast."
+
+msgid "With custom fields you can add even more file properties."
+msgstr "Mit Benutzerdefinierten Feldern kannst du noch mehr Dateieigenschaften hinzufügen."
+
+msgid "Redirect to referring page after login"
+msgstr "Nach Login zur verweisenden Seite umleiten"
+
+msgid "Users are redirected to the page where they clicked on the download link after logging in."
+msgstr "Benutzer werden nach dem Einloggen zu der Seite umgeleitet, auf der sie den Downloadlink geklickt haben"
+
+msgid "Protect upload path"
+msgstr "Uploadpfad schützen"
+
+msgid "This prevents direct access to files in the upload directory."
+msgstr "Dies verhindert direkten Zugriff auf Dateien im Uploadpfad."
+
+msgid "Hide download links"
+msgstr "Downloadlinks verstecken"
+
+msgid "File download links wont be displayed in the browser's status bar. You should enable '%s' to make it even harder to find out the URL."
+msgstr "Downloadlinks werden nicht in der Statuszeile des Browsers angezeigt. Du solltest zusätzlich die Option '%s' aktivieren, um das Herausfinden des Links zu erschweren."
+
+msgid "Auto-detect thumbnails"
+msgstr "Vorschaubilder automatisch detektieren"
+
+msgid "Images are considered as thumbnails for files with the same name when syncing. (e.g `file.jpg` &lt;=&gt; `file.zip`)"
+msgstr "Bilder werden als Vorschaubild verwendent wenn sie den gleichen Namen einer Datei haben (z.B `file.jpg` &lt;=&gt; `file.zip`)"
+
+msgid "Automatic Sync"
+msgstr "Automatische Synchronisierung"
+
+msgid "Schedules a cronjob to hourly synchronize the filesystem and the database."
+msgstr "Plant einen Cronjob der das Dateisystem und die Datenbank stündlich synchronisiert."
+
+msgid "Extension Blacklist"
+msgstr "Verbotene Dateiendungen"
+
+msgid "Files with an extension in this list are skipped while synchronisation. (seperate with comma)"
+msgstr "Dateien mit einer in der Liste enthaltenen Endung werden nicht hinzugefügt. (mit Komma trennen)"
+
+msgid "Disable ID3 tag detection"
+msgstr "Deaktivere ID3-Tag Detektierung"
+
+msgid "This disables all meta file info reading. Use this option if you have issues adding large files."
+msgstr "Diese Option deaktivert das Auslesen von Dateimetainformationen. Verwende die Option wenn du Probleme beim Hinzufügen großer Dateien hast."
+
+msgid "Search ID3 Tags"
+msgstr "Suche in ID3 Tags"
+
+msgid "Search in file meta data, like ID3 for MP3 files, EXIF for JPEG... (this option does not increase significantly server load since all data is cached in a MySQL table)"
+msgstr "Suche beinhaltet Dateimetadaten, wie ID3 bei MP3s, EXIF bei JPEG... (diese Funktion hat nahezu keine Auswirkung auf die Serverbelastung, da alle Daten im Cache gespeichert werden)"
+
+msgid "Add WP-Filebase to admin menu bar"
+msgstr "WP-Filebase zur Admin Bar hinzufügen"
+
+msgid "Display some quick actions for file management in the admin menu bar."
+msgstr "Fügt einige Funktionen für die Dateiverwaltung zur oberen Admin Bar hinzu"
+
+msgid "Statistics"
+msgstr "Statistiken"
+
+msgid "Number of Files"
+msgstr "Dateien"
+
+msgid "Number of Categories"
+msgstr "Kategorien"
+
+msgid "Total Downloads"
+msgstr "Anzahl Downloads"
+
+msgid "Total File Size"
+msgstr "Gesamte Dateigröße"
+
+msgid "Convert old Tags"
+msgstr "Alte Tags Konvertieren"
+
+msgid "Convert tags from versions earlier than 0.2.0"
+msgstr "Konvertiert Inhalt-Tags von früheren Versionen als 0.2.0"
+
+msgid "Add File"
+msgstr "Datei hinzufügen"
+
+msgid "Redirect download to URL"
+msgstr "Zur Download-URL umleiten"
+
+msgid "Copy file into Filebase (sideload)"
+msgstr "Datei in Filebase kopieren (sideload)"
+
+msgid "Limit file access by selecting one or more user roles."
+msgstr "Eine oder mehrere Benutzerrollen auswählen, um den Dateizugriff zu beschränken"
+
+msgid "Select multiple roles by holding the CTRL/COMMAND key."
+msgstr "STRG/COMMAND-Tast gedrückt halten um mehrere Rollesn auszuwählen."
+
+msgid "Access Permission"
+msgstr "Zugriffberechtigung"
+
+msgid "Everyone"
+msgstr "Jeder"
+
+msgid "Add Category"
+msgstr "Kategorie hinzufügen"
+
+msgid "Exclude from file browser"
+msgstr "Vom Dateibrowser ausschließen"
+
+msgid "Templates used for single embedded files or file lists."
+msgstr "Templates für einzelnen Dateien oder Dateilisten"
+
+msgid "For some files there are more tags available. You find a list of all tags below the form when editing a file."
+msgstr "Für manche Dateien können noch mehr Tags zur Verfügung stehen. Du findest eine Liste zusätlicher Tags unter dem Formular, wenn du eine Datei bearbeitest."
+
+msgid "Reset all Templates to default"
+msgstr "Standardtemplates widerherstellen"
+
+msgid "These templates can be used for categories."
+msgstr "Diese Templates können für Kategorieren verwendet werden."
+
+msgid "A list-template consists of header, footer and file template. It can optionally have a category template to list sub-categories."
+msgstr "Ein Listentemplate besteht aus Kopf- und Fußbereich und Dateiteamplate. Zusätlich kann ein Kategorietemplate angegeben werden um Unterkategorieren aufzulisten."
+
+msgid "Header"
+msgstr "Kopfbereich"
+
+msgid "Footer"
+msgstr "Fußbereich"
+
+msgid "File Template"
+msgstr "Dateitemplate"
+
+msgid "Parent Category ID"
+msgstr "ID der Elternkategorie"
+
+msgid "Number of files directly in the category"
+msgstr "Anzahl der Dateien direkt in dieser Kategorie"
+
+msgid "Number of all files in the category and all sub-categories"
+msgstr "Anzahl der Dateien in der Kategorie und aller Unterkategorien."
+
+msgid "Attach existing file"
+msgstr "Vorhandene Datei anhängen"
+
+msgid "Select File"
+msgstr "Datei auswählen"
+
+msgid "Select the categories containing the files you would like to list."
+msgstr "Wähle die Kategorien aus, deren Dateien aufgelistet werden sollen."
+
+msgid "Include all Categories"
+msgstr "Alle Kategorien einbeziehen"
+
+msgid "Files per page:"
+msgstr "Dateien pro Seite:"
+
+msgid "Set to 0 to use the default limit (%d), -1 will disable pagination."
+msgstr "0 steht für das Standardlimit (%d), -1 deaktivert den Seitenumbruch."
+
+msgid "File Tree View"
+msgstr "Dateibaum"
+
+msgid "List selected Categories"
+msgstr "Ausgewählte Kategorien in Liste anzeigen"
+
+msgid "Select the root category of the tree view file browser:"
+msgstr "Wurzelkategorie auswählen:"
 

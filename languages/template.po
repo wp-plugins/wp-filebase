@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: WP-Filebase 0.1.3.0\n"
 "Report-Msgid-Bugs-To: http://wordpress.org/tag/wp-filebase\n"
 "POT-Creation-Date: 2010-01-18 23:16+0000\n"
-"PO-Revision-Date: 2010-02-23 21:26+0100\n"
+"PO-Revision-Date: 2011-10-04 20:51+0100\n"
 "Last-Translator: Fabian Schlieper <fabian@fabi.me>\n"
 "Language-Team: Fabian Schlieper <fabian@fabi.me>\n"
 "MIME-Version: 1.0\n"
@@ -762,6 +762,10 @@ msgstr ""
 msgid "Simple Form"
 msgstr ""
 
+#: lib/wp-filebase_form_file.php:15
+msgid "Extended Form"
+msgstr ""
+
 #: lib/wp-filebase_form_file.php:22
 msgid "Choose File"
 msgstr ""
@@ -866,5 +870,242 @@ msgid "Before you can use this widget, please set a Post ID for the file browser
 msgstr ""
 
 msgid "If you like WP-Filebase I would appreciate a small donation to support my work. You can additionally add an idea to make WP-Filebase even better. Just click the button below. Thank you!"
+msgstr ""
+
+msgid "Custom field '%s' removed!"
+msgstr ""
+
+msgid "Custom field '%s' added."
+msgstr ""
+
+msgid "Search Integration"
+msgstr ""
+
+msgid "Searches in attached files and lists the associated posts and pages when searching the site."
+msgstr ""
+
+msgid "Restore Default Settings"
+msgstr ""
+
+msgid "Attachment Position"
+msgstr ""
+
+msgid "After the Content"
+msgstr ""
+
+msgid "Before the Content"
+msgstr ""
+
+msgid "Title"
+msgstr ""
+
+msgid "Category Name"
+msgstr ""
+
+msgid "Category ID"
+msgstr ""
+
+msgid "Number of files per page"
+msgstr ""
+
+msgid "Relative path of the file"
+msgstr ""
+
+msgid "Length of the file list per page. Set to 0 to disable the limit."
+msgstr ""
+
+msgid "File browser category sorting"
+msgstr ""
+
+msgid "The category property categories in the file browser are sorted by"
+msgstr ""
+
+msgid "Name of the Category folder"
+msgstr ""
+
+msgid "Relative path of the category folder"
+msgstr ""
+
+msgid "File browser file sorting"
+msgstr ""
+
+msgid "The file property files in the file browser are sorted by"
+msgstr ""
+
+msgid "Send HTTP-Range header"
+msgstr ""
+
+msgid "Allows users to pause downloads and continue later. In addition download managers can use multiple connections at the same time."
+msgstr ""
+
+msgid "Disable HTTP Caching"
+msgstr ""
+
+msgid "Enable this if you have problems with downloads while using Wordpress with a cache plugin."
+msgstr ""
+
+msgid "With custom fields you can add even more file properties."
+msgstr ""
+
+msgid "Redirect to referring page after login"
+msgstr ""
+
+msgid "Users are redirected to the page where they clicked on the download link after logging in."
+msgstr ""
+
+msgid "Protect upload path"
+msgstr ""
+
+msgid "This prevents direct access to files in the upload directory."
+msgstr ""
+
+msgid "Hide download links"
+msgstr ""
+
+msgid "File download links wont be displayed in the browser's status bar. You should enable '%s' to make it even harder to find out the URL."
+msgstr ""
+
+msgid "Auto-detect thumbnails"
+msgstr ""
+
+msgid "Images are considered as thumbnails for files with the same name when syncing. (e.g `file.jpg` <=> `file.zip`)"
+msgstr ""
+
+msgid "Automatic Sync"
+msgstr ""
+
+msgid "Schedules a cronjob to hourly synchronize the filesystem and the database."
+msgstr ""
+
+msgid "Extension Blacklist"
+msgstr ""
+
+msgid "Files with an extension in this list are skipped while synchronisation. (seperate with comma)"
+msgstr ""
+
+msgid "Disable ID3 tag detection"
+msgstr ""
+
+msgid "This disables all meta file info reading. Use this option if you have issues adding large files."
+msgstr ""
+
+msgid "Search ID3 Tags"
+msgstr ""
+
+msgid "Search in file meta data, like ID3 for MP3 files, EXIF for JPEG... (this option does not increase significantly server load since all data is cached in a MySQL table)"
+msgstr ""
+
+msgid "Add WP-Filebase to admin menu bar"
+msgstr ""
+
+msgid "Display some quick actions for file management in the admin menu bar."
+msgstr ""
+
+msgid "Statistics"
+msgstr ""
+
+msgid "Number of Files"
+msgstr ""
+
+msgid "Number of Categories"
+msgstr ""
+
+msgid "Total Downloads"
+msgstr ""
+
+msgid "Total File Size"
+msgstr ""
+
+msgid "Convert old Tags"
+msgstr ""
+
+msgid "Convert tags from versions earlier than 0.2.0"
+msgstr ""
+
+msgid "Add File"
+msgstr ""
+
+msgid "Redirect download to URL"
+msgstr ""
+
+msgid "Copy file into Filebase (sideload)"
+msgstr ""
+
+msgid "Limit file access by selecting one or more user roles."
+msgstr ""
+
+msgid "Select multiple roles by holding the CTRL/COMMAND key."
+msgstr ""
+
+msgid "Access Permission"
+msgstr ""
+
+msgid "Everyone"
+msgstr ""
+
+msgid "Add Category"
+msgstr ""
+
+msgid "Exclude from file browser"
+msgstr ""
+
+msgid "Templates used for single embedded files or file lists."
+msgstr ""
+
+msgid "For some files there are more tags available. You find a list of all tags below the form when editing a file."
+msgstr ""
+
+msgid "Reset all Templates to default"
+msgstr ""
+
+msgid "These templates can be used for categories."
+msgstr ""
+
+msgid "A list-template consists of header, footer and file template. It can optionally have a category template to list sub-categories."
+msgstr ""
+
+msgid "Header"
+msgstr ""
+
+msgid "Footer"
+msgstr ""
+
+msgid "File Template"
+msgstr ""
+
+msgid "Parent Category ID"
+msgstr ""
+
+msgid "Number of files directly in the category"
+msgstr ""
+
+msgid "Number of all files in the category and all sub-categories"
+msgstr ""
+
+msgid "Attach existing file"
+msgstr ""
+
+msgid "Select File"
+msgstr ""
+
+msgid "Select the categories containing the files you would like to list."
+msgstr ""
+
+msgid "Include all Categories"
+msgstr ""
+
+msgid "Files per page:"
+msgstr ""
+
+msgid "Set to 0 to use the default limit (%d), -1 will disable pagination."
+msgstr ""
+
+msgid "File Tree View"
+msgstr ""
+
+msgid "List selected Categories"
+msgstr ""
+
+msgid "Select the root category of the tree view file browser:"
 msgstr ""
 

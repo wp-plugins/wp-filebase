@@ -2,6 +2,8 @@
 wpfb_loadclass('Item');
 
 class WPFB_File extends WPFB_Item {
+	
+	static $thumbnail_regex = '/^-([0-9]+)x([0-9]+)\.(jpg|jpeg|png|gif)$/i';
 
 	var $file_id = 0;
 	var $file_name;
@@ -28,6 +30,7 @@ class WPFB_File extends WPFB_Item {
 	var $file_update_of = 0; // TODO
 	var $file_post_id = 0;
 	var $file_attach_order = 0;
+	var $file_wpattach_id = 0;
 	var $file_added_by = 0;
 	var $file_hits = 0;
 	var $file_ratings = 0; // TODO
@@ -48,7 +51,7 @@ class WPFB_File extends WPFB_Item {
 	{
 		global $wpdb;
 		$files = array();		
-		$results = $wpdb->get_results("SELECT * FROM $wpdb->wpfilebase_files $extra_sql");
+		$results = $wpdb->get_results("SELECT `$wpdb->wpfilebase_files`.* FROM $wpdb->wpfilebase_files $extra_sql");
 		if(!empty($results)) {
 			foreach(array_keys($results) as $i) {				
 				$id = (int)$results[$i]->file_id;
@@ -56,6 +59,79 @@ class WPFB_File extends WPFB_Item {
 				$files[$id] = self::$cache[$id];
 			}
 		}		
+		return $files;
+	}
+	
+	static function GetPermissionWhere() {
+		global $wpdb, $current_user;
+		static $permission_sql = '';
+		if(empty($permission_sql)) {
+			if($current_user->ID > 0 && empty($current_user->roles[0]))
+			$current_user = new WP_User($current_user->ID);// load the roles
+		
+			if(in_array('administrator',$current_user->roles)) $permission_sql = '1=1'; // administrator can access everything!
+			else {
+				$permission_sql = "file_user_roles = ''";
+				foreach($current_user->roles as $ur) {
+					$ur = $wpdb->escape($ur);
+					$permission_sql .= " OR (file_user_roles = '{$ur}') OR (file_user_roles LIKE '{$ur}|%') OR (file_user_roles LIKE '%|{$ur}|%') OR (file_user_roles LIKE '%|{$ur}')";
+				}
+			}
+		}
+		return $permission_sql;
+	}
+	
+	static function genSelectSql($where, $check_permissions, $order = null, $limit = -1, $offset = -1)
+	{
+		global $wpdb;
+		
+		// parse where
+		if(empty($where)) $where_str = '1=1';
+		elseif(is_array($where)) {
+			$where_str = '';
+			foreach($where as $field => $value) {
+				if($where_str != '') $where_str .= "AND ";
+				if(is_numeric($value)) $where_str .= "$field = $value ";
+				else $where_str .= "$field = '".$wpdb->escape($value)."' ";
+			}
+		} else $where_str =& $where;
+		
+		if($check_permissions)
+			$where_str = "($where_str) AND (".self::GetPermissionWhere().")";
+		
+		// join id3 table if found in where clause
+		$join_str = (strpos($where_str, $wpdb->wpfilebase_files_id3) !== false) ? " LEFT JOIN $wpdb->wpfilebase_files_id3 ON ( $wpdb->wpfilebase_files_id3.file_id = $wpdb->wpfilebase_files.file_id ) " : "";
+		
+		// parse order
+		if(empty($order))
+		$order_str = '';
+		elseif(is_array($order)) {
+			$order_str = 'ORDER BY ';
+			foreach($order as $field => $dir)
+			$order_str .= "$field " . ((strtoupper($dir)=="DESC")?"DESC":"ASC") . ", ";
+			$order_str .= "$wpdb->wpfilebase_files.file_id ASC";
+		} else $order_str = "ORDER BY $order";
+		
+		if($offset > 0) $limit_str = "LIMIT ".((int)$offset).", ".((int)$limit);
+		elseif($limit > 0) $limit_str = "LIMIT ".((int)$limit);
+		else $limit_str = '';
+		
+		//echo "$wpdb->wpfilebase_files $join_str WHERE ($where_str) $order_str $limit_str";
+		return "$wpdb->wpfilebase_files $join_str WHERE ($where_str) $order_str $limit_str";
+	}
+	
+	static function GetFiles2($where = null, $check_permissions = false, $order = null, $limit = -1, $offset = -1)
+	{
+		global $wpdb;
+		$files = array();
+		$results = $wpdb->get_results("SELECT `$wpdb->wpfilebase_files`.* as `file_id` FROM ". self::genSelectSql($where, $check_permissions, $order, $limit, $offset));
+		if(!empty($results)) {
+			foreach(array_keys($results) as $i) {
+				$id = (int)$results[$i]->file_id;
+				self::$cache[$id] = new WPFB_File($results[$i]);
+				$files[$id] = self::$cache[$id];
+			}
+		}
 		return $files;
 	}
 	
@@ -70,26 +146,37 @@ class WPFB_File extends WPFB_Item {
 	{
 		global $wpdb;
 		static $n = -1;
-		if($n >= 0) return $n;
-		if(is_numeric($sql_or_cat)) $sql_or_cat = (($sql_or_cat>=0)?"file_category = $sql_or_cat":"1");
-		return ($n = $wpdb->get_var("SELECT COUNT(file_id) FROM $wpdb->wpfilebase_files WHERE $sql_or_cat")); 
+		if($sql_or_cat == -1 && $n >= 0) return $n;
+		if(is_numeric($sql_or_cat)) $sql_or_cat = (($sql_or_cat>=0)?" WHERE file_category = $sql_or_cat":"");
+		$nn = $wpdb->get_var("SELECT COUNT($wpdb->wpfilebase_files.file_id) FROM $wpdb->wpfilebase_files $sql_or_cat"); 
+		if($sql_or_cat == -1) $n = $nn;
+		return $nn; 
+	}
+	
+	static function GetNumFiles2($where, $check_permissions = true)
+	{
+		global $wpdb;
+		return (int)$wpdb->get_var("SELECT COUNT($wpdb->wpfilebase_files.file_id) FROM ".self::genSelectSql($where, $check_permissions));
 	}
 	
 	static function GetAttachedFiles($post_id)
 	{
 		$post_id = intval($post_id);
-		return WPFB_File::GetFiles("WHERE file_post_id = $post_id " . WPFB_Core::GetFileListSortSql(null, true));
+		return WPFB_File::GetFiles2(array('file_post_id' => $post_id), WPFB_Core::GetOpt('hide_inaccessible'), WPFB_Core::GetFileListSortSql(null, true));
 	}
 	
 	function DBSave()
-	{ // validate some values before saving (fixes for mysql strict mode)		
-		$ints = array('file_size','file_category','file_post_id','file_attach_order','file_added_by','file_update_of','file_hits','file_ratings','file_rating_sum');
+	{ // validate some values before saving (fixes for mysql strict mode)
+		if($this->locked > 0) return $this->TriggerLockedError();	
+		$ints = array('file_size','file_category','file_post_id','file_attach_order','file_wpattach_id','file_added_by','file_update_of','file_hits','file_ratings','file_rating_sum');
 		foreach($ints as $i) $this->$i = intval($this->$i);
 		$this->file_offline = (int)!empty($this->file_offline);
 		$this->file_direct_linking = (int)!empty($this->file_direct_linking);
 		$this->file_force_download = (int)!empty($this->file_force_download);
 		if(empty($this->file_last_dl_time)) $this->file_last_dl_time = '0000-00-00 00:00:00';
-		return parent::DBSave();
+		$r = parent::DBSave();
+		//$this->UpdateWPAttachment();
+		return $r;
 	}
 	
 	// gets the extension of the file (including .)
@@ -199,7 +286,7 @@ class WPFB_File extends WPFB_Item {
 	function GetPostUrl() { return empty($this->file_post_id) ? '' : WPFB_Core::GetPostUrl($this->file_post_id).'#wpfb-file-'.$this->file_id; }
 	function GetFormattedSize() { return wpfb_call('Output', 'FormatFilesize', $this->file_size); }
 	function GetFormattedDate() { return mysql2date(get_option('date_format'), $this->file_date); }
-	function GetModifiedTime() { return mysql2date('U', $this->file_date); }
+	function GetModifiedTime($gmt=false) { return mysql2date('U', $this->file_date) + ($gmt ? ( get_option( 'gmt_offset' ) * 3600 ) : 0); }
 	
 	// only deletes file/thumbnail on FS, keeping DB entry
 	function Delete()
@@ -238,16 +325,19 @@ class WPFB_File extends WPFB_Item {
 		$wpdb->query("DELETE FROM $wpdb->wpfilebase_files WHERE file_id = " . (int)$this->file_id);
 		
 		$wpdb->query("DELETE FROM $wpdb->wpfilebase_files_id3 WHERE file_id = " . (int)$this->file_id);
-		// remove all sub file entries TODO
-		//$wpdb->query("DELETE FROM " . $wpdb->wpfilebase_subfiles . " WHERE subfile_parent_file = " . (int)$this->file_id);
-			
+		
+		// delete WP attachment entry
+		$wpa_id = (int)$this->file_wpattach_id;
+		if($wpa_id > 0 && $wpdb->get_var( $wpdb->prepare("SELECT ID FROM $wpdb->posts WHERE ID = %d AND post_type = 'attachment' AND post_status IN ('private', 'publish')", $wpa_id)))
+			wp_delete_attachment($wpa_id, true);
+		
 		return $this->Delete();
 	}
 	
 	
-	private function getInfoValue(&$path)
+	private function getInfoValue($path)
 	{
-		if(!isset($this->info))
+		if(!isset($this->info)) // caching
 		{
 			global $wpdb;
 			if($this->file_id <= 0) return join('->', $path);			
@@ -289,10 +379,10 @@ class WPFB_File extends WPFB_Item {
 			case 'file_path':			return htmlspecialchars($this->GetLocalPathRel());
 			case 'file_category':		return htmlspecialchars(is_object($parent = $this->GetParent()) ? $parent->cat_name : '');
 			
-			case 'file_languages':		return WPFB_Output::ParseSelOpts('languages', $this->file_language);
-			case 'file_platforms':		return WPFB_Output::ParseSelOpts('platforms', $this->file_platform);
-			case 'file_requirements':	return WPFB_Output::ParseSelOpts('requirements', $this->file_requirement, true);
-			case 'file_license':		return WPFB_Output::ParseSelOpts('licenses', $this->file_license, true);
+			case 'file_languages':		return wpfb_call('Output','ParseSelOpts', array('languages', $this->file_language),true);
+			case 'file_platforms':		return wpfb_call('Output','ParseSelOpts', array('platforms', $this->file_platform),true);
+			case 'file_requirements':	return wpfb_call('Output','ParseSelOpts', array('requirements', $this->file_requirement, true),true);
+			case 'file_license':		return wpfb_call('Output','ParseSelOpts', array('licenses', $this->file_license, true), true);
 			
 			//case 'file_required_level':	return ($this->file_required_level - 1);
 			
@@ -429,27 +519,188 @@ class WPFB_File extends WPFB_Item {
 		return true;
 	}
 	
+	function GetWPAttachmentID() {
+		return $this->file_wpattach_id;
+		//global $wpdb;
+		//return $wpdb->get_var( $wpdb->prepare("SELECT ID FROM $wpdb->posts WHERE guid = %s", $this->GetUrl()) );
+	}
+	
+	// TODO:
+	function UpdateWPAttachment($file_changed=false) {
+		global $wpdb;		
+		
+		return 0; // beta!!
+		/*
+		
+		if($this->locked > 0) $this->TriggerLockedError();
+		
+		$rel_path = $this->GetLocalPath();
+		
+		
+		if(!($uploads = wp_upload_dir()) || $uploads['error'] || strpos($rel_path, $uploads['basedir'].'/') === false) {
+			echo "Path error. Cannot create WP attachmet!";
+			return false;
+		}
+		
+		$rel_path = str_replace(WPFB_Core::UploadDir(), '/'.WPFB, $rel_path);
+		
+		$object = array(
+		'post_author' => $this->file_added_by,
+		'post_content' => '[wpfilebase tag=file id='.$this->GetId().' tpl=single]',
+		'post_title' => $this->GetTitle(),
+		'post_excerpt' => $this->GenTpl(WPFB_Core::GetParsedTpl('file','excerpt')),
+		'post_status' => $this->file_offline ? 'private' : 'publish',
+		'post_password' => '',
+		'post_name' => $this->GetName(),
+		'to_ping' =>  '', 'pinged' => '',
+		'post_content_filtered' => '',
+		'post_parent' => $this->file_offline ? 0 : (int)WPFB_Core::GetOpt('file_browser_post_id'), //$this->file_post_id,
+		'guid' => $this->GetUrl(),
+		'menu_order' => $this->file_attach_order,
+		'post_type' => 'attachment',
+		'post_mime_type' => 'application/octet-stream' //wpfb_call('Download', 'GetFileType', $this->file_name),
+		//'import_id' => $this->GetId()
+		);
+		
+		
+		$object = sanitize_post($object, 'db');
+		
+		// export array as variables
+		extract($object, EXTR_SKIP);
+		
+		//$post_category = array( get_option('default_category') );
+		$post_category = array();
+		
+		
+		$ID = $this->file_wpattach_id;
+		// Are we updating or creating?
+		if ( !empty($ID) ) {
+			$update = true;
+			$post_ID = (int) $ID;
+		} else {
+			$update = false;
+			$post_ID = 0;
+		}
+		
+		// Create a valid post name.
+		if ( empty($post_name) ) $post_name = sanitize_title($post_title);
+		else $post_name = sanitize_title($post_name);
+		
+		// expected_slashed ($post_name)
+		$post_name = wp_unique_post_slug($post_name, $post_ID, $post_status, $post_type, $post_parent);
+		
+		$post_modified = $post_date = gmdate('Y-m-d H:i:s', $this->GetModifiedTime());
+		$post_modified_gmt = $post_date_gmt = gmdate('Y-m-d H:i:s', $this->GetModifiedTime(true));
+	
+		
+		if ( empty($comment_status) ) {
+			if ( $update ) $comment_status = 'closed';
+			else $comment_status = get_option('default_comment_status');
+		}
+		
+		if ( empty($ping_status) ) $ping_status = get_option('default_ping_status');		
+		if ( isset($to_ping) ) $to_ping = preg_replace('|\s+|', "\n", $to_ping);
+		else $to_ping = '';
+		
+		if ( isset($post_parent) ) $post_parent = (int) $post_parent;
+		else $post_parent = 0;
+		
+		if ( isset($menu_order) ) $menu_order = (int) $menu_order;
+		else $menu_order = 0;
+		
+		if ( !isset($post_password) ) $post_password = '';
+		
+		if ( ! isset($pinged) )	$pinged = '';
+		
+		
+		// expected_slashed (everything!)
+		$data = compact( array( 'post_author', 'post_date', 'post_date_gmt', 'post_content', 'post_content_filtered', 'post_title', 'post_excerpt', 'post_status', 'post_type', 'comment_status', 'ping_status', 'post_password', 'post_name', 'to_ping', 'pinged', 'post_modified', 'post_modified_gmt', 'post_parent', 'menu_order', 'post_mime_type', 'guid' ) );
+		$data = stripslashes_deep( $data );
+		
+		if ( $update ) {
+			$wpdb->update( $wpdb->posts, $data, array( 'ID' => $post_ID ) );
+		} else {
+			// If there is a suggested ID, use it if not already present
+			if ( !empty($import_id) ) {
+				$import_id = (int) $import_id;
+				if ( ! $wpdb->get_var( $wpdb->prepare("SELECT ID FROM $wpdb->posts WHERE ID = %d", $import_id) ) ) {
+					$data['ID'] = $import_id;
+				}
+			}
+		
+			$wpdb->insert( $wpdb->posts, $data );
+			$post_ID = (int) $wpdb->insert_id;
+		}
+		
+		if ( empty($post_name) ) {
+			$post_name = sanitize_title($post_title, $post_ID);
+			$wpdb->update( $wpdb->posts, compact("post_name"), array( 'ID' => $post_ID ) );
+		}
+		
+		wp_set_post_categories($post_ID, $post_category);
+		
+		update_post_meta($post_ID, '_wp_attached_file',  $rel_path);
+		
+		clean_post_cache($post_ID);
+		
+		if ( isset($post_parent) && $post_parent < 0 )
+		add_post_meta($post_ID, '_wp_attachment_temp_parent', $post_parent, true);
+		
+		if ( ! empty( $context ) )
+		add_post_meta( $post_ID, '_wp_attachment_context', $context, true );
+		
+		if ( $update) {
+			do_action('edit_attachment', $post_ID);
+		} else {
+			do_action('add_attachment', $post_ID);
+		}
+		
+		if(!$update || $file_changed || true) {
+			$metadata = array();
+			$w = (int)$this->getInfoValue(array('video','resolution_x'));
+			if($w > 0) {
+				$metadata['width'] = $w;
+				$metadata['height'] = $h = (int)$this->getInfoValue(array('video','resolution_y'));
+				$metadata['file'] = ''; //$rel_path; TODO invalid, must be relative to wp-content/upload
+				// 	$metadata['hwstring_small'] = "height='$uheight' width='$uwidth'";
+				
+				if(!empty($this->file_thumbnail)) {
+					// calc thumb size
+					$max_side = max(array($w,$h));
+					$thumb_size = (int)WPFB_Core::GetOpt('thumbnail_size');
+					if($max_side > $thumb_size) {
+						$w *= $thumb_size / $max_side;
+						$h *= $thumb_size / $max_side;
+					}
+					
+					$img_sizes = array('thumbnail','medium','post-thumbnail','large-feature','small-feature');					
+					$metadata['sizes'] = array();
+					foreach($img_sizes as $is) {
+						$metadata['sizes'][$is] = array(
+							'file' => $this->file_thumbnail,
+							'width' => (int)round($w),
+							'height' => (int)round($h)
+						);
+					}
+				}
+			}
+			// $metadata['file'] = _wp_relative_upload_path($file);
+			if(!empty($metadata))
+				wp_update_attachment_metadata($post_ID, $metadata);			
+		}
+		
+		if($this->file_wpattach_id != $post_ID) {
+			$this->file_wpattach_id = $post_ID;
+			if($this->locked == 0) $this->DBSave();
+		}					
+		
+		return $post_ID;
+		/**/
+	}
+
+	
 	function IsRemote() { return !empty($this->file_remote_uri); }	
 	function IsLocal() { return empty($this->file_remote_uri); }
-	
-	/*TODO?
-	public function update_subfiles()
-	{
-		global $wpdb;
-		
-		// clear all subfiles
-		$wpdb->query("DELETE FROM " . $wpdb->wpfilebase_subfiles . " WHERE subfile_parent_file = " . (int)$this->file_id);
-		
-		// check if the file is an archive and read it's files
-		wpfb_loadlib('file');
-		$sub_files = wpfilebase_list_archive_files($full_upload_path);
-		if(!empty($sub_files) && is_array($sub_files) && count($sub_files) > 0)
-		{
-			foreach($sub_files as $sb)
-				$wpdb->insert( $wpdb->wpfilebase_subfiles, array('subfile_parent_file' => (int)$this->file_id, 'subfile_name' => $sb['name'], 'subfile_size' => (int)$sb['size']));
-		}
-	}
-	*/
 }
 
 ?>

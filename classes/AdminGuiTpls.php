@@ -3,6 +3,7 @@ class WPFB_AdminGuiTpls {
 	
 static $sample_file = null;
 static $sample_cat = null;
+static $protected_tags = array('default','single','excerpt');
 
 static function InitClass() {
 	global $user_identity;
@@ -81,7 +82,7 @@ static function Display()
 		
 		unset($_POST['type'], $_POST['tpltag'], $_POST['tplcode']);	
 	} elseif($action == 'del') {
-		if(!empty($_GET['type']) && !empty($_GET['tpl']) && $_GET['tpl'] != 'default') {
+		if(!empty($_GET['type']) && !empty($_GET['tpl']) && !in_array($_GET['tpl'], self::$protected_tags)) {
 			$type = $_GET['type'];
 			if($type == 'list') {
 				$tpl = WPFB_ListTpl::Get($_GET['tpl']);
@@ -168,21 +169,21 @@ jQuery(document).ready( function() {
 	<ul class="wpfb-tab-menu">
 		<li><a href="#file"><?php _e('Files', WPFB) ?></a></li>
 		<li><a href="#cat"><?php _e('Categories') ?></a></li>
-		<li><a href="#list"><?php _e('File List', WPFB) ?></a></li>
+		<li><a href="#list"><?php _e('File list', WPFB) ?></a></li>
 	</ul>
 	
 	<div id="file" class="wrap">
-	<p>Templates used for single embedded files or file lists.</p>
+	<p><?php _e('Templates used for single embedded files or file lists.',WPFB); ?></p>
 	<?php self::TplsTable('file'); ?>
 	</div>
 	
 	<div id="cat" class="wrap">
-	<p>These templates can be used for categories.</p>
+	<p><?php _e('These templates can be used for categories.',WPFB); ?></p>
 	<?php self::TplsTable('cat'); ?>
 	</div>
 	
 	<div id="list" class="wrap">
-	<p>A list-template consists of header, footer and file template. It can optionally have a category template to list sub-categories.</p>
+	<p><?php _e('A list-template consists of header, footer and file template. It can optionally have a category template to list sub-categories.',WPFB); ?></p>
 	<?php self::TplsTable('list'); ?>
 	</div>
 	
@@ -190,7 +191,7 @@ jQuery(document).ready( function() {
 	</div>
 </div> <!-- tabs -->
 
-<form action="<?php echo remove_query_arg(array('action','type','tpl')) ?>" method="post" onsubmit="return confirm('<?php _e('Are your sure?', WPFB) ?>');"><p>
+<form action="<?php echo remove_query_arg(array('action','type','tpl')) ?>" method="post" onsubmit="return confirm('<?php _e('This will reset all File, Category and List Templates! Are your sure?', WPFB) ?>');"><p>
 	<input type="submit" name="reset-tpls" value="<?php _e('Reset all Templates to default', WPFB) ?>" class="button" />
 </p></form>
 <?php 
@@ -239,7 +240,7 @@ static function TplsTable($type) {
 		<td class="column-title">
 			<strong><a class="row-title" href="<?php echo $edit_link ?>" title="<?php printf(__('Edit &#8220;%s&#8221;'), $tpl_tag) ?>"><?php echo __(__(esc_html(WPFB_Output::Filename2Title($tpl_tag))), WPFB) ?></a></strong>
 			<div class="row-actions"><span class='edit'><a href="<?php echo $edit_link ?>" title="<?php _e('Edit this item') ?>"><?php _e('Edit') ?></a></span>
-			<?php if($tpl_tag != 'default'){ ?><span class='trash'>| <a class='submitdelete' title='<?php _e('Delete this item permanently') ?>' href='<?php echo add_query_arg(array('action'=>'del','type'=>$type,'tpl'=>$tpl_tag)).'#'.$type ?>'><?php _e('Delete') ?></a></span><?php } ?>
+			<?php if(!in_array($tpl_tag, self::$protected_tags)){ ?><span class='trash'>| <a class='submitdelete' title='<?php _e('Delete this item permanently') ?>' href='<?php echo add_query_arg(array('action'=>'del','type'=>$type,'tpl'=>$tpl_tag)).'#'.$type ?>'><?php _e('Delete') ?></a></span><?php } ?>
 			</div>
 		</td>
 		<td>

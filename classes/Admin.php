@@ -27,9 +27,11 @@ static function SettingsSchema()
 	return array (
 	
 	// common
-	'upload_path'			=> array('default' => $upload_path_base . '/filebase', 'title' => __('Upload Path', WPFB), 'type' => 'text', 'class' => 'code', 'size' => 65),
-	'thumbnail_size'		=> array('default' => 120, 'title' => __('Thumbnail size'), 'type' => 'number', 'class' => 'num', 'size' => 8),
-	'base_auto_thumb'		=> array('default' => true, 'title' => __('Auto-detect thumbnails'), 'type' => 'checkbox', 'desc' => __('Images are considered as thumbnails for files with the same name when syncing. (e.g `file.jpg` &lt;=&gt; `file.zip`)', WPFB)),
+	'upload_path'			=> array('default' => $upload_path_base . '/filebase', 'title' => __('Upload Path', WPFB), 'desc' => __('Path where all files are stored. Relative to WordPress\' root directory.', WPFB), 'type' => 'text', 'class' => 'code', 'size' => 65),
+	'thumbnail_size'		=> array('default' => 120, 'title' => __('Thumbnail size'), 'desc' => __('The maximum side of the image is scaled to this value.', WPFB), 'type' => 'number', 'class' => 'num', 'size' => 8),
+	'thumbnail_path'		=> array('default' => '', 'title' => __('Thumbnail Path',WPFB), 'desc' => __('Thumbnails can be stored at a different path than the actual files. Leave empty to use the default upload path.', WPFB), 'type' => 'text', 'class' => 'code', 'size' => 65),
+	
+	'base_auto_thumb'		=> array('default' => true, 'title' => __('Auto-detect thumbnails',WPFB), 'type' => 'checkbox', 'desc' => __('Images are considered as thumbnails for files with the same name when syncing. (e.g `file.jpg` &lt;=&gt; `file.zip`)', WPFB)),
 	
 	'fext_blacklist'		=> array('default' => 'db,tmp', 'title' => __('Extension Blacklist', WPFB), 'desc' => __('Files with an extension in this list are skipped while synchronisation. (seperate with comma)', WPFB), 'type' => 'text', 'class' => 'code', 'size' => 100),
 
@@ -104,6 +106,7 @@ static function SettingsSchema()
 	
 	'search_id3' =>  array('default' => true, 'title' => __('Search ID3 Tags', WPFB), 'type' => 'checkbox', 'desc' => __('Search in file meta data, like ID3 for MP3 files, EXIF for JPEG... (this option does not increase significantly server load since all data is cached in a MySQL table)', WPFB)),
 	
+	'use_path_tags' => array('default' => true, 'title' => __('Use path instead of ID in Shortcode', WPFB), 'type' => 'checkbox', 'desc' => __('Files and Categories are identified by paths and not by their IDs in the generated Shortcodes', WPFB)),
 	
 	'languages'				=> array('default' => "English|en\nDeutsch|de", 'title' => __('Languages'), 'type' => 'textarea', 'desc' => &$multiple_entries_desc),
 	'platforms'				=> array('default' => "Windows 95|win95\n*Windows 98|win98\n*Windows 2000|win2k\n*Windows XP|winxp\n*Windows Vista|vista\n*Windows 7|win7\nLinux|linux\nMac OS X|mac", 'title' => __('Platforms', WPFB), 'type' => 'textarea', 'desc' => &$multiple_entries_desc, 'nowrap' => true),	
@@ -118,7 +121,7 @@ Open Office|ooffice|http://download.openoffice.org/
 	'title' => __('Requirements', WPFB), 'type' => 'textarea', 'desc' => $multiple_entries_desc . ' ' . __('You can optionally add |<i>URL</i> to each line to link to the required software/file.', WPFB), 'nowrap' => true),
 	
 	'custom_fields'			=> array('default' => "Custom Field 1|cf1\nCustom Field 2|cf2", 'title' => __('Custom Fields'), 'type' => 'textarea', 'desc' => 
-	'With custom fields you can add even more file properties.'.' '.$multiple_entries_desc),
+	__('With custom fields you can add even more file properties.',WPFB).' '.$multiple_entries_desc),
 	
 	
 	
@@ -284,13 +287,13 @@ static function FileSortFields()
 static function CatSortFields()
 {
 	return array(
-	'cat_name'			=> __('Category Name'),
-	'cat_folder'		=> __('Name of the category folder', WPFB),
+	'cat_name'			=> __('Category Name', WPFB),
+	'cat_folder'		=> __('Name of the Category folder', WPFB),
 	'cat_description'	=> __('Short description', WPFB),	
 	
 	'cat_path'			=> __('Relative path of the category folder', WPFB),
-	'cat_id'			=> __('Category ID'),
-	'cat_parent'		=> __('Parent category ID', WPFB),
+	'cat_id'			=> __('Category ID', WPFB),
+	'cat_parent'		=> __('Parent Category ID', WPFB),
 	
 	'cat_num_files'		=> __('Number of files directly in the category', WPFB),
 	'cat_num_files_total' => __('Number of all files in the category and all sub-categories', WPFB),
@@ -305,7 +308,7 @@ static function TplFieldsSelect($input, $short=false, $for_cat=false)
 	foreach(self::TplVarsDesc($for_cat) as $tag => $desc)
 		$out .= '<option value="'.$tag.'" title="'.$desc.'">'.$tag.($short ? '' : ' ('.$desc.')').'</option>';
 	$out .= '</select>';
-	$out .= '<small>(For some files there are more tags available. You find a list of all tags below the form when editing a file.)</small>';
+	$out .= '<small>('.__('For some files there are more tags available. You find a list of all tags below the form when editing a file.',WPFB).'</small>';
 	return $out;
 }
 
@@ -436,6 +439,8 @@ static function InsertFile($data)
 	if(!$update) $file = new WPFB_File(array('file_id' => 0));
 	$file->Lock(true);
 	$add_existing = !empty($data->add_existing); // if the file is added by a sync (not uploaded)
+	
+	if(!$add_existing) self::SyncCustomFields();  // dont sync custom fields when file syncing!
 	
 	// are we uploading a file?
 	$upload = (!$add_existing && (@is_uploaded_file($data->file_upload['tmp_name']) && !empty($data->file_upload['name'])));
@@ -688,9 +693,13 @@ static function Sync($hash_sync=false, $output=false)
 	require_once(ABSPATH . 'wp-admin/includes/file.php');
 	
 	$result = array('missing_files' => array(), 'missing_folders' => array(), 'changed' => array(), 'not_added' => array(), 'error' => array(), 'updated_categories' => array());
-	WPFB_Admin::UpdateItemsPath();
-	$files = &WPFB_File::GetFiles();
-	$cats =& WPFB_Category::GetCats();
+	
+	// some syncing/updating
+	self::UpdateItemsPath();
+	self::SyncCustomFields();
+	
+	$files = WPFB_File::GetFiles2();
+	$cats = WPFB_Category::GetCats();
 	
 	if($output) self::DEcho('<p>Checking for file changes... ');
 	$file_paths = array();
@@ -795,7 +804,7 @@ static function Sync($hash_sync=false, $output=false)
 			$suffix = substr($new_files[$i-1], $len);
 			
 			$matches = array();
-			if(preg_match('/^-([0-9]+)x([0-9]+)\.(jpg|jpeg|png|gif)$/i', $suffix, $matches) && ($is = getimagesize($new_files[$i-1])))
+			if(preg_match(WPFB_File::$thumbnail_regex, $suffix, $matches) && ($is = getimagesize($new_files[$i-1])))
 			{
 				if($is[0] == $matches[1] && $is[1] == $matches[2])
 				{
@@ -945,7 +954,7 @@ static function SyncCats()
 static function UpdateItemsPath() {
 	wpfb_loadclass('File','Category');
 	$cats = WPFB_Category::GetCats();
-	$files = WPFB_File::GetFiles();	
+	$files = WPFB_File::GetFiles2();	
 	foreach(array_keys($cats) as $i) $cats[$i]->Lock(true);
 	foreach(array_keys($files) as $i) $files[$i]->GetLocalPath(true);
 	foreach(array_keys($cats) as $i) {
@@ -1089,6 +1098,7 @@ static function PrintForm($name, $item=null, $vars=array())
 		include(WPFB_PLUGIN_ROOT . 'lib/wpfb_form_' . $name . '.php');
 }
 
+// creates the folder structure
 static function Mkdir($dir)
 {
 	$parent = trim(dirname($dir), '.');
@@ -1248,7 +1258,7 @@ public function SyncCustomFields($remove=false) {
 	foreach($custom_fields as $ct => $cn) {		
 		if(!in_array('file_custom_'.$ct, $cols)) {
 			$messages[] = sprintf(__($wpdb->query("ALTER TABLE $wpdb->wpfilebase_files ADD `file_custom_".$wpdb->escape($ct)."` TEXT NOT NULL") ?
-			"Custom field '%s' added." : "Could not add custom field '%s'!"), $cn);
+			"Custom field '%s' added." : "Could not add custom field '%s'!", WPFB), $cn);
 		}
 	}
 	
@@ -1257,19 +1267,42 @@ public function SyncCustomFields($remove=false) {
 			$ct = substr($cf, 12); // len(file_custom_)
 			if(!isset($custom_fields[$ct]))
 				$messages[] = sprintf(__($wpdb->query("ALTER TABLE $wpdb->wpfilebase_files DROP `$cf`") ?
-				"Custom field '%s' removed!." : "Could not remove custom field '%s'!"), $ct);
+				"Custom field '%s' removed!" : "Could not remove custom field '%s'!", WPFB), $ct);
 		}
 	}
 	
 	return $messages;
 }
 
-public function SettingsUpdated() {
+public function SettingsUpdated($old, $new) {
 	$messages = array();
 	wpfb_call('Setup','ProtectUploadPath');
 			
 	// custom fields:
 	$messages += WPFB_Admin::SyncCustomFields();
+	
+	if($old['thumbnail_path'] != $new['thumbnail_path']) {
+
+		update_option(WPFB_OPT_NAME, $old); // temporaly restore old settings
+		
+		$items = array_merge(WPFB_File::GetFiles2(),WPFB_Category::GetCats());			
+		$old_thumbs = array();				
+		foreach($items as $i => $item) $old_thumbs[$i] = $item->GetThumbPath(true);
+
+		update_option(WPFB_OPT_NAME, $new); // restore new settings
+		$n = 0;		
+		foreach($items as $i => $item) {
+			if(!empty($old_thumbs[$i]) && is_file($old_thumbs[$i])) {
+				$new_path = $item->GetThumbPath(true);
+				$dir = dirname($new_path);
+				if(!is_dir($dir)) self::Mkdir($dir);
+				if(rename($old_thumbs[$i], $new_path)) $n++;
+				else $messages[] = sprintf(__('Could not move thumnail %s to %s.',WPFB), $old_thumbs[$i], $new_path);
+			}	
+		}
+		
+		if(count($n > 0)) $messages[] = sprintf(__('%d Thumbnails moved.',WPFB), $n);
+	}
 	
 	return $messages;
 }

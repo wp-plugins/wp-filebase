@@ -77,15 +77,14 @@ switch ( $action = $_REQUEST['action'] ) {
 		}
 		
 		if((empty($_REQUEST['cats_only']) || $_REQUEST['cats_only'] == 'false') && !$catsel) {
-			$sql = "WHERE file_category = $parent_id";
-			if(!empty($_REQUEST['exclude_attached']) && $_REQUEST['exclude_attached'] != 'false') $sql .= " AND file_post_id = 0";
-			if($browser) $sql .= " ".WPFB_Core::GetFileListSortSql((WPFB_Core::GetOpt('file_browser_file_sort_dir')?'>':'<').WPFB_Core::GetOpt('file_browser_file_sort_by'));
-			$files = WPFB_File::GetFiles($sql);
+			$where = array('file_category' => $parent_id);
+			if(!empty($_REQUEST['exclude_attached']) && $_REQUEST['exclude_attached'] != 'false') $where['file_post_id'] = 0;
+			$files = WPFB_File::GetFiles2(
+				$where, WPFB_Core::GetOpt('hide_inaccessible'),
+				$browser ? WPFB_Core::GetFileListSortSql((WPFB_Core::GetOpt('file_browser_file_sort_dir')?'>':'<').WPFB_Core::GetOpt('file_browser_file_sort_by')) : 'file_name'
+			);
 			foreach($files as $f)
-			{
-				if($f->CurUserCanAccess(true))
-					$children[$i++] = array('id'=>sprintf($file_id_format, $f->file_id), 'text'=>$filesel?('<a href="javascript:'.sprintf($onselect,$f->file_id,str_replace('\'','\\\'',htmlspecialchars(stripslashes($f->file_display_name)))).'">'.esc_html($f->GetTitle(24)).'</a> <span style="font-size:75%;vertical-align:top;">'.esc_html($f->file_name).'</span>'):$f->GenTpl($file_tpl, 'ajax'), 'classes'=>$filesel?'file':null);
-			}
+				$children[$i++] = array('id'=>sprintf($file_id_format, $f->file_id), 'text'=>$filesel?('<a href="javascript:'.sprintf($onselect,$f->file_id,str_replace('\'','\\\'',htmlspecialchars(stripslashes($f->file_display_name)))).'">'.esc_html($f->GetTitle(24)).'</a> <span style="font-size:75%;vertical-align:top;">'.esc_html($f->file_name).'</span>'):$f->GenTpl($file_tpl, 'ajax'), 'classes'=>$filesel?'file':null);
 		}
 		
 		wpfb_print_json($children);
@@ -149,19 +148,23 @@ switch ( $action = $_REQUEST['action'] ) {
 		
 	case 'fileinfo':
 		wpfb_loadclass('File','Category');
-		if(empty($_REQUEST['url'])) die('-1');
-		$url = $_REQUEST['url'];
+		if(empty($_REQUEST['url']) && (empty($_REQUEST['id']) || !is_numeric($_REQUEST['id']))) die('-1');
 		$file = null;
-		$matches = array();
-
-		if(preg_match('/\?wpfb_dl=([0-9]+)$/', $url, $matches) || preg_match('/#wpfb-file-([0-9]+)$/', $url, $matches))
-			$file = WPFB_File::GetFile($matches[1]);
-		else {
-			$base = WPFB_Core::GetPermalinkBase();
-			$path = substr($url, strlen($base));
-			$path_u = substr(urldecode($url), strlen($base));			
-			$file = WPFB_File::GetByPath($path);
-			if($file == null) $file = WPFB_File::GetByPath($path_u);
+		
+		if(!empty($_REQUEST['url'])) {
+			$url = $_REQUEST['url'];		
+			$matches = array();	
+			if(preg_match('/\?wpfb_dl=([0-9]+)$/', $url, $matches) || preg_match('/#wpfb-file-([0-9]+)$/', $url, $matches))
+				$file = WPFB_File::GetFile($matches[1]);
+			else {
+				$base = WPFB_Core::GetPermalinkBase();
+				$path = substr($url, strlen($base));
+				$path_u = substr(urldecode($url), strlen($base));			
+				$file = WPFB_File::GetByPath($path);
+				if($file == null) $file = WPFB_File::GetByPath($path_u);
+			}
+		} else {
+			$file = WPFB_File::GetFile((int)$_REQUEST['id']);
 		}
 		
 		if($file != null && $file->CurUserCanAccess(true)) {
@@ -174,6 +177,22 @@ switch ( $action = $_REQUEST['action'] ) {
 			echo '-1';
 		}
 		exit;
+		
+	case 'catinfo':
+			wpfb_loadclass('Category');
+			if(/*empty($_REQUEST['url']) && */(empty($_REQUEST['id']) || !is_numeric($_REQUEST['id']))) die('-1');
+			$cat = WPFB_Category::GetCat((int)$_REQUEST['id']);
+		
+			if($cat != null && $cat->CurUserCanAccess(true)) {
+				wpfb_print_json(array(
+						'id' => $cat->GetId(),
+						'url' => $cat->GetUrl(),
+						'path' => $cat->GetLocalPathRel()
+				));
+			} else {
+				echo '-1';
+			}
+			exit;
 		
 	case 'postbrowser':
 		if(!current_user_can('read_private_posts')) {

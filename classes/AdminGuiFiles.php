@@ -105,22 +105,17 @@ static function Display()
 				
 			$pagestart = ($pagenum - 1) * $filesperpage;
 			$extra_sql = '';
-			
-			$where = wpfb_call('Search','SearchWhereSql');
-			if(!empty($where))
-				$extra_sql .= " LEFT JOIN $wpdb->wpfilebase_files_id3 ON ( $wpdb->wpfilebase_files_id3.file_id = $wpdb->wpfilebase_files.file_id ) WHERE 0 $where";		
-			
-			if(!empty($_GET['order']) && in_array($_GET['order'], array_keys(get_class_vars('WPFB_File'))))
-				$extra_sql .= "ORDER BY $wpdb->wpfilebase_files." . $_GET['order'] . " " . (!empty($_GET['desc']) ? "DESC" : "ASC");	
-			else
-				$extra_sql .= "ORDER BY $wpdb->wpfilebase_files.file_id DESC";
+			wpfb_loadclass('Search');
+			$where = WPFB_Search::SearchWhereSql(true);
+			$order = "$wpdb->wpfilebase_files." . ((!empty($_GET['order']) && in_array($_GET['order'], array_keys(get_class_vars('WPFB_File')))) ?
+				($_GET['order']." ".(!empty($_GET['desc']) ? "DESC" : "ASC")) : "file_id DESC");
 
-			$files = &WPFB_File::GetFiles($extra_sql . " LIMIT $pagestart, $filesperpage");
+			$files = WPFB_File::GetFiles2($where, false, $order, $filesperpage, $pagestart);
 
 			$page_links = paginate_links( array(
 				'base' => add_query_arg( 'pagenum', '%#%' ),
 				'format' => '',
-				'total' => ceil(count(WPFB_File::GetFiles($extra_sql)) / $filesperpage),
+				'total' => ceil(WPFB_File::GetNumFiles2($where, false) / $filesperpage),
 				'current' => $pagenum
 			));
 
@@ -145,7 +140,7 @@ static function Display()
 				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_size') ?>"><?php _e('Size'/*def*/) ?></a></th>    		
 				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_description') ?>"><?php _e('Description'/*def*/) ?></a></th>
 				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_category_name') ?>"><?php _e('Category'/*def*/) ?></a></th>
-				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_user_roles') ?>"><?php _e('File Access',WPFB) ?></a></th>
+				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_user_roles') ?>"><?php _e('Access Permission',WPFB) ?></a></th>
 				<th scope="col" class="num"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_hits') ?>"><?php _e('Hits', WPFB) ?></a></th>
 				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_last_dl_time') ?>"><?php _e('Last download', WPFB) ?></a></th>
 				<!-- TODO <th scope="col" class="num"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_') ?>"><?php _e('Rating'/*def*/) ?></th> -->
@@ -170,7 +165,7 @@ static function Display()
 							<?php if(!empty($file->file_thumbnail)) { ?><img src="<?php echo $file->GetIconUrl(); ?>" height="32" /><?php } ?>
 							<span><?php if($file->IsRemote()){echo '*';} echo esc_html($file->file_display_name); ?></span>
 							</a></td>
-							<td><?php echo esc_html($file->file_name); ?></td>
+							<td><a href="<?php echo $file->GetUrl() ?>"><?php echo esc_html($file->file_name); ?></a></td>
 							<td><?php echo WPFB_Output::FormatFilesize($file->file_size); ?></td>
 							<td><?php echo empty($file->file_description) ? '-' : esc_html($file->file_description); ?></td>
 							<td><?php echo (!is_null($cat)) ? ('<a href="'.$cat->GetEditUrl().'">'.esc_html($file->file_category_name).'</a>') : '-'; ?></td>

@@ -56,7 +56,7 @@ class WPFB_Item {
 		
 		$items = WPFB_Category::GetCats("WHERE cat_folder = '$name' AND cat_parent = $parent_id LIMIT 1");
 		if(empty($items)){
-			$items = WPFB_File::GetFiles("WHERE file_name = '$name' AND file_category = $parent_id LIMIT 1");
+			$items = WPFB_File::GetFiles2(array('file_name' => $name, 'file_category' => $parent_id), false, null, 1);
 			if(empty($items)) return null;
 		}
 
@@ -66,11 +66,10 @@ class WPFB_Item {
 	static function GetByPath($path)
 	{
 		global $wpdb;
-		$path = $wpdb->escape(trim(str_replace('\\','/',$path),'/'));
-		
-		$items = WPFB_Category::GetCats("WHERE cat_path = '$path' LIMIT 1");
+		$path = trim(str_replace('\\','/',$path),'/');		
+		$items = WPFB_Category::GetCats("WHERE cat_path = '".$wpdb->escape($path)."' LIMIT 1");
 		if(empty($items)){
-			$items = WPFB_File::GetFiles("WHERE file_path = '$path' LIMIT 1");
+			$items = WPFB_File::GetFiles2(array('file_path' => $path), false, null, 1);
 			if(empty($items)) return null;
 		}
 
@@ -96,7 +95,7 @@ class WPFB_Item {
 			$path .= $this->is_file ? $this->file_name : $this->cat_folder;
 			
 			if($cur_path != $path) {
-				$cur_path = $path;
+				$cur_path = $path; // by ref!!
 				if(!$this->locked) $this->DBSave();
 			}
 			
@@ -107,15 +106,17 @@ class WPFB_Item {
 		}
 	}
 	
+	protected function TriggerLockedError() {
+		trigger_error("Cannot save locked item '".$this->GetName()."' to database!", E_USER_WARNING);
+		return false;		
+	}
 
 	function DBSave()
 	{
 		global $wpdb;
 		
-		if($this->locked > 0) {
-			trigger_error("Cannot save locked item '".$this->GetName()."' to database!", E_USER_WARNING);
-			return false;
-		}
+		if($this->locked > 0)
+			return $this->TriggerLockedError();
 		
 		$values = array();
 		
@@ -178,18 +179,23 @@ class WPFB_Item {
 		return false;
 	}
 	
-	function GetUrl()
+	function GetUrl($rel=false)
 	{
 		$ps = WPFB_Core::GetOpt('disable_permalinks') ? null : get_option('permalink_structure');		
 		if($this->is_file) {
 			if(!empty($ps)) $url = home_url(WPFB_Core::GetOpt('download_base').'/'.$this->GetLocalPathRel());
-			else $url = add_query_arg(array('wpfb_dl' => $this->file_id), home_url());
+			else $url = home_url('?wpfb_dl='.$this->file_id);
 		} else {
 			$url = get_permalink(WPFB_Core::GetOpt('file_browser_post_id'));	
 			if(!empty($ps)) $url .= $this->GetLocalPathRel().'/';
 			elseif($this->cat_id > 0) $url = add_query_arg(array('wpfb_cat' => $this->cat_id), $url);
 			$url .= "#wpfb-cat-$this->cat_id";	
-		}			
+		}
+		if($rel) {
+			$url = substr($url, strlen(home_url()));
+			if($url{0} == '?') $url = 'index.php'.$url;
+			else $url = substr($url, 0); // remove trailing slash!
+		}
 		return $url;
 	}
 	
@@ -220,14 +226,18 @@ class WPFB_Item {
 		return eval("return ($parsed_tpl);");
 	}
 	
-	function GetThumbPath()
+	function GetThumbPath($refresh=false)
 	{
+		static $base_dir = '';
+		if(empty($base_dir) || $refresh)
+			$base_dir = WPFB_Core::ThumbDir() . '/';
+			
 		if($this->is_file) {
 			if(empty($this->file_thumbnail)) return null;			
-			return  dirname($this->GetLocalPath()) . '/' . $this->file_thumbnail;
+			return  dirname($base_dir . $this->GetLocalPathRel()) . '/' . $this->file_thumbnail;
 		} else {		
 			if(empty($this->cat_icon)) return null;
-			return $this->GetLocalPath() . '/' . $this->cat_icon;
+			return $base_dir . $this->GetLocalPathRel() . '/' . $this->cat_icon;
 		}
 	}
 	
@@ -331,10 +341,15 @@ class WPFB_Item {
 			$this->file_category = $new_cat_id;
 			$this->file_name = $new_name;
 			$this->file_category_name = ($new_cat_id==0) ? '' : $new_cat->GetTitle();
+			if($new_cat_id != 0 && count($this->GetUserRoles()) == 0) // files inherit user roles
+				$this->SetUserRoles($new_cat->GetUserRoles());
 		} else {
 			$this->cat_parent = $new_cat_id;
 			$this->cat_folder = $new_name;
 		}
+		
+		// flush cache
+		$this->last_parent_id = -1; 
 
 		$new_path_rel = $this->GetLocalPathRel(true);
 		$new_path = $this->GetLocalPath();

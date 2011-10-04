@@ -20,7 +20,7 @@ static function Display()
 	{
 		wpfb_loadclass('Setup');
 		WPFB_Setup::ResetOptions();
-		$messages += WPFB_Admin::SettingsUpdated();
+		$messages += WPFB_Admin::SettingsUpdated($options, get_option(WPFB_OPT_NAME));
 		$messages[] = __('Settings reseted.', WPFB);		
 		$options = get_option(WPFB_OPT_NAME);
 	}
@@ -96,19 +96,26 @@ static function Display()
 		// make sure a short tag exists, if not append one
 		$select_opts = array('languages', 'platforms', 'licenses', 'requirements', 'custom_fields');
 		foreach($select_opts as $opt_tag) {
-			$lines = explode("\n", $options[$opt_tag]);
-			for($i = 0; $i < count($lines); $i++) {
-				$lines[$i] = trim($lines[$i], "|\r");
-				$pos = strpos($lines[$i], '|');
-				if($pos <= 0)
-					$lines[$i] .= '|'.str_replace(' ','',strtolower(substr($lines[$i], 0, min(8, strlen($lines[$i])))));
+			if(empty($options[$opt_tag])) {
+				$options[$opt_tag] = '';
+				continue;
 			}
-			$options[$opt_tag] = implode("\n", $lines);
+			$lines = explode("\n", $options[$opt_tag]);
+			$lines2 = array();
+			for($i = 0; $i < count($lines); $i++) {
+				$lines[$i] = str_replace('||','|',trim($lines[$i], "|\r"));
+				if(empty($lines[$i]) || $lines[$i] == '|')	continue;
+				$pos = strpos($lines[$i], '|');
+				if($pos <= 0) $lines[$i] .= '|'.str_replace(array(' ','|'),'',strtolower(substr($lines[$i], 0, min(8, strlen($lines[$i])))));
+				$lines2[] = $lines[$i];
+			}
+			$options[$opt_tag] = implode("\n", $lines2);
 		}
 		
+		$old_options = get_option(WPFB_OPT_NAME);
 		update_option(WPFB_OPT_NAME, $options);
 		
-		$messages += WPFB_Admin::SettingsUpdated();
+		$messages += WPFB_Admin::SettingsUpdated($old_options, $options);
 		
 		if(count($errors) == 0)
 			$messages[] = __('Settings updated.', WPFB);
@@ -163,7 +170,7 @@ jQuery(document).ready( function() {
 	</p>
 	<?php
 	
-	$misc_tags = array('hide_links','base_auto_thumb','cron_sync','fext_blacklist','disable_id3','search_id3');
+	$misc_tags = array('hide_links','base_auto_thumb','cron_sync','fext_blacklist','disable_id3','search_id3','thumbnail_path','use_path_tags');
 	if(function_exists('wp_admin_bar_render'))
 		$misc_tags[] = 'admin_bar';
 	

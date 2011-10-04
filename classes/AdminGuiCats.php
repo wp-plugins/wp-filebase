@@ -127,6 +127,7 @@ static function Display()
 				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('cat_description') ?>"><?php _e('Description'/*def*/) ?></a></th>
 				<th scope="col" class="num"><a href="<?php echo WPFB_Admin::AdminTableSortLink('cat_num_files') ?>"><?php _e('Files', WPFB) ?></a></th>
 				<th scope="col"><?php _e('Parent Category'/*def*/) ?></th>
+				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('cat_user_roles') ?>"><?php _e('Access Permission',WPFB) ?></a></th>
 			</tr>
 			</thead>
 			<tbody id="the-list" class="list:cat">
@@ -134,6 +135,7 @@ static function Display()
 			foreach($cats as $cat_id => &$cat)
 			{
 				$parent_cat = $cat->GetParent();
+				$user_roles = $cat->GetUserRoles();
 			?>
 			<tr id="cat-<?php echo $cat_id; ?>">
 				<th scope="row" class="check-column"><input type="checkbox" name="delete[]" value="<?php echo $cat_id; ?>" /></th>
@@ -143,7 +145,8 @@ static function Display()
 				</a></td>
 				<td><?php echo esc_html($cat->cat_description) ?></td>
 				<td class="num"><?php echo "$cat->cat_num_files / $cat->cat_num_files_total" ?></td>
-				<td><?php echo $parent_cat?esc_html($parent_cat->cat_name):'-' ?></td>
+				<td><?php echo $parent_cat?('<a href="'.$parent_cat->GetEditUrl().'">'.esc_html($parent_cat->cat_name).'</a>'):'-' ?></td>
+				<td><?php echo empty($user_roles) ? ("<i>".__('Everyone',WPFB)."</i>") : join(', ', WPFB_Output::RoleNames($user_roles)) ?></td>
 			</tr>
 			<?php } ?>
 			</tbody>

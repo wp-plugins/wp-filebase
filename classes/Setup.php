@@ -82,7 +82,7 @@ static function AddTpls() {
 	
 	$tpls_cat = array(
 		'filebrowser' => '%cat_small_icon% <a href="%cat_url%" onclick="return false;">%cat_name%</a>',
-		'3-col-row' => '<tr><td colspan="3" align="center">%cat_name%</td></tr>',
+		'3-col-row' => '<tr><td colspan="3" style="text-align:center;font-size:120%;">%cat_name%</td></tr>',
 	);
 	
 	add_option(WPFB_OPT_NAME.'_tpls_file', $tpls_file, null, 'no'/*autoload*/); 
@@ -101,10 +101,10 @@ static function AddTpls() {
 			'header' => '%search_form%
 <table>
 <thead>
-	<tr><th scope="col"><a href="%sortlink:file_name%">Name</a></th><th scope="col"><a href="%sortlink:file_size%">Size</a></th><th scope="col"><a href="%sortlink:file_downloads%">Hits</a></th></tr>
+	<tr><th scope="col"><a href="%sortlink:file_name%">Name</a></th><th scope="col"><a href="%sortlink:file_size%">Size</a></th><th scope="col"><a href="%sortlink:file_hits%">Hits</a></th></tr>
 </thead>
 <tfoot>
-	<tr><th scope="col"><a href="%sortlink:file_name%">Name</a></th><th scope="col"><a href="%sortlink:file_size%">Size</a></th><th scope="col"><a href="%sortlink:file_downloads%">Hits</a></th></tr>
+	<tr><th scope="col"><a href="%sortlink:file_name%">Name</a></th><th scope="col"><a href="%sortlink:file_size%">Size</a></th><th scope="col"><a href="%sortlink:file_hits%">Hits</a></th></tr>
 </tfoot>
 <tbody>',
 			'footer' => '</tbody>
@@ -219,6 +219,7 @@ static function SetupDBTables()
   `file_update_of` bigint(20) unsigned default NULL,
   `file_post_id` bigint(20) unsigned default NULL,
   `file_attach_order` int(8) NOT NULL default '0',
+  `file_wpattach_id` bigint(20) NOT NULL default '0',
   `file_added_by` bigint(20) unsigned default NULL,
   `file_hits` bigint(20) unsigned NOT NULL default '0',
   `file_ratings` bigint(20) unsigned NOT NULL default '0',
@@ -276,6 +277,8 @@ static function SetupDBTables()
 	
 	$queries[] = "@ALTER TABLE `$tbl_files` ADD `file_attach_order` int(8) NOT NULL default '0'  AFTER `file_post_id`";
 	
+	// since 0.2.9.3
+	$queries[] = "@ALTER TABLE `$tbl_files` ADD `file_wpattach_id` bigint(20) NOT NULL default '0'  AFTER `file_attach_order`";
 	
 	$queries[] = "OPTIMIZE TABLE `$tbl_cats`";
 	$queries[] = "OPTIMIZE TABLE `$tbl_files`";
@@ -437,9 +440,10 @@ static function ProtectUploadPath()
 
 static function OnActivateOrVerChange() {
 	WPFB_Setup::SetupDBTables();
+	$old_options = get_option(WPFB_OPT_NAME);
 	WPFB_Setup::AddOptions();
 	WPFB_Setup::AddTpls();
-	WPFB_Admin::SettingsUpdated();
+	WPFB_Admin::SettingsUpdated($old_options, get_option(WPFB_OPT_NAME));
 	WPFB_Setup::ProtectUploadPath();
 	WPFB_Admin::FlushRewriteRules();
 	WPFB_Admin::UpdateItemsPath();

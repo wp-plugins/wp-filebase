@@ -1,13 +1,15 @@
--file list limit
+- default user roles options
+- search lists WP attachments without permissions (due to generated content!)
++ create post for files
++ no custom fields fix 
++ search: drafts visible!!
+-ppollplll
 - better syncing many files!
 Comments
-- shortcode: file by path, not only id!!
 -inline upload
 - update version on file sync cahnged
 - user upload paths
 -disable automatic sync by default
-shocats=1 ?
-showcats tag does not work if all cats selected
 
 -check sortings
 http://forum.wpml.org/topic.php?id=2894
@@ -64,10 +66,7 @@ rename hotlink to deeplink?
  
  
  ################### low
- index docum ents, find files
  
- fix analytics url bug
- 
+ fix analytics url bug 
  review JS loading and minimize!!
  
- single dl page
