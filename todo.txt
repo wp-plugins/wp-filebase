@@ -1,0 +1,80 @@
+- option: no display name formatting
+_ widget: users which cannot upload files should not change widget!!
+-upload widget: fixed category
+- editor plugin: field box not collapsable, missing JS
+
+- batch actions
+- forms
+
+- default user roles options
+- search lists WP attachments without permissions (due to generated content!)
++ create post for files
++ no custom fields fix 
++ search: drafts visible!!
+-ppollplll
+- better syncing many files!
+Comments
+-inline upload
+- update version on file sync cahnged
+- user upload paths
+-disable automatic sync by default
+
+-check sortings
+http://forum.wpml.org/topic.php?id=2894
+http://www.reddit.com/r/Wordpress/comments/f6c0f/question_for_anyone_using_the_plugin_wpfilebase/
+-single download pages
+-query links without jquery
+gettext update, add new textssss
+list templates doc, page nav uand stuff
+
+file list header foooter doc (serach form, page nav)
+
+- file tags
+- handle web search crawler
+- multiple widgets
+-ADD WPFB-FILE-ID TO TEMPLATE1
+.multiple posts per file 
+
+new tpl tags:
+added by [user]
+
+file ratings
+file updates
+file dependencies
+report error form
+
+force download per file
+
+/*
+archive lister?
+per-page download list
+
+* upload by guests
+* upload progress bar
+* searchboxes
+*/W
+
+global hotlink protecting
+
+rename hotlink to deeplink?
+ 
+ fix hotlink?
+ 
+ batch actions for files: set properties, delete, create thumbnails, etc...
+ 
+ hide download links
+   
+  attachment form in post! (switchable!)
+ 
+ file ratings!!
+ 
+ list files under categories
+ 
+ converter from other plugins
+ 
+ 
+ ################### low
+ 
+ fix analytics url bug 
+ review JS loading and minimize!!
+ 
