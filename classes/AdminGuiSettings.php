@@ -9,55 +9,67 @@ static function Display()
 	if(!current_user_can('manage_options'))
 		wp_die(__('Cheatin&#8217; uh?'));
 	
-	$action = ( !empty($_POST['action']) ? $_POST['action'] : ( !empty($_GET['action']) ? $_GET['action'] : '' ) );
+	// nonce and referer check (security)
+	if(!empty($_POST) && (!wp_verify_nonce($_POST['wpfb-nonce'],'wpfb-update-settings') || !check_admin_referer('wpfb-update-settings','wpfb-nonce')))
+		wp_die(__('Cheatin&#8217; uh?'));
+	
+	$post = stripslashes_deep($_POST);
+	
+	$action = ( !empty($post['action']) ? $post['action'] : ( !empty($_GET['action']) ? $_GET['action'] : '' ) );
 	$messages = array();
 	$errors = array();
 	
 	$options = get_option(WPFB_OPT_NAME);
 	$option_fields = &WPFB_Admin::SettingsSchema();
 	
-	if(isset($_POST['reset']))
-	{
+	
+	
+	if(isset($post['reset']))
+	{		
 		wpfb_loadclass('Setup');
 		WPFB_Setup::ResetOptions();
 		$messages += WPFB_Admin::SettingsUpdated($options, get_option(WPFB_OPT_NAME));
 		$messages[] = __('Settings reseted.', WPFB);		
 		$options = get_option(WPFB_OPT_NAME);
 	}
-	elseif(isset($_POST['submit']))
+	elseif(isset($post['submit']))
 	{		
 		// cleanup
 		foreach($option_fields as $opt_tag => $opt_data)
 		{
-			if(isset($_POST[$opt_tag]))
+			if(isset($post[$opt_tag]))
 			{
-				if(get_magic_quotes_gpc() == 1)
-					$_POST[$opt_tag] = stripslashes($_POST[$opt_tag]);				
-				$_POST[$opt_tag] = trim($_POST[$opt_tag]);
+				if(!is_array($post[$opt_tag]))		
+					$post[$opt_tag] = trim($post[$opt_tag]);
 				
 				switch($opt_data['type'])
 				{
 					case 'number':
-						$_POST[$opt_tag] = intval($_POST[$opt_tag]);
+						$post[$opt_tag] = intval($post[$opt_tag]);
 						break;
 					case 'select':
 						// check if value is in options array, if not set to default
-						if(!in_array($_POST[$opt_tag], array_keys($opt_data['options'])))
-							$_POST[$opt_tag] = $opt_data['default'];
+						if(!in_array($post[$opt_tag], array_keys($opt_data['options'])))
+							$post[$opt_tag] = $opt_data['default'];
 						break;
+						
+					case 'roles':
+						foreach(array_keys($post[$opt_tag]) as $i) {
+							if(empty($post[$opt_tag][$i])) unset($post[$opt_tag][$i]);
+						}
 				}						
 			}
 		}
 		
-		$_POST['upload_path'] = str_replace(ABSPATH, '', $_POST['upload_path']);
+		$post['upload_path'] = str_replace(ABSPATH, '', $post['upload_path']);
 		$options['upload_path'] = str_replace(ABSPATH, '', $options['upload_path']);
 		
-		$_POST['download_base'] = trim($_POST['download_base'], '/');
-		if(WPFB_Admin::WPCacheRejectUri($_POST['download_base'] . '/', $options['download_base'] . '/'))
-			$messages[] = sprintf(__('/%s/ added to rejected URIs list of WP Super Cache.', WPFB), $_POST['download_base']);
+		$post['download_base'] = trim($post['download_base'], '/');
+		if(WPFB_Admin::WPCacheRejectUri($post['download_base'] . '/', $options['download_base'] . '/'))
+			$messages[] = sprintf(__('/%s/ added to rejected URIs list of WP Super Cache.', WPFB), $post['download_base']);
 		
-		$tpl_file = stripslashes($_POST['template_file']);
-		$tpl_cat = stripslashes($_POST['template_cat']);
+		$tpl_file = ($post['template_file']);
+		$tpl_cat = ($post['template_cat']);
 		if(!empty($tpl_file) && (empty($options['template_file_parsed']) || $tpl_file != $options['template_file']))
 		{
 			wpfb_loadclass('TplLib');
@@ -89,8 +101,8 @@ static function Display()
 		// save options
 		foreach($option_fields as $opt_tag => $opt_data)
 		{
-			$val = isset($_POST[$opt_tag]) ? $_POST[$opt_tag] : '';
-			$options[$opt_tag] = stripslashes(trim($val));
+			$val = isset($post[$opt_tag]) ? $post[$opt_tag] : '';
+			$options[$opt_tag] = ($val);
 		}
 		
 		// make sure a short tag exists, if not append one
@@ -164,7 +176,7 @@ jQuery(document).ready( function() {
 <h2><?php echo WPFB_PLUGIN_NAME; echo ' '; _e("Settings"/*def*/); ?></h2>
 
 <form method="post" action="<?php echo $action_uri; ?>" name="wpfilebase-options">
-	<?php wp_nonce_field('update-options'); ?>
+	<?php wp_nonce_field('wpfb-update-settings', 'wpfb-nonce'); ?>
 	<p class="submit">
 	<input type="submit" name="submit" value="<?php _e('Save Changes'/*def*/) ?>" class="button-primary" />
 	</p>
@@ -179,9 +191,9 @@ jQuery(document).ready( function() {
 		__('Display', WPFB)					=> array('thumbnail_size','auto_attach_files', 'attach_pos', 'filelist_sorting', 'filelist_sorting_dir', 'filelist_num', /* TODO: remove? 'parse_tags_rss',*/ 'decimal_size_format'),
 		__('File Browser',WPFB)				=> array('file_browser_post_id','file_browser_cat_sort_by','file_browser_cat_sort_dir','file_browser_file_sort_by','file_browser_file_sort_dir'),
 		__('Download', WPFB)				=> array('disable_permalinks', 'download_base', 'force_download', 'range_download', 'http_nocache', 'ignore_admin_dls', 'accept_empty_referers','allowed_referers'),
-		__('Form Presets', WPFB)			=> array('languages', 'platforms', 'licenses', 'requirements', 'custom_fields'),
+		__('Form Presets', WPFB)			=> array('default_author','default_roles', 'languages', 'platforms', 'licenses', 'requirements', 'custom_fields'),
 		__('Limits', WPFB)					=> array('bitrate_unregistered', 'bitrate_registered', 'traffic_day', 'traffic_month', 'traffic_exceeded_msg', 'file_offline_msg', 'daily_user_limits', 'daily_limit_subscriber', 'daily_limit_contributor', 'daily_limit_author', 'daily_limit_editor', 'daily_limit_exceeded_msg'),
-		__('Security', WPFB)				=> array('allow_srv_script_upload', 'hide_inaccessible', 'inaccessible_msg', 'inaccessible_redirect', 'login_redirect_src', 'protect_upload_path'),
+		__('Security', WPFB)				=> array('allow_srv_script_upload', 'hide_inaccessible', 'inaccessible_msg', 'inaccessible_redirect', 'login_redirect_src', 'protect_upload_path', 'private_files'),
 		__('Templates and Scripts', WPFB)	=> array('template_file', 'template_cat', 'dlclick_js'),
 		__('Misc')							=> $misc_tags
 	);
@@ -249,13 +261,16 @@ jQuery(document).ready( function() {
 						echo '<option value="' . esc_attr($opt_v) . '"' . (($opt_v == $opt_val) ? ' selected="selected" ' : '') . $style_class . '>' . (!is_numeric($opt_v) ? (esc_html($opt_v) . ': ') : '') . esc_html($opt_n) . '</option>';
 					echo '</select>';
 					break;
+					
+				case 'roles':
+					WPFB_Admin::RolesCheckList($opt_tag, $opt_val);
 			}
 			
 			if(!empty($field_data['unit']))
 				echo ' ' . $field_data['unit'];
 				
 			if(!empty($field_data['desc']))
-				echo "\n".'<br />' . str_replace('%value%', $opt_val, $field_data['desc']);
+				echo "\n".'<br />' . str_replace('%value%', is_array($opt_val) ? join(', ', $opt_val) : $opt_val, $field_data['desc']);
 			echo "\n</td>\n</tr>";		
 			$page_option_list .= $opt_tag . ',';
 		}

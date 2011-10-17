@@ -70,7 +70,9 @@ class WPFB_File extends WPFB_Item {
 			$current_user = new WP_User($current_user->ID);// load the roles
 		
 			if(in_array('administrator',$current_user->roles)) $permission_sql = '1=1'; // administrator can access everything!
-			else {
+			elseif(WPFB_Core::GetOpt('private_files')) {
+				$permission_sql = "file_added_by = 0 OR file_added_by = " . (int)$current_user->ID;
+			} else {
 				$permission_sql = "file_user_roles = ''";
 				foreach($current_user->roles as $ur) {
 					$ur = $wpdb->escape($ur);
@@ -81,7 +83,7 @@ class WPFB_File extends WPFB_Item {
 		return $permission_sql;
 	}
 	
-	static function genSelectSql($where, $check_permissions, $order = null, $limit = -1, $offset = -1)
+	private static function genSelectSql($where, $check_permissions, $order = null, $limit = -1, $offset = -1)
 	{
 		global $wpdb;
 		
@@ -124,13 +126,15 @@ class WPFB_File extends WPFB_Item {
 	{
 		global $wpdb;
 		$files = array();
-		$results = $wpdb->get_results("SELECT `$wpdb->wpfilebase_files`.* as `file_id` FROM ". self::genSelectSql($where, $check_permissions, $order, $limit, $offset));
+		$results = $wpdb->get_results("SELECT `$wpdb->wpfilebase_files`.* FROM ". self::genSelectSql($where, $check_permissions, $order, $limit, $offset));
 		if(!empty($results)) {
 			foreach(array_keys($results) as $i) {
 				$id = (int)$results[$i]->file_id;
 				self::$cache[$id] = new WPFB_File($results[$i]);
 				$files[$id] = self::$cache[$id];
 			}
+		} elseif(!empty($wpdb->last_error) && current_user_can('upload_files')) {
+			echo "<b>Database error</b>: ".$wpdb->last_error; // print debug only if usr can upload
 		}
 		return $files;
 	}
@@ -163,6 +167,11 @@ class WPFB_File extends WPFB_Item {
 	{
 		$post_id = intval($post_id);
 		return WPFB_File::GetFiles2(array('file_post_id' => $post_id), WPFB_Core::GetOpt('hide_inaccessible'), WPFB_Core::GetFileListSortSql(null, true));
+	}
+	
+	function WPFB_File($db_row=null) {		
+		parent::WPFB_Item($db_row);
+		$this->is_file = true;
 	}
 	
 	function DBSave()
@@ -396,6 +405,8 @@ class WPFB_File extends WPFB_Item {
 			
 			case 'file_url_encoded':	return htmlspecialchars(urlencode($this->GetUrl()));
 			
+			case 'file_added_by':		return (empty($this->file_added_by) || !($usr = get_userdata($this->file_added_by))) ? '' : esc_html($usr->display_name);
+			
 			case 'uid':					return self::$tpl_uid;
 		}
 		
@@ -418,10 +429,15 @@ class WPFB_File extends WPFB_Item {
 		}
 		$msg = WPFB_Core::GetOpt($msg_id);
 		if(!$msg) $msg = $msg_id;
+		elseif(preg_match('/^https?:\/\//i',$msg)) {
+			wp_redirect($msg); // redirect if msg is url
+			exit;
+		}
 		wp_die(empty($msg) ? __('Cheatin&#8217; uh?') : $msg);
 		exit;
 	}
 	
+	// checks permissions, tracks download and sends the file
 	function Download()
 	{
 		global $wpdb, $current_user, $user_ID;
@@ -432,7 +448,7 @@ class WPFB_File extends WPFB_Item {
 		get_currentuserinfo();
 		$logged_in = (!empty($user_ID));
 		$user_role = $logged_in ? array_shift($current_user->roles) : null; // get user's highest role (like in user-eidt.php)
-		$is_admin = $user_role == 'administrator'; 
+		$is_admin = ('administrator' == $user_role); 
 		
 		// check user level
 		if(!$this->CurUserCanAccess())
@@ -472,8 +488,8 @@ class WPFB_File extends WPFB_Item {
 			
 			// check for limit
 			$dl_limit = intval(WPFB_Core::GetOpt('daily_limit_'.$user_role));
-			if($usr_dls_today >= $dl_limit)
-				$this->DownloadDenied(($dl_limit > 0) ? sprintf(WPFB_Core::GetOpt('daily_limit_exceeded_msg'), $dl_limit) : 'inaccessible_msg');			
+			if($dl_limit > 0 && $usr_dls_today >= $dl_limit)
+				$this->DownloadDenied(sprintf(WPFB_Core::GetOpt('daily_limit_exceeded_msg'), $dl_limit));			
 			
 			$usr_dls_today++;
 			update_user_option($user_ID, WPFB_OPT_NAME . '_dls_today', $usr_dls_today);

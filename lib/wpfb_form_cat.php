@@ -10,7 +10,7 @@ if($update) {
 $action = $update ? 'updatecat' : 'addcat';
 $title = $update ? __('Edit Category') : __('Add Category');/*def*/
 $form_name = $update ? 'editcat' : 'addcat';
-$nonce_action = $update ? ('update-filecat_' . $file_category->cat_id) : 'add-filecat';	
+$nonce_action = WPFB . "-" . $action . ($update ? $file_category->cat_id : '');	
 
 $cat_members_only = !empty($file_category->cat_user_roles);
 
@@ -23,7 +23,7 @@ $form_action = add_query_arg('page', 'wpfilebase_cats', remove_query_arg(array('
 <form enctype="multipart/form-data" method="post" name="<?php echo $form_name ?>" id="<?php echo $form_name ?>" action="<?php echo $form_action ?>" class="validate">
 <input type="hidden" name="action" value="<?php echo $action ?>" />
 <input type="hidden" name="cat_id" value="<?php echo ($update ? $file_category->cat_id : 0) ?>" />
-<?php wp_nonce_field($nonce_action); ?>
+<?php wp_nonce_field($nonce_action, 'wpfb-cat-nonce'); ?>
 	<table class="form-table">
 		<tr class="form-field form-required">
 			<th scope="row" valign="top"><label for="cat_name"><?php _e('New category name'/*def*/) ?></label></th>

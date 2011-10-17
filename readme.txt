@@ -104,6 +104,18 @@ Goto WP-Filebase Settings and disable Permalinks under "Download". Try to disabl
 
 == Changelog ==
 
+= 0.2.9.4 =
+* Fixed MySQL Syntax Bug causing empty file lists in dashboard and front-end
+* Added option `Private Files`
+* File list fixes
+* Added Form Default options for Permission and Author
+* Template field `%file_added_by%` is now replaced by User Name
+* GUI improvements
+* Form security improvements
+* Fixed download denied bug for custom user roles
+* Users are redirected if `Inaccessible file message` is a URL
+* Download limit fix
+
 = 0.2.9.3 =
 * Search integration: File Browser post is listed in search results whith matching files
 * File permissions are inherited from categories when added or moved

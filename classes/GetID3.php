@@ -44,11 +44,16 @@ class WPFB_GetID3 {
 	}
 	
 	// gets file info out of the cache or analyzes the file if not cached
-	static function GetFileInfo($file)
+	static function GetFileInfo($file, $get_keywords=false)
 	{
 		global $wpdb;
-		$info = $wpdb->get_var("SELECT value FROM $wpdb->wpfilebase_files_id3 WHERE file_id = " . $file->GetId());
-		if(is_null($info))
+		$sql = "SELECT value".($get_keywords?", keywords":"")." FROM $wpdb->wpfilebase_files_id3 WHERE file_id = " . $file->GetId();
+		if($get_keywords) {   // TODO: cache not updated if get_keywords
+			$info = $wpdb->get_row($sql);
+			$info->value = unserialize(base64_decode($info->value));
+			return $info;
+		}
+		if(is_null($info = $wpdb->get_var($sql)))
 			return self::UpdateCachedFileInfo($file);
 		return ($info=='0') ? null : unserialize(base64_decode($info));
 	}
@@ -65,7 +70,7 @@ class WPFB_GetID3 {
 	{
 		static $skip_keys = array('getid3_version','streams','seektable','streaminfo',
 		'comments_raw','encoding', 'flags', 'image_data','toc','lame', 'filename', 'filesize', 'md5_file',
-		'data', 'warning', 'error', 'filenamepath', 'filepath','popm','email','priv','ownerid');
+		'data', 'warning', 'error', 'filenamepath', 'filepath','popm','email','priv','ownerid','central_directory','raw');
 
 		foreach($info as $key => &$val)
 		{
@@ -92,9 +97,10 @@ class WPFB_GetID3 {
 	private static function getKeywords($info, &$keywords) {
 		foreach($info as $key => $val)
 		{
-			if(is_array($val) || is_object($val))
+			if(is_array($val) || is_object($val)) {
 				self::getKeywords($val, $keywords);
-			else if(is_string($val)) {				
+				self::getKeywords(array_keys($val), $keywords);
+			} else if(is_string($val)) {				
 				if(!in_array($val, $keywords))
 					array_push($keywords, $val);
 			}

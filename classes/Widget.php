@@ -89,7 +89,7 @@ function FileListCntrl()
 		
 		<p>
 			<label for="wpfilebase-filelist-cat"><?php _e('Category:', WPFB); ?></label>		
-			<select name="wpfilebase-filelist-cat" id="wpfilebase-filelist-cat"><?php echo WPFB_Output::CatSelTree(array('selected'=>$options['filelist_cat'],'none_label'=>__('All'))) ?></select>
+			<select name="wpfilebase-filelist-cat" id="wpfilebase-filelist-cat"><?php echo WPFB_Output::CatSelTree(array('selected'=>empty($options['filelist_cat'])?0:$options['filelist_cat'],'none_label'=>__('All'))) ?></select>
 		</p>
 		
 		<p>
@@ -250,6 +250,8 @@ class WPFB_UploadWidget extends WP_Widget {
 
 		wpfb_loadclass('File', 'Category', 'Output');
 		
+		$instance['category'] = empty($instance['category']) ? 0 : (int)$instance['category'];
+		
         extract( $args );
         $title = apply_filters('widget_title', $instance['title']);		
 		echo $before_widget;
@@ -257,17 +259,23 @@ class WPFB_UploadWidget extends WP_Widget {
 		
 		$prefix = "wpfb-upload-widget-".$this->id_base;
 		$form_url = add_query_arg('wpfb_upload_file', 1);
-		
+		$nonce_action = "$prefix-".((int)!empty($instance['overwrite']))."-".$instance['category'];
 		?>		
 		<form enctype="multipart/form-data" name="<?php echo $prefix ?>form" method="post" action="<?php echo $form_url ?>">
+		<?php wp_nonce_field($nonce_action, 'wpfb-file-nonce'); ?>
 			<input type="hidden" name="overwrite" value="<?php echo !empty($instance['overwrite']) ?>" />
+			<input type="hidden" name="prefix" value="<?php echo $prefix ?>" />
+			<input type="hidden" name="cat" value="<?php echo $instance['category'] /* for noncing*/ ?>" />
 			<p>
 				<label for="<?php echo $prefix ?>file_upload"><?php _e('Choose File', WPFB) ?></label>
 				<input type="file" name="file_upload" id="<?php echo $prefix ?>file_upload" style="width: 160px" size="10" /><br />
 				<small><?php printf(str_replace('%d%s','%s',__('Maximum upload file size: %d%s'/*def*/)), WPFB_Output::FormatFilesize(WPFB_Core::GetMaxUlSize())) ?></small>
-				<br />
+				<?php if($instance['category'] == -1) { ?><br />
 				<label for="<?php echo $prefix ?>file_category"><?php _e('Category') ?></label>
 				<select name="file_category" id="<?php echo $prefix ?>file_category"><?php echo WPFB_Output::CatSelTree() ?></select>
+				<?php } else {?>
+				<input type="hidden" name="file_category" value="<?php echo $instance['category'] ?>" />
+				<?php } ?>
 			</p>	
 			<p style="text-align:right;"><input type="submit" class="button-primary" name="submit-btn" value="<?php _ex('Add New', 'file') ?>" /></p>
 		</form>
@@ -277,15 +285,24 @@ class WPFB_UploadWidget extends WP_Widget {
 
 	function update( $new_instance, $old_instance ) {
 		$instance = $old_instance;
+		wpfb_loadclass('Category');
 		$instance['title'] = strip_tags($new_instance['title']);
+		$instance['category'] = ($new_instance['category'] > 0) ? (is_null($cat=WPFB_Category::GetCat($new_instance['category'])) ? 0 : $cat->GetId()) : (int)$new_instance['category'];
 		$instance['overwrite'] = !empty($new_instance['overwrite']);
         return $instance;
 	}
 	
 	function form( $instance ) {
+		wpfb_loadclass('Output');
 		if(!isset($instance['title'])) $instance['title'] = __('Upload File',WPFB);
 		?><div>
 			<p><label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title:'); ?> <input type="text" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" value="<?php echo esc_attr($instance['title']); ?>" /></label></p>
+			<p><label for="<?php echo $this->get_field_id('category'); ?>"><?php _e('Category:'); ?>
+				<select id="<?php echo $this->get_field_id('category'); ?>" name="<?php echo $this->get_field_name('category'); ?>">
+					<option value="-1"  style="font-style:italic;"><?php _e('Selectable by Uploader',WPFB); ?></option>
+					<?php echo WPFB_Output::CatSelTree(array('none_label' => __('Upload to Root',WPFB), 'selected'=>empty($instance['category'])?0:$instance['category'])); ?>
+				</select>
+			</label></p>
 			<p><input type="checkbox" id="<?php echo $this->get_field_id('overwrite'); ?>" name="<?php echo $this->get_field_name('overwrite'); ?>" value="1" <?php checked(!empty($instance['overwrite'])) ?> /> <label for="<?php echo $this->get_field_id('overwrite'); ?>"><?php _e('Overwrite existing files', WPFB) ?></label></p>
 		</div><?php
 	}
@@ -310,9 +327,11 @@ class WPFB_AddCategoryWidget extends WP_Widget {
 		
 		$prefix = "wpfb-add-cat-widget-".$this->id_base;
 		$form_url = add_query_arg('wpfb_add_cat', 1);
-		
+		$nonce_action = $prefix;
 		?>		
 		<form enctype="multipart/form-data" name="<?php echo $prefix ?>form" method="post" action="<?php echo $form_url ?>">
+		<?php wp_nonce_field($nonce_action, 'wpfb-cat-nonce'); ?>
+		<input type="hidden" name="prefix" value="<?php echo $prefix ?>" />
 			<p>
 				<label for="<?php echo $prefix ?>cat_name"><?php _e('New category name'/*def*/) ?></label>
 				<input name="cat_name" id="<?php echo $prefix ?>cat_name" type="text" value="" />

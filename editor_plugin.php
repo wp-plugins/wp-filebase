@@ -19,6 +19,7 @@ function wpfb_editor_plugin_scripts() {
 	//wp_enqueue_script('tiny-mce-popup', site_url().'/'.WPINC.'/js/tinymce/tiny_mce_popup.js');
 	wp_enqueue_script('jquery');
 	wp_enqueue_script('jquery-treeview-async');
+	wp_enqueue_script( 'postbox' );
 }
 add_action('admin_enqueue_scripts', 'wpfb_editor_plugin_scripts');
 	
@@ -135,6 +136,8 @@ do_action('admin_head');
 
 var userSettings = {'url':'<?php echo SITECOOKIEPATH; ?>','uid':'<?php if ( ! isset($current_user) ) $current_user = wp_get_current_user(); echo $current_user->ID; ?>','time':'<?php echo time(); ?>'};
 var ajaxurl = '<?php echo admin_url('admin-ajax.php'); ?>', pagenow = 'wpfilebase-popup', adminpage = 'wpfilebase-popup', isRtl = <?php echo (int) is_rtl(); ?>;
+var usePathTags = <?php echo (int)WPFB_Core::GetOpt('use_path_tags') ?>;
+var yesImgUrl = '<?php echo admin_url( 'images/yes.png' ) ?>';
 
 var theEditor;
 var currentTab = '';
@@ -185,63 +188,7 @@ function refreshTrees() {
 <?php } ?>
 }
 
-function tabclick(a)
-{
-	var href = a.getAttribute('href');	
-	var tabLinks = jQuery("a", a.parentNode.parentNode).toArray();
-	var h,tl,tab;
-	for(var i = 0; i < tabLinks.length; i++)
-	{
-		h = tabLinks[i].getAttribute('href');
-		h = h.substr(h.indexOf('#'));
-		tab = jQuery(h);
-		tl = jQuery(tabLinks[i]);
-		if(href == tabLinks[i].getAttribute('href')) {
-			tl.addClass('current');
-			tab.show();
-		} else {
-			tl.removeClass('current');
-			tab.hide();				
-		}
-	}
 
-	currentTab = href.substr(href.indexOf('#')+1);
-	if(typeof(currentTab) != 'string' || currentTab.length < 2) {
-		alert('Something wrong with tab link: '+href);
-		currentTab = href;
-	}
-	
-	var showEls = {
-		'fileselect': (currentTab == 'file' || currentTab == 'fileurl'),
-		'filetplselect': (currentTab == 'file'),
-		'catselect': (currentTab == 'list' /* || currentTab == 'browser'*/),
-		'listtplselect': (currentTab == 'list')
-	};
-
-	for(var id in showEls) {
-		if(showEls[id]) jQuery('#'+id).show();
-		else  jQuery('#'+id).hide();
-	}
-	
-	return false;
-}
-
-var reloadTimer = -1;
-function delayedReload() {
-	if(reloadTimer != -1)
-		window.clearTimeout(reloadTimer);
-	reloadTimer = window.setTimeout("window.location.reload()", 10000);
-}
-
-function getFilePath(id) {
-	var fi = jQuery.parseJSON(jQuery.ajax({url:wpfbConf.ajurl, data:{action:"fileinfo",id:id},async:false}).responseText);
-	return (fi != null && fi.path != '') ? fi.path : '';	
-}
-
-function getCatPath(id) {
-	var ci = jQuery.parseJSON(jQuery.ajax({url:wpfbConf.ajurl, data:{action:"catinfo",id:id},async:false}).responseText);
-	return (ci != null && ci.path != '') ? ci.path : '';	
-}
 
 function selectFile(id, name)
 {
@@ -271,138 +218,37 @@ function selectFile(id, name)
 	insertTag(theTag);
 }
 
-function selectCat(id, name)
-{
-	var selected = false;
-	var el = jQuery('span.folder','#catsel-cat-'+id).first();
-
-	for(var i=0; i<selectedCats.length; i++) {
-		if (selectedCats[i] == id) {
-			selected = true;
-			selectedCats.splice(i, 1);
-			break;
-		}
-	}
-	if(!selected) selectedCats.push(id);	
-	el.css('background-image', selected?'':'url(<?php echo admin_url( 'images/yes.png' ) ?>)');
-}
-
-function incAllCatsChanged(value) {
-	includeAllCats = !!value;
-
-	if(includeAllCats)
-		jQuery("#catbrowser").hide();
-	else
-		jQuery("#catbrowser").show();
-}
-
-function editorInsert(str, close)
-{
-	var win = window.dialogArguments || opener || parent || top;
-	if(win && win.send_to_editor) {
-		win.send_to_editor(str);
-		if(typeof close != 'undefined' && close) {
-			if(typeof(win.tinymce) != 'undefined')
-				win.tinymce.EditorManager.activeEditor.windowManager.close(window);
-			else
-			{/*
-				var regex = /^cke_dialog_close_button_([0-9]+)/;				
-				var els = win.document.getElementsByTagName('a'), aid;
-				for(i=0;i<els.length;i++){
-					aid = els[i].getAttribute('id');
-					if(aid && aid.search(regex) == 0) {
-						alert(els[i].click);
-						els[i].click();
-						break;
-					}
-				}
-				*/
-			}
-		}
-		return true;
-	}
-	return false;
-}
-
-function insertTag(tagObj)
-{
-	var str = '[wpfilebase';
-	var q, v;
-
-	if(tagObj.tag == 'fileurl' && tagObj.linktext) {
-		str = '<a href="'+str;
-	}
-	
-	for(var t in tagObj) {
-		v = tagObj[t];
-		if(v != '' && t != 'linktext') {
-			q = (!isNaN(v) || v.search(/^[a-z0-9-]+$/i) != -1) ? "" : "'";			
-			str += ' '+t+"="+q+v+q;
-		}
-	}
-	str+=']';
-
-	if(tagObj.tag == 'fileurl' && tagObj.linktext)
-		str += '">'+tagObj.linktext+'</a>';
-	return editorInsert(str, true);
-}
-
-function insAttachTag()
-{
-	if(editorInsert("[wpfilebase tag='attachments']", false)) {
-		jQuery('#no-auto-attach-note').hide();
-		return true;
-	}
-	return false;
-}
-
-function insListTag() {
-	/*if(selectedCats.length == 0) {
-		alert('Please select at least one category!');
-		return;
-	}*/
-	var tag = {tag:currentTab};
-
-	if(!includeAllCats) {
-		if(selectedCats.length == 0) {
-			alert("Please select at least one category!");
-			return false;
-		}
-		tag.id = selectedCats.join(',');
-	}
-		
-	var tpl = jQuery('input[name=listtpl]:checked', '#listtplselect').val();
-	if(tpl && tpl != '' && tpl != 'default') tag.tpl = tpl;
-	
-	var sortby = jQuery('#list-sort-by').val();	
-	if(sortby && sortby != '') {
-		var order = jQuery('input[name=list-sort-order]:checked', '#list').val();
-		if(order == 'desc') sortby = '&gt;'+sortby;
-		else if(order == 'asc') sortby = '&lt;'+sortby;
-		tag.sort = sortby;
-	}
-	
-	var showcats = !!jQuery('#list-show-cats:checked').val()
-	if(showcats) tag.showcats = 1;
-	
-	var num = parseInt(jQuery('#list-num').val());
-	if(num != 0) tag.num = num;
-	
-	return insertTag(tag);
-}
-
 function insBrowserTag()
 {
 	var tag = {tag:currentTab};
-	var root = jQuery('#browser-root').val();
-	if(root && root.length != 0)
+	var root = parseInt(jQuery('#browser-root').val());
+	if(root > 0)
 		<?php echo WPFB_Core::GetOpt('use_path_tags') ? 'tag.path = getCatPath(root);' : 'tag.id = root;'; ?>
 		
 	return insertTag(tag);
 }
 
+function insUploadFormTag()
+{
+	var tag = {tag:currentTab};
+	var root = parseInt(jQuery('#uploadform-cat').val());
+	if(root != 0) {
+		if(usePathTags && root != -1)
+			tag.path = getCatPath(root);
+		else
+			tag.id = root;
+	}
+
+	if(jQuery('#list-show-cats:checked').val())
+		tag.overwrite = 1;
+	return insertTag(tag);	
+}
+
 //]]>
 </script>
+
+<script type='text/javascript' src='<?php echo WPFB_PLUGIN_URI."js/editor-plugin.js" ?>'></script>
+
 
 </head>
 <body id="media-upload">
@@ -415,6 +261,7 @@ function insBrowserTag()
 		<li><a href="#fileurl" onclick="return tabclick(this)"><?php _e('File URL', WPFB) ?></a></li>
 		<li><a href="#list" onclick="return tabclick(this)"><?php _e('File list', WPFB) ?></a></li>
 		<li><a href="#browser" onclick="return tabclick(this)"><?php _e('File Tree View', WPFB) ?></a></li>
+		<!-- <li><a href="#uploadform" onclick="return tabclick(this)"><?php _e('Inline Upload Form', WPFB) ?></a></li> -->
 	</ul>
 <?php } ?>
 </div>
@@ -429,6 +276,13 @@ if(!WPFB_Core::GetOpt('auto_attach_files')) {
 
 if($action =='addfile' || $action =='updatefile')
 {
+	// nonce/referer check (security)
+	$nonce_action = WPFB."-".$action;
+	if($action == 'updatefile') $nonce_action .= $_POST['file_id'];
+	$nonce_action .= "-editor";
+	if(!wp_verify_nonce($_POST['wpfb-file-nonce'],$nonce_action) || !check_admin_referer($nonce_action,'wpfb-file-nonce'))
+		wp_die(__('Cheatin&#8217; uh?'));
+	
 	$result = WPFB_Admin::InsertFile(array_merge($_POST, $_FILES));
 	if(isset($result['error']) && $result['error']) {
 		?><div id="message" class="updated fade"><p><?php echo $result['error']; ?></p></div><?php
@@ -542,7 +396,21 @@ WPFB_Admin::PrintForm('file', $file, array('in_editor'=>true, 'post_id'=>$post_i
 	<p><a class="button" style="float: right;" href="javascript:void(0)" onclick="return insBrowserTag()"><?php echo _e('Insert') ?></a></p>
 </form>
 
+<!-- 
+<form id="uploadform">
+	<p><?php _e('Category where uploaded files will be moved in:',WPFB); ?><br />	
+	<select name="uploadform-cat" id="uploadform-cat">
+		<option value="-1"  style="font-style:italic;"><?php _e('Selectable by Uploader',WPFB); ?></option>
+		<?php echo WPFB_Output::CatSelTree(array('none_label' => __('Upload to Root',WPFB))); ?>
+	</select>
+	</p>
 
+	<p><input type="checkbox" id="uploadform-overwrite" name="uploadform-overwrite" value="1" /> <label for="uploadform-overwrite"><?php _e('Overwrite existing files', WPFB) ?></label></p>
+	
+	<p><a class="button" style="float: right;" href="javascript:void(0)" onclick="return insUploadFormTag()"><?php echo _e('Insert') ?></a></p>
+</form>
+
+ -->
 <?php } /*manage_attachments*/ ?>
 
 <?php

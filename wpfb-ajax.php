@@ -71,7 +71,9 @@ switch ( $action = $_REQUEST['action'] ) {
 		{
 			if($c->CurUserCanAccess())
 				$children[$i++] = array('id'=>sprintf($cat_id_format, $c->cat_id),
-					'text'=>$catsel?('<a href="javascript:'.sprintf($onselect,$c->cat_id,str_replace('\'','\\\'',htmlspecialchars(stripslashes($c->cat_name)))).'">'.esc_html($c->GetTitle(24)).'</a>'):($filesel?esc_html($c->cat_name):$c->GenTpl($cat_tpl, 'ajax')),
+					'text'=> $catsel ?
+									('<a href="javascript:'.sprintf($onselect,$c->cat_id,str_replace('\'','\\\'', htmlspecialchars(stripslashes($c->cat_name)))).'">'.esc_html($c->GetTitle(24)).'</a>')
+								   :($filesel ? (esc_html($c->cat_name)." ($c->cat_num_files / $c->cat_num_files_total)") : $c->GenTpl($cat_tpl, 'ajax')),
 					'hasChildren'=>($catsel?(count($c->GetChildCats())>0):($c->cat_num_files_total > 0)),
 					'classes'=>($filesel||$catsel)?'folder':null);
 		}
@@ -100,6 +102,7 @@ switch ( $action = $_REQUEST['action'] ) {
 		die('1');
 		
 	case 'tpl-sample':
+		global $current_user;
 		if(!current_user_can('edit_posts')) die('-1');
 		
 		wpfb_loadclass('File','Category', 'TplLib', 'Output');
@@ -125,7 +128,8 @@ switch ( $action = $_REQUEST['action'] ) {
 			'file_description' => 'This is a sample description.',
 			'file_version' => WPFB_VERSION,
 			'file_author' => $user_identity,
-			'file_hits' => 3
+			'file_hits' => 3,
+			'file_added_by' => $current_user->ID
 		));
 		$file->Lock();
 		

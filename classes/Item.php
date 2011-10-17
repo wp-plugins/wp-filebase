@@ -75,6 +75,17 @@ class WPFB_Item {
 
 		return reset($items);
 	}
+	
+	// Sorts an array of Items by SQL ORDER Clause
+	static function Sort(&$items, $order_sql) {
+		$p = strpos($order_sql,','); // strip multi order clauses
+		if($p >= 0) $order_sql = substr($order_sql, $p + 1);
+		$sort = explode(" ", trim($order_sql));
+		$on = trim($sort[0],'`');
+		$desc = (trim($sort[1]) == "DESC");					
+	    $comparer = $desc ? "return -strcmp(\$a->{$on},\$b->{$on});" : "return strcmp(\$a->{$on},\$b->{$on});";
+    	usort($items, create_function('$a,$b', $comparer)); 
+	}
 
 	function GetEditUrl()
 	{
@@ -169,7 +180,12 @@ class WPFB_Item {
 		if($current_user->ID > 0 && empty($current_user->roles[0]))
 			$current_user = new WP_User($current_user->ID);// load the roles!
 		
-		if(($for_tpl && !WPFB_Core::GetOpt('hide_inaccessible')) || in_array('administrator',$current_user->roles)) return true;		
+		if(($for_tpl && !WPFB_Core::GetOpt('hide_inaccessible')) || in_array('administrator',$current_user->roles))
+			return true;
+		
+		if($this->is_file && WPFB_Core::GetOpt('private_files') && $this->file_added_by != 0 && $this->file_added_by != $current_user->ID) // check private files
+			return false;
+			
 		$frs = $this->GetUserRoles();
 		if(empty($frs[0])) return true; // item is for everyone!		
 		foreach($current_user->roles as $ur) { // check user roles against item roles
@@ -306,7 +322,7 @@ class WPFB_Item {
 	
 	function SetUserRoles($roles) {
 		if(!is_array($roles)) $roles = explode('|',$roles);
-		$this->roles_array = array_filter(array_map('trim',$roles),'strlen'); // remove empty
+		$this->roles_array = $roles =  array_filter(array_filter(array_map('trim',$roles),'strlen')); // remove empty
 		$roles = implode('|', $roles);
 		if($this->is_file) $this->file_user_roles = $roles;
 		else $this->cat_user_roles = $roles;

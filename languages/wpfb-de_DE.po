@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: WP-Filebase 0.1.3.0\n"
 "Report-Msgid-Bugs-To: http://wordpress.org/tag/wp-filebase\n"
 "POT-Creation-Date: 2010-01-18 23:16+0000\n"
-"PO-Revision-Date: 2011-10-04 20:51+0100\n"
+"PO-Revision-Date: 2011-10-17 18:53+0100\n"
 "Last-Translator: Fabian Schlieper <fabian@fabi.me>\n"
 "Language-Team: Fabian Schlieper <fabian@fabi.me>\n"
 "MIME-Version: 1.0\n"
@@ -1108,4 +1108,22 @@ msgstr "Ausgewählte Kategorien in Liste anzeigen"
 
 msgid "Select the root category of the tree view file browser:"
 msgstr "Wurzelkategorie auswählen:"
+
+msgid "The File has been uploaded successfully."
+msgstr "Die Datei wurde erfolgreich hochgeladen."
+
+msgid "New Category created."
+msgstr "Neue Kategorie erstellt."
+
+msgid "Selectable by Uploader"
+msgstr "Vom Benutzer wählbar"
+
+msgid "Upload to Root"
+msgstr "Ins Stammverzeichnis hochladen"
+
+msgid "You can enter a URL to redirect users."
+msgstr "Du kannst eine URL eingeben, um Benutzer umzuleiten."
+
+msgid "Ask your webhoster to increase this limit, it is set in %s."
+msgstr "Frage deinen Webhoster, um dieses Limit zu erhöhen. (Wert gesetzt in %s)"
 

@@ -1,3 +1,11 @@
+- option: no display name formatting
+_ widget: users which cannot upload files should not change widget!!
+-upload widget: fixed category
+- editor plugin: field box not collapsable, missing JS
+
+- batch actions
+- forms
+
 - default user roles options
 - search lists WP attachments without permissions (due to generated content!)
 + create post for files

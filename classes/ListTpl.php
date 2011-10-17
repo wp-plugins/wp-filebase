@@ -100,33 +100,62 @@ class WPFB_ListTpl {
 			$files = WPFB_File::GetFiles2($where, $hia, $sort, $page_limit, $start);
 			$num_total_files = WPFB_File::GetNumFiles2($where, $hia);
 			foreach($files as $file)
-					$content .= $file->GenTpl($file_tpl);
-		} elseif(count($categories) == 1) { // single cat
-			$cat = reset($categories);
-			if(!$cat->CurUserCanAccess()) return '';
-			if($show_cats) $content .= $cat->GenTpl($cat_tpl);
-			$where = "($where) AND file_category = $cat->cat_id";
-			$files = WPFB_File::GetFiles2($where, $hia, $sort, $page_limit, $start);
-			$num_total_files = WPFB_File::GetNumFiles2($where, $hia);
-			foreach($files as $file)
-				$content .= $file->GenTpl($file_tpl);	
-		} else { // multi-cat
-			// TODO: multi-cat list pagination does not work properly yet
-			$n = 0;
-			foreach($categories as $cat)
-			{
-				if(!$cat->CurUserCanAccess()) continue;
+				$content .= $file->GenTpl($file_tpl);
+		} else {
+			$cat = reset($categories); // get first category
+			if(count($categories) == 1 && $cat->cat_num_files > 0) { // single cat
+				if(!$cat->CurUserCanAccess()) return '';
+				if($show_cats) $content .= $cat->GenTpl($cat_tpl);
+				$where = "($where) AND file_category = $cat->cat_id";
+				$files = WPFB_File::GetFiles2($where, $hia, $sort, $page_limit, $start);
+				$num_total_files = WPFB_File::GetNumFiles2($where, $hia);
+				foreach($files as $file)
+					$content .= $file->GenTpl($file_tpl);	
+			} else { // multi-cat
+				// TODO: multi-cat list pagination does not work properly yet
 				
-				$num_total_files = max($nf = WPFB_File::GetNumFiles2("($where) AND file_category = $cat->cat_id", $hia), $num_total_files); // TODO
+				// special handling of categories that do not have files directly: list child cats!
+				if(count($categories) == 1 && $cat->cat_num_files == 0) {
+					$categories = $cat->GetChildCats(true, true);
+				}		
 				
-				//if($n > $page_limit) break; // TODO!!
-				if($nf > 0) {
-					$files = WPFB_File::GetFiles2("($where) AND file_category = $cat->cat_id", $hia, $sort, $page_limit, $start);
-					if($show_cats && count($files) > 0) $content .= $cat->GenTpl($cat_tpl); // check for file count again, due to pagination!
-					foreach($files as $file) {
-						$content .= $file->GenTpl($file_tpl);
-						$n++;
+				if($show_cats) { // group by categories
+					$n = 0;
+					foreach($categories as $cat)
+					{
+						if(!$cat->CurUserCanAccess()) continue;
+						
+						$num_total_files = max($nf = WPFB_File::GetNumFiles2("($where) AND file_category = $cat->cat_id", $hia), $num_total_files); // TODO
+						
+						//if($n > $page_limit) break; // TODO!!
+						if($nf > 0) {
+							$files = WPFB_File::GetFiles2("($where) AND file_category = $cat->cat_id", $hia, $sort, $page_limit, $start);
+							if($show_cats && count($files) > 0)
+								$content .= $cat->GenTpl($cat_tpl); // check for file count again, due to pagination!
+								
+							foreach($files as $file) {
+								$content .= $file->GenTpl($file_tpl);
+								$n++;
+							}
+						}
 					}
+				} else {
+					// this is not very efficient, because all files are
+					$all_files = array();
+					foreach($categories as $cat)
+					{
+						if(!$cat->CurUserCanAccess()) continue;						
+						$all_files += WPFB_File::GetFiles2("($where) AND file_category = $cat->cat_id", $hia, $sort);
+					}
+					$num_total_files = count($all_files);
+					
+					WPFB_Item::Sort($all_files, $sort);
+					
+					$keys = array_keys($all_files);
+					if($start == -1) $start = 0;
+					$last = min($start + $page_limit, $num_total_files);
+					for($i = $start; $i < $last; $i++)
+						$content .= $all_files[$keys[$i]]->GenTpl($file_tpl);
 				}
 			}
 		}

@@ -79,6 +79,10 @@ class WPFB_Category extends WPFB_Item {
 	
 	static function CompareName($a, $b) { return $a->cat_name > $b->cat_name; }
 	
+	function WPFB_Category($db_row=null) {		
+		parent::WPFB_Item($db_row);
+		$this->is_category = true;
+	}
 	
 	function DBSave()
 	{ // validate some values before saving (fixes for mysql strict mode)

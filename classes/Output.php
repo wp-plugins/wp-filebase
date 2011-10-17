@@ -266,7 +266,7 @@ static function CatSelTree($args=null, $root_cat_id = 0, $depth = 0)
 	$out = '';
 	if($root_cat_id <= 0)
 	{
-		$out .= '<option value="0">' .(empty($s_nol) ? __('None'/*def*/) : $s_nol) . ($s_count?' ('.WPFB_File::GetNumFiles(0).')':'').'</option>';
+		$out .= '<option value="0"'.((0==$s_sel)?' selected="selected"':'').' style="font-style:italic;">' .(empty($s_nol) ? __('None'/*def*/) : $s_nol) . ($s_count?' ('.WPFB_File::GetNumFiles(0).')':'').'</option>';
 		$cats = &WPFB_Category::GetCats();
 		foreach($cats as $c) {
 			if($c->cat_parent <= 0 && $c->cat_id != $s_ex)

@@ -57,14 +57,17 @@ function WPFB_CheckBoxShowHide(checkbox, name)
 {
 	var chk = checkbox.checked;
 	var input = checkbox.form.elements[name];
+	if(!input) input = document.getElementById(name);
 	if(input)
 		WPFB_ShowHide(input, chk);
 	
 	// show/hide labels
-	var lbs = checkbox.form.getElementsByTagName('label');
-	for(var l = 0; l < lbs.length; ++l)
-	{
-		if(lbs[l].htmlFor == name)
-			WPFB_ShowHide(lbs[l], chk);
+	if(checkbox.form) {
+		var lbs = checkbox.form.getElementsByTagName('label');
+		for(var l = 0; l < lbs.length; ++l)
+		{
+			if(lbs[l].htmlFor == name)
+				WPFB_ShowHide(lbs[l], chk);
+		}
 	}
 }

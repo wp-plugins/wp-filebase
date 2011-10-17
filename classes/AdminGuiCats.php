@@ -66,7 +66,7 @@ static function Display()
 			}
 ?>
 	<h2><?php
-	printf(__('Manage Categories (<a href="%s">add new</a>)', WPFB), '#addcat');
+	echo str_replace(array('(<','>)'),array('<','>'), sprintf(__('Manage Categories (<a href="%s">add new</a>)', WPFB), '#addcat" class="add-new-h2'));
 	if ( isset($_GET['s']) && $_GET['s'] )
 		printf( '<span class="subtitle">' . __('Search results for &#8220;%s&#8221;'/*def*/) . '</span>', esc_html(stripslashes($_GET['s'])));
 	?></h2>
@@ -126,7 +126,8 @@ static function Display()
 				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('cat_name') ?>"><?php _e('Name'/*def*/) ?></a></th>
 				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('cat_description') ?>"><?php _e('Description'/*def*/) ?></a></th>
 				<th scope="col" class="num"><a href="<?php echo WPFB_Admin::AdminTableSortLink('cat_num_files') ?>"><?php _e('Files', WPFB) ?></a></th>
-				<th scope="col"><?php _e('Parent Category'/*def*/) ?></th>
+				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('cat_parent') ?>"><?php _e('Parent Category'/*def*/) ?></a></th>
+				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('cat_path') ?>"><?php _e('Path'/*def*/) ?></a></th>
 				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('cat_user_roles') ?>"><?php _e('Access Permission',WPFB) ?></a></th>
 			</tr>
 			</thead>
@@ -144,8 +145,9 @@ static function Display()
 				<span><?php echo esc_attr($cat->cat_name); ?></span>
 				</a></td>
 				<td><?php echo esc_html($cat->cat_description) ?></td>
-				<td class="num"><?php echo "$cat->cat_num_files / $cat->cat_num_files_total" ?></td>
+				<td class="num"><?php echo "<a href='".admin_url("admin.php?page=wpfilebase_files&file_category=".$cat->GetId())."'>$cat->cat_num_files</a> / $cat->cat_num_files_total" ?></td>
 				<td><?php echo $parent_cat?('<a href="'.$parent_cat->GetEditUrl().'">'.esc_html($parent_cat->cat_name).'</a>'):'-' ?></td>
+				<td><code><?php echo esc_html($cat->cat_path) ?></code></td>
 				<td><?php echo empty($user_roles) ? ("<i>".__('Everyone',WPFB)."</i>") : join(', ', WPFB_Output::RoleNames($user_roles)) ?></td>
 			</tr>
 			<?php } ?>

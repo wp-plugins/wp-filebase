@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: WP-Filebase 0.1.3.0\n"
 "Report-Msgid-Bugs-To: http://wordpress.org/tag/wp-filebase\n"
 "POT-Creation-Date: 2010-01-18 23:16+0000\n"
-"PO-Revision-Date: 2011-10-04 20:51+0100\n"
+"PO-Revision-Date: 2011-10-17 18:53+0100\n"
 "Last-Translator: Fabian Schlieper <fabian@fabi.me>\n"
 "Language-Team: Fabian Schlieper <fabian@fabi.me>\n"
 "MIME-Version: 1.0\n"
@@ -1107,5 +1107,23 @@ msgid "List selected Categories"
 msgstr ""
 
 msgid "Select the root category of the tree view file browser:"
+msgstr ""
+
+msgid "The File has been uploaded successfully."
+msgstr ""
+
+msgid "New Category created."
+msgstr ""
+
+msgid "Selectable by Uploader"
+msgstr ""
+
+msgid "Upload to Root"
+msgstr ""
+
+msgid "You can enter a URL to redirect users."
+msgstr ""
+
+msgid "Ask your webhoster to increase this limit, it is set in %s."
 msgstr ""
 

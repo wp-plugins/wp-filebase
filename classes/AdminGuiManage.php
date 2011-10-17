@@ -73,7 +73,7 @@ static function Display()
 <div id="wpfb-liking-toggle"></div>
 <h3><?php _e('Like this plugin?',WPFB) ?></h3>
 <div id="wpfb-liking">
-	<div style="text-align: center;"><iframe src="http://www.facebook.com/plugins/like.php?href=http%3A%2F%2Fwordpress.org%2Fextend%2Fplugins%2Fwp-filebase%2F&amp;send=false&amp;layout=button_count&amp;width=150&amp;show_faces=false&amp;action=like&amp;colorscheme=light&amp;font&amp;height=21" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:140px; height:21px; display:inline-block; text-align:center;" allowTransparency="true"></iframe></div>
+	<div style="text-align: center;"><iframe src="http://www.facebook.com/plugins/like.php?href=http%3A%2F%2Fwordpress.org%2Fextend%2Fplugins%2Fwp-filebase%2F&amp;send=false&amp;layout=button_count&amp;width=150&amp;show_faces=false&amp;action=like&amp;colorscheme=light&amp;font&amp;height=21" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:140px; height:21px; display:inline-block; text-align:center;" <?php echo ' allowTransparency="true"'; ?>></iframe></div>
 	<p>Please <a href="http://wordpress.org/extend/plugins/wp-filebase/">give it a good rating</a>, or even consider a donation using PayPal or Flattr to support the developer of WP-Filebase:</p> 
 	<div style="text-align: center;">	
 	<?php WPFB_Admin::PrintPayPalButton() ?>

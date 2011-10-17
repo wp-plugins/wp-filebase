@@ -6,7 +6,7 @@ static $sample_cat = null;
 static $protected_tags = array('default','single','excerpt');
 
 static function InitClass() {
-	global $user_identity;
+	global $user_identity, $current_user;
 	wpfb_loadclass('File', 'Category');
 	
 	self::$sample_file = new WPFB_File(array(
@@ -20,7 +20,8 @@ static function InitClass() {
 		'file_description' => 'This is a sample description.',
 		'file_version' => WPFB_VERSION,
 		'file_author' => $user_identity,
-		'file_hits' => 3
+		'file_hits' => 3,
+		'file_added_by' => $current_user->ID
 	));
 	
 	self::$sample_cat = new WPFB_Category(array(
