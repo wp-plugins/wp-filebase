@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=money
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, traffic, widget, filelist, list, thumb, thumbnail, attachment, attachments, category, categories, media, template, ftp, http, mp3, id3
 Requires at least: 3.1
 Tested up to: 3.2.1
-Stable tag: 0.2.9.3
+Stable tag: 0.2.9.4
 
 Adds a powerful downloads manager supporting file categories, download counter, widgets, sorted file lists and more to your WordPress blog.
 
