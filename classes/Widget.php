@@ -261,7 +261,7 @@ class WPFB_UploadWidget extends WP_Widget {
 		$form_url = add_query_arg('wpfb_upload_file', 1);
 		$nonce_action = "$prefix-".((int)!empty($instance['overwrite']))."-".$instance['category'];
 		?>		
-		<form enctype="multipart/form-data" name="<?php echo $prefix ?>form" method="post" action="<?php echo $form_url ?>">
+		<form enctype="multipart/form-data" name="<?php echo $prefix; ?>form" method="post" action="<?php echo $form_url; ?>">
 		<?php wp_nonce_field($nonce_action, 'wpfb-file-nonce'); ?>
 			<input type="hidden" name="overwrite" value="<?php echo !empty($instance['overwrite']) ?>" />
 			<input type="hidden" name="prefix" value="<?php echo $prefix ?>" />
@@ -272,12 +272,12 @@ class WPFB_UploadWidget extends WP_Widget {
 				<small><?php printf(str_replace('%d%s','%s',__('Maximum upload file size: %d%s'/*def*/)), WPFB_Output::FormatFilesize(WPFB_Core::GetMaxUlSize())) ?></small>
 				<?php if($instance['category'] == -1) { ?><br />
 				<label for="<?php echo $prefix ?>file_category"><?php _e('Category') ?></label>
-				<select name="file_category" id="<?php echo $prefix ?>file_category"><?php echo WPFB_Output::CatSelTree() ?></select>
-				<?php } else {?>
-				<input type="hidden" name="file_category" value="<?php echo $instance['category'] ?>" />
+				<select name="file_category" id="<?php echo $prefix; ?>file_category"><?php echo WPFB_Output::CatSelTree(); ?></select>
+				<?php } else { ?>
+				<input type="hidden" name="file_category" value="<?php echo $instance['category']; ?>" />
 				<?php } ?>
 			</p>	
-			<p style="text-align:right;"><input type="submit" class="button-primary" name="submit-btn" value="<?php _ex('Add New', 'file') ?>" /></p>
+			<p style="text-align:right;"><input type="submit" class="button-primary" name="submit-btn" value="<?php _ex('Add New', 'file'); ?>" /></p>
 		</form>
 	<?php
 		echo $after_widget;

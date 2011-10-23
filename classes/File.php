@@ -78,6 +78,8 @@ class WPFB_File extends WPFB_Item {
 					$ur = $wpdb->escape($ur);
 					$permission_sql .= " OR (file_user_roles = '{$ur}') OR (file_user_roles LIKE '{$ur}|%') OR (file_user_roles LIKE '%|{$ur}|%') OR (file_user_roles LIKE '%|{$ur}')";
 				}
+				if($current_user->ID > 0)
+					$permission_sql .= " OR (file_added_by = " . (int)$current_user->ID . ")";
 			}
 		}
 		return $permission_sql;
@@ -99,7 +101,7 @@ class WPFB_File extends WPFB_Item {
 		} else $where_str =& $where;
 		
 		if($check_permissions)
-			$where_str = "($where_str) AND (".self::GetPermissionWhere().")";
+			$where_str = "($where_str) AND (".self::GetPermissionWhere().") AND file_offline = '0'";
 		
 		// join id3 table if found in where clause
 		$join_str = (strpos($where_str, $wpdb->wpfilebase_files_id3) !== false) ? " LEFT JOIN $wpdb->wpfilebase_files_id3 ON ( $wpdb->wpfilebase_files_id3.file_id = $wpdb->wpfilebase_files.file_id ) " : "";
@@ -505,7 +507,12 @@ class WPFB_File extends WPFB_Item {
 		
 		// download or redirect
 		if($this->IsLocal())
-			WPFB_Download::SendFile($this->GetLocalPath(), WPFB_Core::GetOpt('bitrate_' . ($logged_in?'registered':'unregistered')), $this->file_hash, $this->file_force_download);
+			WPFB_Download::SendFile($this->GetLocalPath(), array(
+				'bandwidth' => WPFB_Core::GetOpt('bitrate_' . ($logged_in?'registered':'unregistered')),
+				'etag' => $this->file_hash,
+				'md5_hash' => $this->file_hash,
+				'force_download' => $this->file_force_download
+			));
 		else {
 			header('HTTP/1.1 301 Moved Permanently');
 			header('Location: '.$this->file_remote_uri);

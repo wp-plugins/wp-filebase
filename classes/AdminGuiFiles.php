@@ -223,8 +223,29 @@ static function Display()
 	WPFB_Admin::PrintForm('file', null, array('exform' => $exform));
 	
 	break; // default
-	}	
+	}
+
+	
+	
+	/*
+	
+	$file_list_table = new WPFB_File_List_Table();
+	$pagenum = $file_list_table->get_pagenum();
+	$doaction = $file_list_table->current_action();
+	
+	$file_list_table->prepare_items();
+	
+	$file_list_table->views();
+	$file_list_table->search_box( "asdf", 'post' );
+	
+	$file_list_table->display();
+	
+	*/
 	?>
+	
+	
+	
+	
 </div> <!-- wrap -->
 <?php
 }
@@ -259,9 +280,13 @@ static function FileInfoPathsBox($info)
 
 
 class WPFB_File_List_Table extends WP_List_Table {
-
+	static $FilesPerPage = 50;
+	
 	function __construct() {
 		$this->detached = isset( $_REQUEST['detached'] ) || isset( $_REQUEST['find_detached'] );
+		$this->offline = isset( $_REQUEST['offline'] ) || isset( $_REQUEST['find_offline'] );
+		
+		$this->file_category = empty($_GET['file_category']) ? 0 : intval($_GET['file_category']);
 
 		parent::__construct( array(
 			'plural' => 'media'
@@ -273,21 +298,21 @@ class WPFB_File_List_Table extends WP_List_Table {
 	}
 
 	function prepare_items() {
-		global $lost, $wpdb, $wp_query, $post_mime_types, $avail_post_mime_types;
-
-		$q = $_REQUEST;
-
-		if ( !empty( $lost ) )
-			$q['post__in'] = implode( ',', $lost );
-
-		list( $post_mime_types, $avail_post_mime_types ) = wp_edit_attachments_query( $q );
-
- 		$this->is_trash = isset( $_REQUEST['status'] ) && 'trash' == $_REQUEST['status'];
+		
+		$where = WPFB_Search::SearchWhereSql(true);
+		if($this->file_category > 0) 
+			$where = (empty($where) ? '' : ("($where) AND ")) . "file_category = $this->file_category";
+		
+		$this->where = $where;
+ 		
+		$per_page = self::$FilesPerPage;
+		$this->num_total_files = $num_total_files = WPFB_File::GetNumFiles2($where, false);		
+		$total_pages = ceil( $num_total_files / $per_page );
 
 		$this->set_pagination_args( array(
-			'total_items' => $wp_query->found_posts,
-			'total_pages' => $wp_query->max_num_pages,
-			'per_page' => $wp_query->query_vars['posts_per_page'],
+			'total_items' => $num_total_files,
+			'total_pages' => $total_pages,
+			'per_page' => $per_page,
 		) );
 	}
 
@@ -295,7 +320,7 @@ class WPFB_File_List_Table extends WP_List_Table {
 		global $wpdb, $post_mime_types, $avail_post_mime_types;
 
 		$type_links = array();
-		$_num_posts = (array) wp_count_attachments();
+/*		$_num_posts = (array) wp_count_attachments();
 		$_total_posts = array_sum($_num_posts) - $_num_posts['trash'];
 		if ( !isset( $total_orphans ) )
 				$total_orphans = $wpdb->get_var( "SELECT COUNT( * ) FROM $wpdb->posts WHERE post_type = 'attachment' AND post_status != 'trash' AND post_parent < 1" );
@@ -321,13 +346,21 @@ class WPFB_File_List_Table extends WP_List_Table {
 
 		if ( !empty($_num_posts['trash']) )
 			$type_links['trash'] = '<a href="upload.php?status=trash"' . ( (isset($_GET['status']) && $_GET['status'] == 'trash' ) ? ' class="current"' : '') . '>' . sprintf( _nx( 'Trash <span class="count">(%s)</span>', 'Trash <span class="count">(%s)</span>', $_num_posts['trash'], 'uploaded files' ), number_format_i18n( $_num_posts['trash'] ) ) . '</a>';
-
+*/
+		
+		$type_links['remote'] = 'remote';
+		$type_links['offline'] = 'off';
+		$type_links['detached'] = 'det';
+		$type_links['public'] = 'pub';
+		
+		
 		return $type_links;
 	}
 
 	function get_bulk_actions() {
 		$actions = array();
 		$actions['delete'] = __( 'Delete Permanently' );
+		$actions['edit'] = __( 'Edit' );
 		if ( $this->detached )
 			$actions['attach'] = __( 'Attach to a post' );
 
@@ -335,23 +368,12 @@ class WPFB_File_List_Table extends WP_List_Table {
 	}
 
 	function extra_tablenav( $which ) {
-		global $post_type;
-		$post_type_obj = get_post_type_object( $post_type );
 ?>
 		<div class="alignleft actions">
 <?php
-		if ( 'top' == $which && !is_singular() && !$this->detached && !$this->is_trash ) {
-			$this->months_dropdown( $post_type );
-
-			do_action( 'restrict_manage_posts' );
-			submit_button( __( 'Filter' ), 'secondary', false, false, array( 'id' => 'post-query-submit' ) );
-		}
-
-		if ( $this->detached ) {
-			submit_button( __( 'Scan for lost attachments' ), 'secondary', 'find_detached', false );
-		} elseif ( $this->is_trash && current_user_can( 'edit_others_posts' ) ) {
-			submit_button( __( 'Empty Trash' ), 'button-secondary apply', 'delete_all', false );
-		} ?>
+		if ( $this->offline )
+			submit_button( __( 'Set online' ), 'secondary', 'set_online', false );
+		?>
 		</div>
 <?php
 	}
@@ -370,7 +392,9 @@ class WPFB_File_List_Table extends WP_List_Table {
 	}
 
 	function has_items() {
-		return have_posts();
+		if(!isset($this->num_total_files))
+			$this->prepare_items();
+		return ($this->num_total_files > 0);
 	}
 
 	function no_items() {
@@ -379,54 +403,62 @@ class WPFB_File_List_Table extends WP_List_Table {
 
 	function get_columns() {
 		$posts_columns = array();
+		
 		$posts_columns['cb'] = '<input type="checkbox" />';
-		$posts_columns['icon'] = '';
-		/* translators: column name */
-		$posts_columns['title'] = _x( 'File', 'column name' );
-		$posts_columns['author'] = __( 'Author' );
-		//$posts_columns['tags'] = _x( 'Tags', 'column name' );
-		/* translators: column name */
-		if ( !$this->detached ) {
-			$posts_columns['parent'] = _x( 'Attached to', 'column name' );
-			$posts_columns['comments'] = '<span class="vers"><img alt="Comments" src="' . esc_url( admin_url( 'images/comment-grey-bubble.png' ) ) . '" /></span>';
-		}
-		/* translators: column name */
-		$posts_columns['date'] = _x( 'Date', 'column name' );
-		$posts_columns = apply_filters( 'manage_media_columns', $posts_columns, $this->detached );
-
+		$posts_columns['id'] = 'ID';
+		$posts_columns['title'] = __('Name');
+		$posts_columns['file'] = __('Filename', WPFB);
+		$posts_columns['size'] = __('Size'/*def*/);
+		$posts_columns['desc'] = __('Description'/*def*/);		
+		$posts_columns['cat'] = __('Category'/*def*/);
+		$posts_columns['perm'] = __('Access Permission',WPFB);
+		$posts_columns['uploader'] = __('Uploader',WPFB);
+		$posts_columns['hits'] = __('Hits', WPFB);
+		$posts_columns['lastdl'] = __('Last download', WPFB);
+		
 		return $posts_columns;
 	}
 
-	function get_sortable_columns() {
+	function get_sortable_columns() {				
 		return array(
-			'title'    => 'title',
-			'author'   => 'author',
-			'parent'   => 'parent',
-			'comments' => 'comment_count',
-			'date'     => array( 'date', true ),
+			//'id'		=> 'file_id',
+			'title'    	=> 'file_display_name',
+			//'file'   	=> 'file_name',
+			'size'   	=> 'file_size',
+			//'desc'   	=> 'file_description',
+			'cat'   	=> 'file_category_name',
+			'perm'   	=> 'file_user_roles',
+			//'uploader'  => 'file_added_by',
+			//'hits'   	=> 'file_hits',
+			'lastdl'   	=> 'file_last_dl_time'
 		);
 	}
 
 	function display_rows() {
-		global $post, $id;
+		global $wpdb;
+		wpfb_loadclass('Search');
+		
+		list( $columns, $hidden, $sortable ) = $this->get_column_info();
+		$columns = array_merge($columns, $sortable);
 
-		add_filter( 'the_title','esc_html' );
-		$alt = '';
+		
+		$where = $this->where;
+		$per_page = self::$FilesPerPage;			
+		$pagestart = ($this->get_pagenum() - 1 + 1) * $per_page; // TODO
+		$order = "$wpdb->wpfilebase_files." . ((!empty($_GET['order']) && in_array($_GET['order'], array_keys(get_class_vars('WPFB_File')))) ?
+			($_GET['order']." ".(!empty($_GET['desc']) ? "DESC" : "ASC")) : "file_id DESC");
 
-		while ( have_posts() ) : the_post();
 
-			if ( $this->is_trash && $post->post_status != 'trash'
-			||  !$this->is_trash && $post->post_status == 'trash' )
-				continue;
-
-			$alt = ( 'alternate' == $alt ) ? '' : 'alternate';
-			$post_owner = ( get_current_user_id() == $post->post_author ) ? 'self' : 'other';
-			$att_title = _draft_or_post_title();
+		$files = WPFB_File::GetFiles2($where, true, $order, $per_page, $pagestart);
+		if(empty($files) && !empty($wpdb->last_error))
+			wp_die("<b>Database error</b>: ".$wpdb->last_error);
+		foreach($files as $file_id => $file)
+		{
 ?>
-	<tr id='post-<?php echo $id; ?>' class='<?php echo trim( $alt . ' author-' . $post_owner . ' status-' . $post->post_status ); ?>' valign="top">
+	<tr id='file-<?php echo $file_id ?>'<?php if($file->file_offline) { echo " class='offline'"; } ?>>
 <?php
 
-list( $columns, $hidden ) = $this->get_column_info();
+
 foreach ( $columns as $column_name => $column_display_name ) {
 	$class = "class='$column_name column-$column_name'";
 
@@ -437,134 +469,31 @@ foreach ( $columns as $column_name => $column_display_name ) {
 	$attributes = $class . $style;
 
 	switch ( $column_name ) {
+	case 'cb': ?> <th scope="row" class="check-column"><input type='checkbox' name='files[]' value='<?php echo $file_id ?>' /></th> <?php break;
+	case 'id':  echo "<td class='num'>$file_id</td>"; break;	
 
-	case 'cb':
-?>
-		<th scope="row" class="check-column"><?php if ( current_user_can( 'edit_post', $post->ID ) ) { ?><input type="checkbox" name="media[]" value="<?php the_ID(); ?>" /><?php } ?></th>
-<?php
+	case 'title': ?>
+	<td class="wpfilebase-admin-list-row-title">
+		<a class="row-title" href="<?php echo $file->GetEditUrl() ?>" title="<?php printf(__("Edit &#8220;%s&#8221;"), esc_attr($file->file_display_name)); ?>">
+			<?php if(!empty($file->file_thumbnail)) { ?><img src="<?php echo $file->GetIconUrl(); ?>" height="32" /><?php } ?>
+			<span><?php if($file->IsRemote()){echo '*';} echo esc_html($file->file_display_name); ?></span>
+		</a>
+	</td>
+	<?php
 		break;
+		
+	case 'file': ?> <td><a href="<?php echo $file->GetUrl() ?>"><?php echo esc_html($file->file_name); ?></a></td> <?php break;
+	
+	case 'size': ?> <td><?php echo WPFB_Output::FormatFilesize($file->file_size); ?></td> <?php break;
+	
+	case 'desc': ?> <td><?php echo empty($file->file_description) ? '-' : esc_html($file->file_description); ?></td> <?php break;
+	case 'cat': ?> <td><?php echo (!is_null($cat)) ? ('<a href="'.$cat->GetEditUrl().'">'.esc_html($file->file_category_name).'</a>') : '-'; ?></td> <?php break;
+	case 'perm': ?> <td><?php echo empty($user_roles) ? ("<i>".__('Everyone',WPFB)."</i>") : join(', ', WPFB_Output::RoleNames($user_roles)) ?></td> <?php break;
+	case 'uploader': ?> <td><?php echo (empty($file->file_added_by) || !($usr = get_userdata($file->file_added_by))) ? '-' : esc_html($usr->user_login) ?></td> <?php break;
+	case 'hits': ?> <td class='num'><?php echo $file->file_hits; ?></td> <?php break;
+	case 'lastdl': ?> <td><?php echo ( (!empty($file->file_last_dl_time) && $file->file_last_dl_time > 0) ? mysql2date(get_option('date_format'), $file->file_last_dl_time) : '-') ?></td> <?php break;
+	//<!-- TODO <td class='num'><?php echo $rating </td> -->
 
-	case 'icon':
-		$attributes = 'class="column-icon media-icon"' . $style;
-?>
-		<td <?php echo $attributes ?>><?php
-			if ( $thumb = wp_get_attachment_image( $post->ID, array( 80, 60 ), true ) ) {
-				if ( $this->is_trash ) {
-					echo $thumb;
-				} else {
-?>
-				<a href="<?php echo get_edit_post_link( $post->ID, true ); ?>" title="<?php echo esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $att_title ) ); ?>">
-					<?php echo $thumb; ?>
-				</a>
-
-<?php			}
-			}
-?>
-		</td>
-<?php
-		break;
-
-	case 'title':
-?>
-		<td <?php echo $attributes ?>><strong><?php if ( $this->is_trash ) echo $att_title; else { ?><a href="<?php echo get_edit_post_link( $post->ID, true ); ?>" title="<?php echo esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $att_title ) ); ?>"><?php echo $att_title; ?></a><?php }; _media_states( $post ); ?></strong>
-			<p>
-<?php
-			if ( preg_match( '/^.*?\.(\w+)$/', get_attached_file( $post->ID ), $matches ) )
-				echo esc_html( strtoupper( $matches[1] ) );
-			else
-				echo strtoupper( str_replace( 'image/', '', get_post_mime_type() ) );
-?>
-			</p>
-<?php
-		echo $this->row_actions( $this->_get_row_actions( $post, $att_title ) );
-?>
-		</td>
-<?php
-		break;
-
-	case 'author':
-?>
-		<td <?php echo $attributes ?>><?php the_author() ?></td>
-<?php
-		break;
-
-	case 'tags':
-?>
-		<td <?php echo $attributes ?>><?php
-		$tags = get_the_tags();
-		if ( !empty( $tags ) ) {
-			$out = array();
-			foreach ( $tags as $c )
-				$out[] = "<a href='edit.php?tag=$c->slug'> " . esc_html( sanitize_term_field( 'name', $c->name, $c->term_id, 'post_tag', 'display' ) ) . "</a>";
-			echo join( ', ', $out );
-		} else {
-			_e( 'No Tags' );
-		}
-?>
-		</td>
-<?php
-		break;
-
-	case 'desc':
-?>
-		<td <?php echo $attributes ?>><?php echo has_excerpt() ? $post->post_excerpt : ''; ?></td>
-<?php
-		break;
-
-	case 'date':
-		if ( '0000-00-00 00:00:00' == $post->post_date && 'date' == $column_name ) {
-			$t_time = $h_time = __( 'Unpublished' );
-		} else {
-			$t_time = get_the_time( __( 'Y/m/d g:i:s A' ) );
-			$m_time = $post->post_date;
-			$time = get_post_time( 'G', true, $post, false );
-			if ( ( abs( $t_diff = time() - $time ) ) < 86400 ) {
-				if ( $t_diff < 0 )
-					$h_time = sprintf( __( '%s from now' ), human_time_diff( $time ) );
-				else
-					$h_time = sprintf( __( '%s ago' ), human_time_diff( $time ) );
-			} else {
-				$h_time = mysql2date( __( 'Y/m/d' ), $m_time );
-			}
-		}
-?>
-		<td <?php echo $attributes ?>><?php echo $h_time ?></td>
-<?php
-		break;
-
-	case 'parent':
-		if ( $post->post_parent > 0 ) {
-			if ( get_post( $post->post_parent ) ) {
-				$title =_draft_or_post_title( $post->post_parent );
-			}
-?>
-			<td <?php echo $attributes ?>>
-				<strong><a href="<?php echo get_edit_post_link( $post->post_parent ); ?>"><?php echo $title ?></a></strong>,
-				<?php echo get_the_time( __( 'Y/m/d' ) ); ?>
-			</td>
-<?php
-		} else {
-?>
-			<td <?php echo $attributes ?>><?php _e( '(Unattached)' ); ?><br />
-			<a class="hide-if-no-js" onclick="findPosts.open( 'media[]','<?php echo $post->ID ?>' );return false;" href="#the-list"><?php _e( 'Attach' ); ?></a></td>
-<?php
-		}
-		break;
-
-	case 'comments':
-		$attributes = 'class="comments column-comments num"' . $style;
-?>
-		<td <?php echo $attributes ?>>
-			<div class="post-com-count-wrapper">
-<?php
-		$pending_comments = get_pending_comments_num( $post->ID );
-
-		$this->comments_bubble( $post->ID, $pending_comments );
-?>
-			</div>
-		</td>
-<?php
-		break;
 
 	default:
 ?>
@@ -577,48 +506,7 @@ foreach ( $columns as $column_name => $column_display_name ) {
 }
 ?>
 	</tr>
-<?php endwhile;
-	}
-
-	function _get_row_actions( $post, $att_title ) {
-		$actions = array();
-
-		if ( $this->detached ) {
-			if ( current_user_can( 'edit_post', $post->ID ) )
-				$actions['edit'] = '<a href="' . get_edit_post_link( $post->ID, true ) . '">' . __( 'Edit' ) . '</a>';
-			if ( current_user_can( 'delete_post', $post->ID ) )
-				if ( EMPTY_TRASH_DAYS && MEDIA_TRASH ) {
-					$actions['trash'] = "<a class='submitdelete' href='" . wp_nonce_url( "post.php?action=trash&amp;post=$post->ID", 'trash-attachment_' . $post->ID ) . "'>" . __( 'Trash' ) . "</a>";
-				} else {
-					$delete_ays = !MEDIA_TRASH ? " onclick='return showNotice.warn();'" : '';
-					$actions['delete'] = "<a class='submitdelete'$delete_ays href='" . wp_nonce_url( "post.php?action=delete&amp;post=$post->ID", 'delete-attachment_' . $post->ID ) . "'>" . __( 'Delete Permanently' ) . "</a>";
-				}
-			$actions['view'] = '<a href="' . get_permalink( $post->ID ) . '" title="' . esc_attr( sprintf( __( 'View &#8220;%s&#8221;' ), $att_title ) ) . '" rel="permalink">' . __( 'View' ) . '</a>';
-			if ( current_user_can( 'edit_post', $post->ID ) )
-				$actions['attach'] = '<a href="#the-list" onclick="findPosts.open( \'media[]\',\''.$post->ID.'\' );return false;" class="hide-if-no-js">'.__( 'Attach' ).'</a>';
-		}
-		else {
-			if ( current_user_can( 'edit_post', $post->ID ) && !$this->is_trash )
-				$actions['edit'] = '<a href="' . get_edit_post_link( $post->ID, true ) . '">' . __( 'Edit' ) . '</a>';
-			if ( current_user_can( 'delete_post', $post->ID ) ) {
-				if ( $this->is_trash )
-					$actions['untrash'] = "<a class='submitdelete' href='" . wp_nonce_url( "post.php?action=untrash&amp;post=$post->ID", 'untrash-attachment_' . $post->ID ) . "'>" . __( 'Restore' ) . "</a>";
-				elseif ( EMPTY_TRASH_DAYS && MEDIA_TRASH )
-					$actions['trash'] = "<a class='submitdelete' href='" . wp_nonce_url( "post.php?action=trash&amp;post=$post->ID", 'trash-attachment_' . $post->ID ) . "'>" . __( 'Trash' ) . "</a>";
-				if ( $this->is_trash || !EMPTY_TRASH_DAYS || !MEDIA_TRASH ) {
-					$delete_ays = ( !$this->is_trash && !MEDIA_TRASH ) ? " onclick='return showNotice.warn();'" : '';
-					$actions['delete'] = "<a class='submitdelete'$delete_ays href='" . wp_nonce_url( "post.php?action=delete&amp;post=$post->ID", 'delete-attachment_' . $post->ID ) . "'>" . __( 'Delete Permanently' ) . "</a>";
-				}
-			}
-			if ( !$this->is_trash ) {
-				$title =_draft_or_post_title( $post->post_parent );
-				$actions['view'] = '<a href="' . get_permalink( $post->ID ) . '" title="' . esc_attr( sprintf( __( 'View &#8220;%s&#8221;' ), $title ) ) . '" rel="permalink">' . __( 'View' ) . '</a>';
-			}
-		}
-
-		$actions = apply_filters( 'media_row_actions', $actions, $post, $this->detached );
-
-		return $actions;
+<?php } // foreach file
 	}
 }
 

@@ -298,12 +298,21 @@ function ShouldSendRangeHeader($file_path, $file_type)
 }
 
 // this is the cool function which sends the file!
-function SendFile($file_path, $bandwidth = 0, $etag = null, $force_download=false)
+function SendFile($file_path, $args=array())
 {
+	$defaults = array(
+		'bandwidth' => 0,
+		'etag' => null,
+		'force_download' => false,
+		'cache_max_age' => 0,
+		'md5_hash' => null
+	);
+	extract(wp_parse_args($args, $defaults), EXTR_SKIP);
+		
 	error_reporting(0);
 	while(@ob_end_clean()){}
 	
-	$no_cache = WPFB_Core::GetOpt('http_nocache');
+	$no_cache = WPFB_Core::GetOpt('http_nocache') && ($cache_max_age <= 0);
 	
 	// remove some headers
 	if(function_exists('header_remove')) {
@@ -324,23 +333,32 @@ function SendFile($file_path, $bandwidth = 0, $etag = null, $force_download=fals
 	$file_type = WPFB_Download::GetFileType($file_path);
 	if(empty($etag))
 		$etag = md5("$size|$time|$file_type");
+	else $etag = trim($etag, '"');
 	
 	// set basic headers
-	header("Pragma: " . ($no_cache ? "no-cache" : "public"));
-	header("Cache-Control: " . ($no_cache ? "no-cache, must-revalidate, max-age=0" : "public"));
-	if($no_cache)
-		header( 'Expires: Wed, 11 Jan 1984 05:00:00 GMT' );		
+	if($no_cache) {
+		header("Cache-Control: no-cache, must-revalidate, max-age=0");
+		header("Pragma: no-cache");
+		header("Expires: Wed, 11 Jan 1984 05:00:00 GMT");
+	} elseif($cache_max_age > 0)	
+		header("Cache-Control: max-age=$cache_max_age");	
 		
-	header("Connection: close");
+	//header("Connection: close");
+	//header("Keep-Alive: timeout=5, max=100");
+	//header("Connection: Keep-Alive");
+	
 	header("Content-Type: " . $file_type . ((strpos($file_type, 'text/') !== false) ? '; charset=' : '')); 	// charset fix
 	header("Last-Modified: " . gmdate("D, d M Y H:i:s", $no_cache ? time() : $time) . " GMT");
 	
+	if(!empty($md5_hash))
+		header("Content-MD5: ".base64_encode(pack('H32',$md5_hash)));
+	
 	if(!$no_cache)
 	{
-		header("ETag: $etag");
+		header("ETag: \"$etag\"");
 		
 		$if_mod_since = !empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) ? $_SERVER['HTTP_IF_MODIFIED_SINCE'] : false;
-		$if_none_match = !empty($_SERVER['HTTP_IF_NONE_MATCH']) ? $_SERVER['HTTP_IF_NONE_MATCH'] : false;
+		$if_none_match = !empty($_SERVER['HTTP_IF_NONE_MATCH']) ? trim($etag, $_SERVER['HTTP_IF_NONE_MATCH'], '"') : false;
 		
 		if($if_mod_since || $if_none_match) {
 			$not_modified = true;
@@ -388,7 +406,7 @@ function SendFile($file_path, $bandwidth = 0, $etag = null, $force_download=fals
 		header("Accept-Ranges: bytes");
 	
 	// content headers
-	if($force_download || WPFB_Download::ShouldSendDLHeader($file_path, $file_type)) {
+	if(!empty($force_download) || WPFB_Download::ShouldSendDLHeader($file_path, $file_type)) {
 		header("Content-Disposition: attachment; filename=\"" . basename($file_path) . "\"");
 		header("Content-Description: File Transfer");
 	}
@@ -400,7 +418,7 @@ function SendFile($file_path, $bandwidth = 0, $etag = null, $force_download=fals
 	
 	// send the file!
 	
-	$bandwidth = (float)$bandwidth;
+	$bandwidth = empty($bandwidth) ? 0 : (float)$bandwidth;
 	if($bandwidth <= 0)
 		$bandwidth = 1024 * 1024;
 	

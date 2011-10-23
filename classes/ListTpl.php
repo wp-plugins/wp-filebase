@@ -1,4 +1,6 @@
 <?php
+// describes an editable list template that can be saved
+// WPFB_ListTpl::Generate generates output for front-end file lists
 class WPFB_ListTpl {
 	
 	var $tag;
