@@ -293,14 +293,14 @@ class WPFB_UploadWidget extends WP_Widget {
 	}
 	
 	function form( $instance ) {
-		wpfb_loadclass('Output');
+		wpfb_loadclass('File', 'Category', 'Output');
 		if(!isset($instance['title'])) $instance['title'] = __('Upload File',WPFB);
 		?><div>
 			<p><label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title:'); ?> <input type="text" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" value="<?php echo esc_attr($instance['title']); ?>" /></label></p>
 			<p><label for="<?php echo $this->get_field_id('category'); ?>"><?php _e('Category:'); ?>
 				<select id="<?php echo $this->get_field_id('category'); ?>" name="<?php echo $this->get_field_name('category'); ?>">
 					<option value="-1"  style="font-style:italic;"><?php _e('Selectable by Uploader',WPFB); ?></option>
-					<?php echo WPFB_Output::CatSelTree(array('none_label' => __('Upload to Root',WPFB), 'selected'=>empty($instance['category'])?0:$instance['category'])); ?>
+					<?php echo WPFB_Output::CatSelTree(array('none_label' => __('Upload to Root',WPFB), 'selected'=> empty($instance['category']) ? 0 : $instance['category'])); ?>
 				</select>
 			</label></p>
 			<p><input type="checkbox" id="<?php echo $this->get_field_id('overwrite'); ?>" name="<?php echo $this->get_field_name('overwrite'); ?>" value="1" <?php checked(!empty($instance['overwrite'])) ?> /> <label for="<?php echo $this->get_field_id('overwrite'); ?>"><?php _e('Overwrite existing files', WPFB) ?></label></p>

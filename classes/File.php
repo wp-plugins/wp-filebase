@@ -65,10 +65,10 @@ class WPFB_File extends WPFB_Item {
 	static function GetPermissionWhere() {
 		global $wpdb, $current_user;
 		static $permission_sql = '';
-		if(empty($permission_sql)) {
+		if(empty($permission_sql)) { // only generate once per request
 			if($current_user->ID > 0 && empty($current_user->roles[0]))
-			$current_user = new WP_User($current_user->ID);// load the roles
-		
+				$current_user = new WP_User($current_user->ID);// load the roles
+
 			if(in_array('administrator',$current_user->roles)) $permission_sql = '1=1'; // administrator can access everything!
 			elseif(WPFB_Core::GetOpt('private_files')) {
 				$permission_sql = "file_added_by = 0 OR file_added_by = " . (int)$current_user->ID;

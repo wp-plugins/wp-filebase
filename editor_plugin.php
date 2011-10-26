@@ -25,7 +25,7 @@ add_action('admin_enqueue_scripts', 'wpfb_editor_plugin_scripts');
 	
 @header('Content-Type: ' . get_option('html_type') . '; charset=' . get_option('blog_charset'));
 
-wpfb_loadclass('File', 'Category', 'Admin', 'ListTpl');
+wpfb_loadclass('File', 'Category', 'Admin', 'ListTpl', 'Output');
 
 $action = empty($_REQUEST['action']) ? '' : $_REQUEST['action'];
 $post_id = empty($_REQUEST['post_id']) ? 0 : intval($_REQUEST['post_id']);
