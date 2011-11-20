@@ -129,7 +129,7 @@ function WPFB_switchFileUpload(i)
 			if( $file != null)					
 				$comment->comment_date = $file->file_date;
 			?><div class="wpfilebase-date-edit"><?php
-			touch_time(($file != null),0); ?></div></td>
+			touch_time($update,0); ?></div></td>
 	</tr>
 	<tr class="form-field">
 		<?php } ?>
