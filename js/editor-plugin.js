@@ -95,23 +95,26 @@ function editorInsert(str, close)
 function insertTag(tagObj)
 {
 	var str = '[wpfilebase';
-	var q, v;
-
-	if(tagObj.tag == 'fileurl' && tagObj.linktext) {
-		str = '<a href="'+str;
-	}
+	var q, v, content;
+	
+	if(typeof(tagObj.content) == 'string' && tagObj.content) {
+		content = tagObj.content;
+		tagObj.content = '';
+	} else
+		content = false;
 	
 	for(var t in tagObj) {
 		v = tagObj[t];
-		if(v != '' && t != 'linktext') {
+		if(v != '' && v != null) {
 			q = (!isNaN(v) || v.search(/^[a-z0-9-]+$/i) != -1) ? "" : "'";			
 			str += ' '+t+"="+q+v+q;
 		}
 	}
-	str+=']';
-
-	if(tagObj.tag == 'fileurl' && tagObj.linktext)
-		str += '">'+tagObj.linktext+'</a>';
+	str += content ? ']' : ' /]';
+	
+	if(typeof(tagObj.content) == 'string' && tagObj.content)
+		str += tagObj.content + "[/wpfilebase]";
+	
 	return editorInsert(str, true);
 }
 
@@ -177,3 +180,64 @@ function getCatPath(id) {
 	return (ci != null && ci.path != '') ? ci.path : '';	
 };
 
+function getTreeViewModel(data) {
+	if(typeof data != 'object') data = {};
+	data.action = "tree";
+	return {url: wpfbAjax,
+		ajax:{data:data,type:"post"},
+		animated: "medium"
+	};
+};
+
+function insUploadFormTag()
+{
+	var tag = {tag:currentTab};
+	var root = parseInt(jQuery('#uploadform-cat').val());
+	if(root != 0) {
+		if(usePathTags && root != -1)
+			tag.path = getCatPath(root);
+		else
+			tag.id = root;
+	}
+
+	if(jQuery('#list-show-cats:checked').val())
+		tag.overwrite = 1;
+	return insertTag(tag);	
+}
+
+function refreshTrees() {
+	var model = getTreeViewModel({type:"fileselect",onselect:"selectFile(%d,'%s')",exclude_attached:true});
+	jQuery("#attachbrowser").empty().treeview(model);
+	
+	if(!manageAttachments) {
+		model.ajax.data.exclude_attached = false;
+		jQuery("#filebrowser").empty().treeview(model);
+		model = getTreeViewModel({type:"catselect",onselect:"selectCat(%d,'%s')", cat_id_fmt:'catsel-cat-%d'});
+		jQuery("#catbrowser").empty().treeview(model);
+	}
+}
+
+jQuery(document).ready( function()
+		{
+			jQuery(".media-item a").hide();
+			jQuery(".media-item").hover(
+				function(){jQuery("a",this).show();}, 
+				function(){jQuery("a",this).hide();}
+			);
+			
+			if(!manageAttachments)
+			{
+				var win = window.dialogArguments || opener || parent || top;
+				if(win && typeof(win.tinymce) != 'undefined' && win.tinymce)
+					theEditor = win.tinymce.EditorManager.activeEditor;
+				else
+					theEditor = null;
+			
+				tabclick(jQuery("a", jQuery('#sidemenu')).get(0));
+			
+				if (!autoAttachFiles && theEditor && theEditor.getContent().search(/\[wpfilebase\s+tag\s*=\s*['"]attachments['"]/) != -1)
+					jQuery('#no-auto-attach-note').hide(); 	// no notice if attachments tag is in	
+			}
+			
+			refreshTrees();
+		});

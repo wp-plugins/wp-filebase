@@ -144,9 +144,10 @@ static function Display()
 </div><!-- /col-container -->
 
 <h2><?php _e('Tools'); ?></h2>
-<p><a href="<?php echo add_query_arg('action', 'sync') ?>" class="button"><?php _e('Sync Filebase',WPFB)?></a> &nbsp; <?php _e('Synchronises the database with the file system. Use this to add FTP-uploaded files.') ?></p>
-<p><a href="<?php echo add_query_arg('action', 'convert-tags') ?>" class="button"><?php _e('Convert old Tags',WPFB)?></a> &nbsp; <?php printf(__('Convert tags from versions earlier than %s'), '0.2.0') ?></p>
-
+<p><a href="<?php echo add_query_arg('action', 'sync') ?>" class="button"><?php _e('Sync Filebase',WPFB)?></a> &nbsp; <?php _e('Synchronises the database with the file system. Use this to add FTP-uploaded files.',WPFB) ?></p>
+<p><a href="<?php echo add_query_arg('action', 'convert-tags') ?>" class="button"><?php _e('Convert old Tags',WPFB)?></a> &nbsp; <?php printf(__('Convert tags from versions earlier than %s.',WPFB), '0.2.0') ?></p>
+<!--  <p><a href="<?php echo add_query_arg('action', 'add-urls') ?>" class="button"><?php _e('Add multiple URLs',WPFB)?></a> &nbsp; <?php _e('Add multiple remote files at once.', WPFB); ?></p>
+-->
 
 			<?php WPFB_Admin::PrintForm('file', null, array('exform' => $exform)) ?>
 			

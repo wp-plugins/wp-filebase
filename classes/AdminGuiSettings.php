@@ -182,7 +182,7 @@ jQuery(document).ready( function() {
 	</p>
 	<?php
 	
-	$misc_tags = array('hide_links','base_auto_thumb','cron_sync','fext_blacklist','disable_id3','search_id3','thumbnail_path','use_path_tags');
+	$misc_tags = array('hide_links','base_auto_thumb','cron_sync','fext_blacklist','disable_id3','search_id3','thumbnail_path','use_path_tags','no_name_formatting');
 	if(function_exists('wp_admin_bar_render'))
 		$misc_tags[] = 'admin_bar';
 	

@@ -1,6 +1,7 @@
 <?php
 class WPFB_Admin {
-	
+
+static $MIN_SIZE_FOR_PROGRESSBAR = 2097152;//2MiB
 
 static function InitClass()
 {
@@ -90,7 +91,7 @@ static function SettingsSchema()
 	'allow_srv_script_upload'	=> array('default' => false, 'title' => __('Allow script upload', WPFB), 'type' => 'checkbox', 'desc' => __('If you enable this, scripts like PHP or CGI can be uploaded. <b>WARNING:</b> Enabling script uploads is a <b>security risk</b>!', WPFB)),
 	'protect_upload_path'	=> array('default' => true, 'title' => __('Protect upload path', WPFB), 'type' => 'checkbox', 'desc' => __('This prevents direct access to files in the upload directory.', WPFB)),
 	
-	'private_files'			=> array('default' => false, 'title' => __('Private Files', WPFB), 'type' => 'checkbox', 'desc' => __('Access to files is only permitted to uploader and administrators.', WPFB)),
+	'private_files'			=> array('default' => false, 'title' => __('Private Files', WPFB), 'type' => 'checkbox', 'desc' => __('Access to files is only permitted to owner and administrators.', WPFB)),
 	
 	
 	'accept_empty_referers'	=> array('default' => true, 'title' => __('Accept empty referers', WPFB), 'type' => 'checkbox', 'desc' => __('If enabled, direct-link-protected files can be downloaded when the referer is empty (i.e. user entered file url in address bar or browser does not send referers)', WPFB)),	
@@ -104,12 +105,11 @@ static function SettingsSchema()
 	'cron_sync'	=> array('default' => false, 'title' => __('Automatic Sync', WPFB), 'type' => 'checkbox', 'desc' => __('Schedules a cronjob to hourly synchronize the filesystem and the database.', WPFB)),
 	
 	'search_integration' =>  array('default' => true, 'title' => __('Search Integration', WPFB), 'type' => 'checkbox', 'desc' => __('Searches in attached files and lists the associated posts and pages when searching the site.', WPFB)),
-	
+
 	'disable_id3' =>  array('default' => false, 'title' => __('Disable ID3 tag detection', WPFB), 'type' => 'checkbox', 'desc' => __('This disables all meta file info reading. Use this option if you have issues adding large files.', WPFB)),
-	
 	'search_id3' =>  array('default' => true, 'title' => __('Search ID3 Tags', WPFB), 'type' => 'checkbox', 'desc' => __('Search in file meta data, like ID3 for MP3 files, EXIF for JPEG... (this option does not increase significantly server load since all data is cached in a MySQL table)', WPFB)),
-	
-	'use_path_tags' => array('default' => true, 'title' => __('Use path instead of ID in Shortcode', WPFB), 'type' => 'checkbox', 'desc' => __('Files and Categories are identified by paths and not by their IDs in the generated Shortcodes', WPFB)),
+	'use_path_tags' => array('default' => false, 'title' => __('Use path instead of ID in Shortcode', WPFB), 'type' => 'checkbox', 'desc' => __('Files and Categories are identified by paths and not by their IDs in the generated Shortcodes', WPFB)),
+	'no_name_formatting'  => array('default' => false, 'title' => __('Disable Name Formatting', WPFB), 'type' => 'checkbox', 'desc' => __('This will disable automatic formatting/uppercasing file names when they are used as title (e.g. when syncing)', WPFB)),
 	
 	'default_author' => array('default' => '', 'title' => __('Default Author', WPFB), 'desc' => __('This author will be used as form default and when adding files with FTP', WPFB), 'type' => 'text', 'size' => 65),
 	'default_roles' => array('default' => array(), 'title' => __('Default User Roles', WPFB), 'desc' => __('These roles are selected by default and will be used for files added with FTP', WPFB), 'type' => 'roles'),
@@ -236,7 +236,7 @@ static function TplVarsDesc($for_cat=false)
 	'file_category'			=> __('The category name', WPFB),
 	//'file_update_of'		=>
 	'file_post_id'			=> __('ID of the post/page this file belongs to', WPFB),
-	'file_added_by'			=> __('User Name of the uploader', WPFB),
+	'file_added_by'			=> __('User Name of the owner', WPFB),
 	'file_hits'				=> __('How many times this file has been downloaded.', WPFB),
 	//'file_ratings'			=>
 	//'file_rating_sum'		=>
@@ -283,7 +283,7 @@ static function FileSortFields()
 	'file_license'			=> __('License', WPFB),
 	
 	'file_post_id'			=> __('ID of the post/page this file belongs to', WPFB),
-	'file_added_by'			=> __('User Name of the uploader', WPFB),
+	'file_added_by'			=> __('User Name of the owner', WPFB),
 	
 	//'file_offline'			=> __('Offline &gt; Online', WPFB),
 	//'file_direct_linking'	=> __('Direct linking &gt; redirect to post', WPFB),
@@ -355,6 +355,7 @@ static function InsertCategory($catarr)
 {	
 	$catarr = wp_parse_args($catarr, array('cat_id' => 0, 'cat_name' => '', 'cat_description' => '', 'cat_parent' => 0, 'cat_folder' => ''));
 	extract($catarr, EXTR_SKIP);
+	$data = (object)$catarr;
 
 	$cat_id = intval($cat_id);
 	$cat_parent = intval($cat_parent);
@@ -367,31 +368,16 @@ static function InsertCategory($catarr)
 	if (empty($cat_name) && empty($cat_folder)) return array( 'error' => __('You must enter a category name or a folder name.', WPFB) );
 	if(!$add_existing && !empty($cat_folder)) {
 		$cat_folder = preg_replace('/\s/', ' ', $cat_folder);
-		if(!preg_match('/^[0-9a-z-_.+,\s]+$/i', $cat_folder)) return array( 'error' => __('The category folder name contains invalid characters.', WPFB) );	
+		if(!preg_match('/^[0-9a-z-_.+,\s()]+$/i', $cat_folder)) return array( 'error' => __('The category folder name contains invalid characters.', WPFB) );	
 	}
 	wpfb_loadclass('Output');
-	if (empty($cat_name)) $cat_name = WPFB_Output::Filename2Title($cat_folder, false);
+	if (empty($cat_name)) $cat_name = WPFB_Core::GetOpt('no_name_formatting') ? $cat_folder : WPFB_Output::Filename2Title($cat_folder, false);
 	elseif(empty($cat_folder)) $cat_folder = strtolower(str_replace(' ', '_', $cat_name));
 	
 
 	$cat->cat_name = trim($cat_name);
 	$cat->cat_description = trim($cat_description);
 	$cat->cat_exclude_browser = (int)!empty($cat_exclude_browser);	
-	//$cat->cat_required_level = empty($cat_members_only) ? 0 : (WPFB_Core::UserRole2Level($cat_required_role)+1);
-	// only reset user roles if checkbox disabled but role selector exists!
-	if(isset($cat_user_roles)) {
-		$cat->SetUserRoles(empty($cat_members_only) ? array() : $cat_user_roles);
-	}
-	
-	if($update && !empty($cat_child_apply_perm))
-	{
-		$cur = $cat->GetUserRoles();
-		$childs = $cat->GetChildFiles(true);
-		foreach($childs as $child) $child->SetUserRoles($cur);
-		
-		$childs = $cat->GetChildCats(true);
-		foreach($childs as $child) $child->SetUserRoles($cur);
-	}
 		
 	// handle parent cat
 	if($cat_parent <= 0 || $cat_parent == $cat_id) {
@@ -402,8 +388,24 @@ static function InsertCategory($catarr)
 		if($pcat == null || ($update && $cat->IsAncestorOf($pcat))) $cat_parent = $cat->cat_parent;
 	}
 	
+	// this will (eventually) inherit permissions:
 	$result = $cat->ChangeCategoryOrName($cat_parent, $cat_folder, $add_existing);
-	if(!empty($result['error'])) return $result;	
+	if(!empty($result['error'])) return $result;
+
+	// explicitly set permissions:
+	if(!empty($data->cat_perm_explicit) && isset($data->cat_user_roles))
+		$cat->SetUserRoles((empty($data->cat_user_roles) || count(array_filter($data->cat_user_roles)) == 0) ? array() : $data->cat_user_roles);	
+	
+	// apply permissions to children
+	if($update && !empty($cat_child_apply_perm))
+	{
+		$cur = $cat->GetUserRoles();
+		$childs = $cat->GetChildFiles(true);
+		foreach($childs as $child) $child->SetUserRoles($cur);
+		
+		$childs = $cat->GetChildCats(true);
+		foreach($childs as $child) $child->SetUserRoles($cur);
+	}
 		
 	// icon
 	if(!empty($cat_icon_delete)) {
@@ -421,6 +423,21 @@ static function InsertCategory($catarr)
 			@chmod($cat->GetThumbPath(), octdec(WPFB_PERM_FILE));
 		}
 	}
+	elseif($add_existing)
+	{
+		static $folder_icons = array('_caticon.jpg', '_caticon.png', '_caticon.gif', 'folder.jpg', 'folder.png', 'folder.gif', 'cover.jpg');
+		$cat_path = $cat->GetLocalPath(); 
+		foreach($folder_icons as $fi) {
+			$fi = "$cat_path/$fi";
+			if(is_file($fi)) {
+				$ext = strtolower(substr($fi, strrpos($fi,'.')+1));
+				$cat->cat_icon = "_caticon.$ext";
+				if(!@rename($fi, $cat->GetThumbPath()))
+					return array( 'error' => __( 'Unable to move category icon!', WPFB));
+				break;
+			}
+		}
+	}
 	
 	// save into db
 	$cat->Lock(false);
@@ -432,7 +449,7 @@ static function InsertCategory($catarr)
 	return array( 'error' => false, 'cat_id' => $cat_id);
 }
 
-static function InsertFile($data)
+static function InsertFile($data, $in_gui =false)
 {
 	if(!is_object($data)) $data = (object)$data;
 	
@@ -449,16 +466,36 @@ static function InsertFile($data)
 	
 	if(!$add_existing) self::SyncCustomFields();  // dont sync custom fields when file syncing!
 	
+	if(!empty($data->file_flash_upload)) { // check for flash upload and validate!
+		$file_flash_upload = json_decode($data->file_flash_upload, true);
+		$file_flash_upload['tmp_name'] = WPFB_Core::UploadDir().'/'.str_replace('../','',$file_flash_upload['tmp_name']);
+		if(is_file($file_flash_upload['tmp_name']) && $file_flash_upload['size'] == filesize($file_flash_upload['tmp_name']))
+			$data->file_upload = $file_flash_upload;
+	}
 	// are we uploading a file?
-	$upload = (!$add_existing && (@is_uploaded_file($data->file_upload['tmp_name']) && !empty($data->file_upload['name'])));
+	$upload = (!$add_existing && ((@is_uploaded_file($data->file_upload['tmp_name']) || !empty($data->file_flash_upload)) && !empty($data->file_upload['name'])));
 	$remote_upload = (!$add_existing && !$upload && !empty($data->file_is_remote) && !empty($data->file_remote_uri) && (!$update || $file->file_remote_uri != $data->file_remote_uri));
 	$remote_redirect = !empty($data->file_remote_redirect) && !empty($data->file_remote_uri);
+	if($remote_redirect) $remote_scan = !empty($data->file_remote_scan);
 	
 	// are we uploading a thumbnail?
 	$upload_thumb = (!$add_existing && @is_uploaded_file($data->file_upload_thumb['tmp_name']) && self::IsValidImage($data->file_upload_thumb['tmp_name']) !== false);
 	
-	$file_src_path = $upload ? $data->file_upload['tmp_name'] : ($remote_upload ? parse_url($data->file_remote_uri,PHP_URL_PATH) : ($add_existing ? $data->file_path : null));
-	$file_name = $upload ? $data->file_upload['name'] : ((empty($file_src_path) && $update) ? $file->file_name : basename($file_src_path));
+	if(empty($file->file_date)) $file->SetModifiedTime(time());
+	
+	if($remote_upload) {
+		unset($file_src_path);
+		$remote_file_info = self::GetRemoteFileInfo($data->file_remote_uri);
+		if(empty($remote_file_info))
+			return array('error' => sprintf( __( 'Could not get file information from %s!', WPFB), $data->file_remote_uri));
+		$file_name = $remote_file_info['name'];
+		if($remote_file_info['size'] > 0) $file->file_size = $remote_file_info['size'];
+		if($remote_file_info['time'] > 0) $file->SetModifiedTime($remote_file_info['time']);
+	} else {
+		$file_src_path = $upload ? $data->file_upload['tmp_name'] : ($add_existing ? $data->file_path : null);
+		$file_name = $upload ? $data->file_upload['name'] : ((empty($file_src_path) && $update) ? $file->file_name : basename($file_src_path));		
+	}
+		
 	
 	// VALIDATION
 	$current_user = wp_get_current_user();
@@ -469,7 +506,7 @@ static function InsertFile($data)
 	// check extension
 	if($upload || $add_existing) {
 		if(!self::_isAllowedFileExt($file_name)) {
-			@unlink($file_src_path);
+			if(isset($file_src_path)) @unlink($file_src_path);
 			return array( 'error' => sprintf( __( 'The file extension of the file <b>%s</b> is forbidden!', WPFB), $file_name ) );
 		}
 	}
@@ -488,36 +525,32 @@ static function InsertFile($data)
 	$result = self::ParseFileNameVersion($file_name, $file->file_version);	
 	if(empty($file->file_version)) $file->file_version = $result['version'];
 	if(empty($file->file_display_name)) $file->file_display_name = $result['title'];	
-
 	
 	// handle category & name
 	$file_category = intval($data->file_category);
 	$new_cat = null;
 	if ($file_category > 0 && ($new_cat=WPFB_Category::GetCat($file_category)) == null) $file_category = 0;
 	
+	// this sets permissions as well:
 	$result = $file->ChangeCategoryOrName($file_category, $file_name, $add_existing, !empty($data->overwrite));
-	if(!empty($result['error'])) return $result;	
+	if(!empty($result['error'])) return $result;
+	
+	// explicitly set permissions:
+	if(!empty($data->file_perm_explicit) && isset($data->file_user_roles))
+		$file->SetUserRoles((empty($data->file_user_roles) || count(array_filter($data->file_user_roles)) == 0) ? array() : $data->file_user_roles);	
 
 	// if there is an uploaded file 
 	if($upload) {
 		if(@file_exists($file->GetLocalPath())) return array( 'error' => sprintf( __( 'File %s already exists. You have to delete it first!', WPFB), $file->GetLocalPath() ) );
-		if(!@move_uploaded_file($file_src_path, $file->GetLocalPath()) || !@file_exists($file->GetLocalPath())) return array( 'error' => sprintf( __( 'Unable to move file %s! Is the upload directory writeable?', WPFB), $file->file_name ) );
+		// try both move_uploaded_file for http, rename for flash uploads!
+		if(!(@move_uploaded_file($file_src_path, $file->GetLocalPath()) || @rename($file_src_path, $file->GetLocalPath())) || !@file_exists($file->GetLocalPath())) return array( 'error' => sprintf( __( 'Unable to move file %s! Is the upload directory writeable?', WPFB), $file->file_name ).' '.$file->GetLocalPathRel());	
 	} elseif($remote_upload) {
-		require_once(ABSPATH . 'wp-admin/includes/file.php');			
-		$result = self::SideloadFile($data->file_remote_uri);
-		if(!empty($result['error'])) return $result;
-		$tmp = $result['file'];
-		$file_name = $file->file_name = basename($tmp, '.tmp');
-		if(!$update && @file_exists($file->GetLocalPath()))	
-			return array( 'error' => sprintf( __( 'File %s already exists. You have to delete it first!', WPFB), $file->GetLocalPath() ) );
-			
-		if(!self::_isAllowedFileExt($file_name)) {
-			@unlink($tmp);
-			return array( 'error' => sprintf( __( 'The file extension of the file <b>%s</b> is forbidden!', WPFB), $file_name ) );
+		if(!$remote_redirect || $remote_scan) {	
+			$tmp_file = self::GetTmpFile($file->file_name);
+			$result = self::SideloadFile($data->file_remote_uri, $tmp_file, $in_gui ? $remote_file_info['size'] : -1);
+			if(!empty($result['error'])) return $result;
+			if(!rename($tmp_file, $file->GetLocalPath())) return array('error' => 'Could not rename temp file!');
 		}
-			
-		if (is_wp_error($tmp)) return array('error' => $tmp->get_error_message());
-		if(!rename($tmp,$file->GetLocalPath())) return array( 'error' => sprintf( __( 'Unable to move file %s! Is the upload directory writeable?', WPFB), $file->file_name ) );	
 	} elseif(!$add_existing && !$update) {
 		return array( 'error' => __('No file was uploaded.', WPFB) );
 	}
@@ -525,18 +558,18 @@ static function InsertFile($data)
 	if($upload || $remote_upload || $add_existing) {
 		if($add_existing && !empty($data->file_thumbnail))
 			$file->file_thumbnail = $data->file_thumbnail; // we already got the thumbnail on disk!		
-		elseif(empty($file->file_thumbnail) && !$upload_thumb && ($file->GetExtension() == '.bmp' || @getimagesize($file->GetLocalPath()) !== false))
+		elseif(empty($file->file_thumbnail) && !$upload_thumb && ($file->GetExtension() == '.bmp' || @getimagesize($file->GetLocalPath()) !== false) && (!$remote_redirect || $remote_scan))
 			$file->CreateThumbnail();	// check if the file is an image and create thumbnail
 	}
 	
 	// get file info
-	if((!$update || !$remote_redirect) && is_file($file->GetLocalPath()))
+	if(!($update && $remote_redirect) && is_file($file->GetLocalPath()))
 	{
 		$file->file_size = filesize($file->GetLocalPath());
 		$file->file_hash = md5_file($file->GetLocalPath());
 		
 		if($add_existing) $file->file_date = gmdate('Y-m-d H:i:s', filemtime($file->GetLocalPath()));
-		else $file->SetModifiedTime(!empty($file_date) ? $file_date : gmdate('Y-m-d H:i:s', filemtime($file->GetLocalPath())));
+		else $file->SetModifiedTime(!empty($file_date) ? $file_date : filemtime($file->GetLocalPath()));
 		
 		if(!WPFB_Core::GetOpt('disable_id3'))
 		{
@@ -544,39 +577,36 @@ static function InsertFile($data)
 			$file_info = WPFB_GetID3::AnalyzeFile($file->GetLocalPath());
 		}
 		
-		if(!$upload_thumb && empty($data->file_thumbnail) && !empty($file_info['tags']['id3v2']['picture']))
+		if(!empty($file_info['comments']['picture'][0]['data']))
+			$cover_img =& $file_info['comments']['picture'][0]['data'];
+		elseif(!empty($file_info['id3v2']['APIC'][0]['data']))
+			$cover_img =& $file_info['id3v2']['APIC'][0]['data'];
+		else $cover_img = null;
+		
+		if(!$upload_thumb && empty($data->file_thumbnail) && !empty($cover_img))
 		{
 			$cover = $file->GetLocalPath();
 			$cover = substr($cover,0,strrpos($cover,'.')).'.jpg';
-			file_put_contents($cover, $file_info['tags']['id3v2']['picture'][0]['data']);
+			file_put_contents($cover, $cover_img);
 			$file->CreateThumbnail($cover, true);
 			@unlink($cover);
 		}
 	}
 	
 	if($remote_redirect) {
-		// when download redircet the actual files is not needed anymore
-		@unlink($file->GetLocalPath());
+		if(file_exists($file->GetLocalPath()))
+			@unlink($file->GetLocalPath()); // when download redircet the actual files is not needed anymore
 	} else {
 		// set permissions
 		@chmod ($file->GetLocalPath(), octdec(WPFB_PERM_FILE));
-		// no redirection, URI is not neede anymore
-		$data->file_remote_uri = '';
-		$file->file_remote_uri = '';
-		
+		$file->file_remote_uri = $data->file_remote_uri = '';	// no redirection, URI is not neede anymore		
 	}
 	
 	if(!empty($data->file_languages)) $file->file_language = implode('|', $data->file_languages);
 	if(!empty($data->file_platforms)) $file->file_platform = implode('|', $data->file_platforms);
 	if(!empty($data->file_requirements)) $file->file_requirement = implode('|', $data->file_requirements);
 	
-	// only reset user roles if checkbox disabled but role selector exists!
-	if(isset($data->file_user_roles)) {
-		$file->SetUserRoles(empty($data->file_members_only) ? array() : $data->file_user_roles);
-	} elseif(!$update) { // if new file and nothing said about roles, use default
-		$file->SetUserRoles(WPFB_Core::GetOpt('default_roles'));
-	}
-	
+
 	$file->file_offline = (int)(!empty($data->file_offline));
 	
 	if(!isset($data->file_direct_linking))
@@ -629,7 +659,7 @@ static function InsertFile($data)
 	if(!empty($file_info))
 		WPFB_GetID3::StoreFileInfo($file_id, $file_info);
 	
-	return array( 'error' => false, 'file_id' => $file_id);
+	return array( 'error' => false, 'file_id' => $file_id, 'file' => $file);
 }
 
 static function IsValidImage($img) {
@@ -648,46 +678,70 @@ static function ParseFileNameVersion($file_name, $file_version) {
 	} elseif(substr($fnwv, -strlen($file_version)) == $file_version) {		
 		$fnwv = trim(substr($fnwv, 0, -strlen($file_version)), '-');
 	}
-	$title = wpfb_call('Output', 'Filename2Title', array($fnwv, false), true);	
+	$title = WPFB_Core::GetOpt('no_name_formatting') ? $fnwv : wpfb_call('Output', 'Filename2Title', array($fnwv, false), true);	
 	return array('title' => empty($title) ? $file_name : $title, 'version' => $file_version);
 }
 
-static function SideloadFile($url) {
-	//WARNING: The file is not automatically deleted, The script must unlink() the file.
-	
-	if ( ! $url ) return array('error' => __('Invalid URL Provided.'));
 
-	$tmpfname = wp_tempnam($url);
-	if ( ! $tmpfname )
-		return array('error' => __('Could not create Temporary file.'));
-
+// size, type, name, time
+static function GetRemoteFileInfo($url)
+{
 	wpfb_loadclass('Download');
-	$result = WPFB_Download::SideloadFile($url, $tmpfname);
-	if(!empty($result['error'])) return $result;
 	
-	$newname = $tmpfname;
+	$info = array();
+	$path = parse_url($url,PHP_URL_PATH);
 	
-	// do smart stuff with file extension
-	if(!empty($response['headers']['content-disposition'])) {
+	$headers = self::HttpGetHeaders($url);	
+	if (empty($headers)) return null;
+	
+	$info['size'] = isset($headers['content-length']) ? $headers['content-length'] : -1;	
+	$info['type'] = isset($headers['content-type']) ? strtolower($headers['content-type']) : null;	
+	$info['time'] = isset($headers['last-modified']) ? @strtotime($headers['last-modified']) : 0;
+	
+	// check for filename header
+	if(!empty($headers['content-disposition'])) {
 		$matches = array();
-		if(preg_match('/filename="(.+?)"/', $response['headers']['content-disposition'], $matches) == 1)
-			$newname = dirname($tmpfname).'/'.$matches[1].'.tmp';
-	} elseif(substr($tmpfname, -4, 4) == '.tmp') {
-		wpfb_loadclass('Download');
-		$ext = strrchr(parse_url($url,PHP_URL_PATH), '.');
-		
-		// compare extension type with http header type, if they are different deterime proper extension from content type
-		$exType = WPFB_Download::GetFileType($ext);
-		$hType = strtolower($response['headers']['content-type']);
-		if($exType != $hType && ($e=WPFB_Download::FileType2Ext($hType)) != null)
-			$ext = '.'.$e;
-					
-		if(strlen($ext)>1)
-			$newname = substr($tmpfname, 0, -4).$ext.'.tmp';
+		if(preg_match('/filename="(.+)"/', $headers['content-disposition'], $matches) == 1)
+			$info['name'] = $matches[1];
 	}
 	
-	rename($tmpfname, $newname);	
-	return array('error'=>false,'file'=>$newname);
+	if(empty($info['name']))
+		$info['name'] = basename($path); 
+	
+	// compare extension type with http header content-type, if they are different deterime proper extension from http content-type
+	$exType = WPFB_Download::GetFileType($info['name']);	
+	if($exType != $info['type'] && ($e=WPFB_Download::FileType2Ext($info['type'])) != null)
+		$info['name'] .= '.'.$e;
+		
+	return $info;
+}
+
+private static function SideloadFile($url, $dest_file = null, $size_for_progress = 0) {
+	//WARNING: The file is not automatically deleted, The script must unlink() the file.
+	@ini_set('max_execution_time', '0');
+	@set_time_limit(0);
+	require_once(ABSPATH . 'wp-admin/includes/file.php');	
+		
+	if(!$url) return array('error' => __('Invalid URL Provided.'));
+	
+	if(empty($dest_file)) { // if no dest file set, create temp file
+		$fi = self::GetRemoteFileInfo($url);
+		if(empty($fi)) return array('error' => sprintf( __( 'Could not get file information from %s!', WPFB), $url));		
+		if(!($dest_file = self::GetTmpFile($fi['name']))) return array('error' => __('Could not create Temporary file.'));
+	}
+	
+	if( $size_for_progress >= self::$MIN_SIZE_FOR_PROGRESSBAR) {
+		include(WPFB_PLUGIN_ROOT.'extras/progressbar.class.php');
+		$progress_bar = new progressbar(0, $size_for_progress, 300, 30, '#aaa');
+		echo "<p><code>".esc_html($url)."</code> ...</p>";
+		$progress_bar->print_code();
+	} else $progress_bar = null;
+
+	wpfb_loadclass('Download');
+	$result = WPFB_Download::SideloadFile($url, $dest_file, $progress_bar);
+	if(!empty($result['error'])) return $result;
+	
+	return array('error'=>false,'file'=>$dest_file);
 }
 
 static function DEcho($str) {
@@ -788,14 +842,14 @@ static function Sync($hash_sync=false, $output=false)
 	{
 		$fn = $all_files[$i];
 		$fbn = basename($fn);
-		if(strlen($fn) < 2 || $fbn{0} == '.'
+		if(strlen($fn) < 2 || $fbn{0} == '.' || strpos($fn, '/.tmp') !== false
 				|| $fbn == '_wp-filebase.css' || strpos($fbn, '_caticon.') !== false
 				|| in_array($fn, $db_files)
 				|| !is_file($fn) || !is_readable($fn)
 				|| (!empty($fext_blacklist) && in_array(trim(strrchr($fbn, '.'),'.'), $fext_blacklist)) // check for blacklisted extension
 			)
 			continue;
-		$new_files[$num_new_files] = $all_files[$i];
+		$new_files[$num_new_files] = $fn;
 		$num_new_files++;
 	}
 	
@@ -888,7 +942,7 @@ static function Sync($hash_sync=false, $output=false)
 					
 		$res = self::AddExistingFile($fn, empty($thumbnails[$fn]) ? null : $thumbnails[$fn]);			
 		if(empty($res['error']))
-			$result['added'][] = substr($fn, $upload_dir_len);
+			$result['added'][] = empty($res['file']) ? substr($fn, $upload_dir_len) : $res['file'];
 		else
 			$result['error'][] = $res['error'] . " (file $fn)";
 		
@@ -1004,6 +1058,10 @@ static function AddExistingFile($file_path, $thumb=null)
 		}
 	}
 	
+	// check if file still exists (it could be renamed while creating the category if its used for category icon!)
+	if(!is_file($file_path))
+		return array();
+	
 	return self::InsertFile(array('add_existing' => true, 'file_category' => $last_cat_id, 'file_path' => $file_path, 'file_thumbnail' => $thumb));
 }
 
@@ -1105,6 +1163,32 @@ static function UninstallPlugin()
 
 static function PrintForm($name, $item=null, $vars=array())
 {
+	WPFB_Core::PrintJS(); /* only required for wpfbConf */
+	?>
+<script type="text/javascript">
+//<![CDATA[
+
+jQuery(document).ready(function($){
+	WPFB_formCategoryChanged();
+});
+
+function WPFB_formCategoryChanged()
+{
+	var catId = jQuery('#file_category,#cat_parent').val();
+	if(!catId || catId <= 0) {
+		jQuery('#<?php echo $name ?>_inherited_permissions_label').html('<?php echo WPFB_Output::RoleNames(WPFB_Core::GetOpt('default_roles'), true); ?>');
+	} else {
+		jQuery.ajax({
+			url: wpfbConf.ajurl,
+			data: {action:"catinfo","id":catId},
+			dataType: "json",
+			success: (function(data){jQuery('#<?php echo $name ?>_inherited_permissions_label').html(data.roles_str);})
+		});
+	}
+}
+//]]>
+</script>
+	<?php
 	extract($vars);
 	if(is_writable(WPFB_Core::UploadDir()))
 		include(WPFB_PLUGIN_ROOT . 'lib/wpfb_form_' . $name . '.php');
@@ -1231,7 +1315,7 @@ public function ProcessWidgetUpload($_posts = null, $_query = null){
 	// if category is set in widget options, force to use this. security done with nonce checking ($_POST['cat'] is reliable)
 	if($_POST['cat'] >= 0) $_POST['file_category'] = $_POST['cat']; 
 		
-	$result = WPFB_Admin::InsertFile(array_merge($_POST, $_FILES));
+	$result = WPFB_Admin::InsertFile(stripslashes_deep(array_merge($_POST, $_FILES)));
 	if(isset($result['error']) && $result['error']) {
 		$content .= '<div id="message" class="updated fade"><p>'.$result['error'].'</p></div>';
 		$title .= __('Error ');
@@ -1339,14 +1423,27 @@ static function RolesCheckList($field_name, $selected_roles=array()) {
 	?>
 <div id="<?php echo $field_name; ?>-wrap" class="tabs-panel"><input value="" type="hidden" name="<?php echo $field_name; ?>[]" />
 	<ul id="<?php echo $field_name; ?>-list" class="wpfilebase-roles-checklist">
-		<?php 
+<?php
+	echo "<li id='{$field_name}_none'><label class='selectit'><input value='' type='checkbox' name='{$field_name}[]' id='in-{$field_name}_none' ".(empty($selected_roles)?"checked='checked'":"")." onchange=\"jQuery('[id^=in-$field_name-]').prop('disabled', this.checked).prop('checked', false);\" /> <i>".__('Everyone',WPFB)."</i></label></li>";
 	foreach ( $all_roles as $role => $details ) {
 		$name = translate_user_role($details['name']);
-		echo "<li id='$field_name-$role'><label class='selectit'><input value='$role' type='checkbox' name='{$field_name}[]' id='in-$field_name-$role' ".(in_array($role, $selected_roles)?"checked='checked'":"")." /> $name</label></li>";
+		echo "<li id='$field_name-$role'><label class='selectit'><input value='$role' type='checkbox' name='{$field_name}[]' id='in-$field_name-$role' ".(in_array($role, $selected_roles)?"checked='checked'":"")." ".(empty($selected_roles)?"disabled='disabled'":"")." /> $name</label></li>";
 	}
 	?>
 	</ul>
 </div>
 <?php
+}
+
+static function HttpGetHeaders($url) {
+	require_once( ABSPATH . WPINC . '/http.php' );
+	$response = wp_remote_head($url);
+	return is_wp_error( $response ) ? null : wp_remote_retrieve_headers( $response );
+}
+
+static function GetTmpFile($name='') {
+	$dir = WPFB_Core::UploadDir().'/.tmp/';
+	self::Mkdir($dir);
+	return wp_tempnam($name, $dir);
 }
 }

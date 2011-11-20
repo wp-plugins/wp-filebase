@@ -1,8 +1,11 @@
-- detect folder.jpg as cat icon
-- extract cover art mp3!
+- bulk load
+
+- permission form: inherit checkbox
+- fix default permissions, inherited!
+- bulk action
 - option: no display name formatting
 _ widget: users which cannot upload files should not change widget!!
--upload widget: fixed category
+- upload widget: fixed category
 - editor plugin: field box not collapsable, missing JS
 
 - batch actions

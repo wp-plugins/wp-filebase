@@ -3,7 +3,7 @@ class WPFB_Output {
 static $page_title = '';
 static $page_content = '';
 
-static function ProcessShortCode($args)
+static function ProcessShortCode($args, $content = null)
 {
 	$id = empty($args ['id']) ? -1 : intval($args ['id']);
 	if($id <= 0 && !empty($args['path'])) { // path indentification
@@ -21,8 +21,11 @@ static function ProcessShortCode($args)
 			else break;
 			
 		case 'fileurl':
-			if($id > 0 && ($file = wpfb_call('File','GetFile',$id)) != null) return $file->GetUrl();
-			else break;					
+			if($id > 0 && ($file = wpfb_call('File','GetFile',$id)) != null) {
+				if(empty($args['linktext']))	return $file->GetUrl();
+				return '<a href="'.$file->GetUrl().'">'.$args['linktext'].'</a>';
+			}
+			else break;
 			
 		case 'attachments':	return do_shortcode(self::PostAttachments(false, $args['tpl']));
 		
@@ -287,20 +290,26 @@ static function CatSelTree($args=null, $root_cat_id = 0, $depth = 0)
 }
 
 
-static function InitFileTreeView($id, $root=0)
+static function InitFileTreeView($id=null, $root=0)
 {
 	static $tv_plugin_loaded = false;
 	
 	WPFB_Core::$load_js = true;
 	
 	if(!$tv_plugin_loaded) {
-		wp_print_scripts('jquery-treeview-async');
-		wp_print_styles('jquery-treeview');
+		if($id == null) {
+			wp_enqueue_script('jquery-treeview-async');
+			wp_enqueue_style('jquery-treeview');
+		} else { // when id is set, assume that this was called inside the content, so have to print scripts here 
+			wp_print_scripts('jquery-treeview-async');
+			wp_print_styles('jquery-treeview');
+		}
 		$tv_plugin_loaded = true;
 	}
 	
 	if(is_object($root)) $root = $root->GetId();
 	
+	if($id != null) {
 	?>
 <script type="text/javascript">
 //<![CDATA[
@@ -310,6 +319,7 @@ animated: "medium"});});
 //]]>
 </script>
 <?php
+	}
 }
 
 /*
@@ -391,11 +401,11 @@ static function RolesDropDown($selected_roles=array()) {
 	} 
 }
 
-static function RoleNames($roles) {
+static function RoleNames($roles, $fmt_string=false) {
 	global $wp_roles;
 	$names = array();
 	foreach($roles as $role)
 		$names[$role] = translate_user_role($wp_roles->roles[$role]['name']);
-	return $names;
+	return $fmt_string ? (empty($names) ? ("<i>".__('Everyone',WPFB)."</i>") : join(', ',$names)) : $names;
 }
 }

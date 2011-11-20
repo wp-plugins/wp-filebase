@@ -86,9 +86,9 @@ static function Display()
 				$_POST['file_date'] =  sprintf( "%04d-%02d-%02d %02d:%02d:%02d", $aa, $mm, $jj, $hh, $mn, $ss );
 			}
 			
-			$result = WPFB_Admin::InsertFile(array_merge($_POST, $_FILES));
+			$result = WPFB_Admin::InsertFile(array_merge($_POST, $_FILES), true);
 			if(isset($result['error']) && $result['error']) {
-				$message = $result['error'];
+				$message = $result['error'] . '<br /><a href="javascript:history.back()">' . __("Go back") . '</a>';
 			} else {
 				$message = $update?__('File updated.', WPFB):__('File added.', WPFB);
 			}
@@ -109,7 +109,13 @@ static function Display()
 	if ( isset($_GET['s']) && $_GET['s'] )
 		printf( '<span class="subtitle">' . __('Search results for &#8220;%s&#8221;'/*def*/) . '</span>', esc_html(stripslashes($_GET['s'])));
 	?></h2>
-	<?php if ( !empty($message) ) : ?><div id="message" class="updated fade"><p><?php echo $message; ?></p></div><?php endif; ?> 
+	<?php if ( !empty($message) ) : ?><div id="message" class="updated fade"><p><?php echo $message; ?></p></div><?php endif; 
+	if($action == 'addfile' || $action == 'updatefile')
+	{
+		unset($file);
+		WPFB_Admin::PrintForm('file', null, array('exform' => $exform, 'item' => new WPFB_File((isset($result['error']) && $result['error']) ? $_POST : null)));
+	}
+	?>
 	<form class="search-form topmargin" action="" method="get"><p class="search-box">
 			<input type="hidden" value="<?php echo esc_attr($_GET['page']); ?>" name="page" />
 			<label class="hidden" for="file-search-input"><?php _e('Search Files', WPFB); ?>:</label>
@@ -136,7 +142,7 @@ static function Display()
 			if(!empty($_GET['file_category'])) 
 				$where = (empty($where) ? '' : ("($where) AND ")) . "file_category = " . intval($_GET['file_category']);
 
-			$files = WPFB_File::GetFiles2($where, true, $order, $filesperpage, $pagestart);
+			$files = WPFB_File::GetFiles2($where, false, $order, $filesperpage, $pagestart);
 			
 			if(empty($files) && !empty($wpdb->last_error)) {
 				wp_die("<b>Database error</b>: ".$wpdb->last_error);
@@ -167,11 +173,12 @@ static function Display()
 				<th scope="col" class="num"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_id') ?>"><?php _e('ID'/*def*/) ?></a></th>	
 				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_display_name') ?>"><?php _e('Name'/*def*/) ?></a></th>	
 				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_name') ?>"><?php _e('Filename', WPFB) ?></a></th>    
-				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_size') ?>"><?php _e('Size'/*def*/) ?></a></th>    		
+				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_size') ?>"><?php _e('Size'/*def*/) ?></a></th>  		
 				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_description') ?>"><?php _e('Description'/*def*/) ?></a></th>
 				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_category_name') ?>"><?php _e('Category'/*def*/) ?></a></th>
 				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_user_roles') ?>"><?php _e('Access Permission',WPFB) ?></a></th>
-				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_added_by') ?>"><?php _e('Uploader',WPFB) ?></a></th>
+				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_added_by') ?>"><?php _e('Owner',WPFB) ?></a></th>
+				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_date') ?>"><?php _e('Date'/*def*/) ?></a></th>   
 				<th scope="col" class="num"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_hits') ?>"><?php _e('Hits', WPFB) ?></a></th>
 				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_last_dl_time') ?>"><?php _e('Last download', WPFB) ?></a></th>
 				<!-- TODO <th scope="col" class="num"><a href="<?php echo WPFB_Admin::AdminTableSortLink('file_') ?>"><?php _e('Rating'/*def*/) ?></th> -->
@@ -200,8 +207,9 @@ static function Display()
 							<td><?php echo WPFB_Output::FormatFilesize($file->file_size); ?></td>
 							<td><?php echo empty($file->file_description) ? '-' : esc_html($file->file_description); ?></td>
 							<td><?php echo (!is_null($cat)) ? ('<a href="'.$cat->GetEditUrl().'">'.esc_html($file->file_category_name).'</a>') : '-'; ?></td>
-							<td><?php echo empty($user_roles) ? ("<i>".__('Everyone',WPFB)."</i>") : join(', ', WPFB_Output::RoleNames($user_roles)) ?></td>
+							<td><?php echo WPFB_Output::RoleNames($user_roles, true) ?></td>
 							<td><?php echo (empty($file->file_added_by) || !($usr = get_userdata($file->file_added_by))) ? '-' : esc_html($usr->user_login) ?></td>
+							<td><?php echo $file->GetFormattedDate(); ?></td>
 							<td class='num'><?php echo $file->file_hits; ?></td>
 							<td><?php echo ( (!empty($file->file_last_dl_time) && $file->file_last_dl_time > 0) ? mysql2date(get_option('date_format'), $file->file_last_dl_time) : '-') ?></td>
 							<!-- TODO <td class='num'><?php echo $rating ?></td> -->
@@ -219,9 +227,11 @@ static function Display()
 
 <?php
 
-	unset($file);
-	WPFB_Admin::PrintForm('file', null, array('exform' => $exform));
-	
+	if($action != 'addfile' && $action != 'updatefile')
+	{
+		unset($file);
+		WPFB_Admin::PrintForm('file', null, array('exform' => $exform));
+	}	
 	break; // default
 	}
 
@@ -412,7 +422,7 @@ class WPFB_File_List_Table extends WP_List_Table {
 		$posts_columns['desc'] = __('Description'/*def*/);		
 		$posts_columns['cat'] = __('Category'/*def*/);
 		$posts_columns['perm'] = __('Access Permission',WPFB);
-		$posts_columns['uploader'] = __('Uploader',WPFB);
+		$posts_columns['uploader'] = __('Owner',WPFB);
 		$posts_columns['hits'] = __('Hits', WPFB);
 		$posts_columns['lastdl'] = __('Last download', WPFB);
 		
@@ -488,7 +498,7 @@ foreach ( $columns as $column_name => $column_display_name ) {
 	
 	case 'desc': ?> <td><?php echo empty($file->file_description) ? '-' : esc_html($file->file_description); ?></td> <?php break;
 	case 'cat': ?> <td><?php echo (!is_null($cat)) ? ('<a href="'.$cat->GetEditUrl().'">'.esc_html($file->file_category_name).'</a>') : '-'; ?></td> <?php break;
-	case 'perm': ?> <td><?php echo empty($user_roles) ? ("<i>".__('Everyone',WPFB)."</i>") : join(', ', WPFB_Output::RoleNames($user_roles)) ?></td> <?php break;
+	case 'perm': ?> <td><?php echo WPFB_Output::RoleNames($user_roles,true) ?></td> <?php break;
 	case 'uploader': ?> <td><?php echo (empty($file->file_added_by) || !($usr = get_userdata($file->file_added_by))) ? '-' : esc_html($usr->user_login) ?></td> <?php break;
 	case 'hits': ?> <td class='num'><?php echo $file->file_hits; ?></td> <?php break;
 	case 'lastdl': ?> <td><?php echo ( (!empty($file->file_last_dl_time) && $file->file_last_dl_time > 0) ? mysql2date(get_option('date_format'), $file->file_last_dl_time) : '-') ?></td> <?php break;

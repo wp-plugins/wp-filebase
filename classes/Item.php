@@ -210,7 +210,7 @@ class WPFB_Item {
 		if($rel) {
 			$url = substr($url, strlen(home_url()));
 			if($url{0} == '?') $url = 'index.php'.$url;
-			else $url = substr($url, 0); // remove trailing slash!
+			else $url = substr($url, 0); // remove trailing slash! TODO?!
 		}
 		return $url;
 	}
@@ -331,7 +331,7 @@ class WPFB_Item {
 	
 	function ChangeCategoryOrName($new_cat_id, $new_name=null, $add_existing=false, $overwrite=false)
 	{
-		// 1. apply new values
+		// 1. apply new values (inherit permissions if nothing (Everyone) set!)
 		// 2. check for name collision and rename
 		// 3. move stuff
 		// 4. notify parents
@@ -357,12 +357,14 @@ class WPFB_Item {
 			$this->file_category = $new_cat_id;
 			$this->file_name = $new_name;
 			$this->file_category_name = ($new_cat_id==0) ? '' : $new_cat->GetTitle();
-			if($new_cat_id != 0 && count($this->GetUserRoles()) == 0) // files inherit user roles
-				$this->SetUserRoles($new_cat->GetUserRoles());
 		} else {
 			$this->cat_parent = $new_cat_id;
 			$this->cat_folder = $new_name;
 		}
+		
+		// inherit user roles
+		if(count($this->GetUserRoles()) == 0) 
+			$this->SetUserRoles(($new_cat_id != 0) ? $new_cat->GetUserRoles() : WPFB_Core::GetOpt('default_roles'));
 		
 		// flush cache
 		$this->last_parent_id = -1; 
@@ -384,7 +386,7 @@ class WPFB_Item {
 					}
 				} else {
 					// rename item if filename collision
-					while(@file_exists($new_path)) {
+					while(@file_exists($new_path) || !is_null($ex_file = WPFB_File::GetByPath($new_path_rel))) {
 						$i++;	
 						if($this->is_file) {
 							$p = strrpos($name, '.');

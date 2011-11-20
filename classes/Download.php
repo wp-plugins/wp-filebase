@@ -186,6 +186,7 @@ function GetFileType($name)
 		case 'hpp':
 		case 'strings': /*since 0.2.0*/
 		case 'm': /*since 0.2.0*/
+		case 'log':
 		case 'txt':		return 'text/plain';
 		case 'rtx':		return 'text/richtext';
 		case 'rtf':		return 'text/rtf';
@@ -212,6 +213,31 @@ function GetFileType($name)
 		case 'wvx':		return 'video/x-ms-wvx';
 		case 'flv':		return 'video/x-flv';
 		case 'ice':		return 'x-conference/x-cooltalk';
+		
+		// ms office stuff http://technet.microsoft.com/en-us/library/ee309278%28office.12%29.aspx
+		case 'docm':	return 'application/vnd.ms-word.document.macroEnabled.12';
+		case 'dotx':	return 'application/vnd.openxmlformats-officedocument.wordprocessingml.template';
+		case 'dotm':	return 'application/vnd.ms-word.template.macroEnabled.12';		
+		case 'xlsx':	return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+		case 'xlsm':	return 'application/vnd.ms-excel.sheet.macroEnabled.12';
+		case 'xltx':	return 'application/vnd.openxmlformats-officedocument.spreadsheetml.template';
+		case 'xltm':	return 'application/vnd.ms-excel.template.macroEnabled.12';
+		case 'xlsb':	return 'application/vnd.ms-excel.sheet.binary.macroEnabled.12';
+		case 'xlam':	return 'application/vnd.ms-excel.addin.macroEnabled.12';
+		case 'pptx':	return 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+		case 'pptm':	return 'application/vnd.ms-powerpoint.presentation.macroEnabled.12';
+		case 'ppsx':	return 'application/vnd.openxmlformats-officedocument.presentationml.slideshow';
+		case 'ppsm':	return 'application/vnd.ms-powerpoint.slideshow.macroEnabled.12';
+		case 'potx':	return 'application/vnd.openxmlformats-officedocument.presentationml.template';		
+		case 'potm':	return 'application/vnd.ms-powerpoint.template.macroEnabled.12';
+		case 'ppam':	return 'application/vnd.ms-powerpoint.addin.macroEnabled.12';
+		case 'sldx':	return 'application/vnd.openxmlformats-officedocument.presentationml.slide';		
+		case 'sldm':	return 'application/vnd.ms-powerpoint.slide.macroEnabled.12';		
+		case 'one':
+		case 'onetoc2':
+		case 'onetmp':
+		case 'onepkg':	return 'application/onenote';
+		case 'thmx':	return 'application/vnd.ms-officetheme';
 		
 		default:		return 'application/octet-stream';
 	}
@@ -451,13 +477,12 @@ function SendFile($file_path, $args=array())
 	return true;
 }
 
-static function SideloadFile($url, $dest_path)
+static function SideloadFile($url, $dest_path, $progress_bar=null)
 {
-	$rh = @fopen($url, 'rb');
+	$rh = @fopen($url, 'rb'); // read binary
 	if($rh === false)
 		return array('error' => sprintf('Could not open URL %s!', $url));
-		
-	$fh = @fopen($dest_path, 'wb');
+	$fh = @fopen($dest_path, 'wb'); // write binary
 	if($fh === false) {
 		@fclose($rh);
 		return array('error' => sprintf('Could not create file %s!', $dest_path));
@@ -465,12 +490,13 @@ static function SideloadFile($url, $dest_path)
 	
 	$size = 0;
 	while (!feof($rh)) {
-	  if(($s=fwrite($fh, fread($rh, 8192))) === false) {
+	  if(($s=fwrite($fh, fread($rh, 524288))) === false) {
 		@fclose($rh);
 		@fclose($fh);
 		return array('error' => sprintf('Writing to file %s failed!', $dest_path));	
 	  }
 	  $size += $s;
+	  if($progress_bar!=null) $progress_bar->set($size);
 	}
 	fclose($rh);
 	fclose($fh);
@@ -478,19 +504,5 @@ static function SideloadFile($url, $dest_path)
 	if($size <= 0) return array('error' => 'File is empty.');
 	
 	return array('error' => false, 'size' => $size);
-	/*	
-	$url = parse_url($url);
-	
-	$headers = 
-	"GET {$url['path']}{$url['query_string']} HTTP/1.1\r\n".
-	"Host: {$url['host']}\r\n".
-	"User-Agent: ". WPFB_PLUGIN_NAME." ".WPFB_VERSION."\r\n".
-	"Accept: *"."/*\r\n".
-	"Connection: close\r\n".
-	"Referer: ".home_url()."\r\n".
-	"\r\n";
-
-	echo $headers;
-	exit;*/	
 }
 }

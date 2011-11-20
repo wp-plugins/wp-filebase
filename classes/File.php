@@ -206,9 +206,9 @@ class WPFB_File extends WPFB_Item {
 		$tmp_src = $del_src;
 		if(!$src_set)
 		{
-			if($this->IsLocal())
+			if(file_exists($this->GetLocalPath()))
 				$src_image = $this->GetLocalPath();
-			else {
+			elseif($this->IsRemote()) {
 				// if remote file, download it and use as source
 				require_once(ABSPATH . 'wp-admin/includes/file.php');			
 				$src_image = wpfb_call('Admin', 'SideloadFile', $this->file_remote_uri);
@@ -216,16 +216,14 @@ class WPFB_File extends WPFB_Item {
 			}
 		}
 		
-		if(!file_exists($src_image) || @filesize($src_image) < 3)
-		{
+		if(!file_exists($src_image) || @filesize($src_image) < 3) {
 			if($tmp_src) @unlink($src_image);
 			return;
 		}
 		
 		$ext = trim($this->GetExtension(), '.');
 	
-		if($ext != 'bmp' && @getimagesize($src_image) === false) // check if valid image
-		{
+		if($ext != 'bmp' && @getimagesize($src_image) === false) { // check if valid image
 			if($tmp_src) @unlink($src_image);
 			return;
 		}
@@ -235,8 +233,7 @@ class WPFB_File extends WPFB_Item {
 		$thumb = null;
 		$thumb_size = (int)WPFB_Core::GetOpt('thumbnail_size');
 		
-		if(!function_exists('wp_create_thumbnail'))
-		{
+		if(!function_exists('wp_create_thumbnail')) {
 			require_once(ABSPATH . 'wp-admin/includes/image.php');
 			if(!function_exists('wp_create_thumbnail'))
 			{
@@ -296,7 +293,7 @@ class WPFB_File extends WPFB_Item {
 
 	function GetPostUrl() { return empty($this->file_post_id) ? '' : WPFB_Core::GetPostUrl($this->file_post_id).'#wpfb-file-'.$this->file_id; }
 	function GetFormattedSize() { return wpfb_call('Output', 'FormatFilesize', $this->file_size); }
-	function GetFormattedDate() { return mysql2date(get_option('date_format'), $this->file_date); }
+	function GetFormattedDate() { return ($this->file_date == '0000-01-00 00:00:00') ? null : mysql2date(get_option('date_format'), $this->file_date); }
 	function GetModifiedTime($gmt=false) { return mysql2date('U', $this->file_date) + ($gmt ? ( get_option( 'gmt_offset' ) * 3600 ) : 0); }
 	
 	// only deletes file/thumbnail on FS, keeping DB entry
@@ -531,11 +528,12 @@ class WPFB_File extends WPFB_Item {
 		if(!$this->locked) $this->DBSave();
 	}
 	
-	function SetModifiedTime($mysql_date)
+	function SetModifiedTime($mysql_date_or_timestamp)
 	{
-		$this->file_date = $mysql_date;
+		if(is_numeric($mysql_date_or_timestamp)) $mysql_date_or_timestamp = gmdate('Y-m-d H:i:s', $mysql_date_or_timestamp);
+		$this->file_date = $mysql_date_or_timestamp;
 		if($this->IsLocal()) {
-			if(!touch($this->GetLocalPath(), mysql2date('U', $mysql_date)+0))
+			if(!touch($this->GetLocalPath(), mysql2date('U', $this->file_date)+0))
 				return false;
 		}
 		if(!$this->locked) $this->DBSave();

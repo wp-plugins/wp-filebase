@@ -40,6 +40,7 @@ class progressbar
 		$this->bgcolor = $bgcolor;
 		$this->inner_styleclass = $inner_styleclass;
 		$this->outer_styleclass = $outer_styleclass;
+		$this->epsilon = $this->steps / $this->width;
 		
 		$progress_bars++;
 	}
@@ -80,8 +81,8 @@ class progressbar
 	{
 		if($v < 0) $v = 0;
 		else if($v >= $this->steps) $v = $this->steps;
-		
-		if($this->value != $v)
+
+		if(abs($this->value - $v) > $this->epsilon || $v == $this->steps)
 		{
 			$this->value = $v;
 			self::execute_js(self::$js_prefix.'s('.$this->id.','.$v.');');

@@ -33,9 +33,9 @@ static function InitClass()
 	
 	// register treeview stuff
 	//wp_register_script('jquery-cookie', WPFB_PLUGIN_URI.'extras/jquery/jquery.cookie.js', array('jquery'));
-	wp_register_script('jquery-treeview', WPFB_PLUGIN_URI.'extras/jquery/treeview/jquery.treeview.js', array('jquery'));
-	wp_register_script('jquery-treeview-edit', WPFB_PLUGIN_URI.'extras/jquery/treeview/jquery.treeview.edit.js', array('jquery-treeview'));
-	wp_register_script('jquery-treeview-async', WPFB_PLUGIN_URI.'extras/jquery/treeview/jquery.treeview.async.js', array('jquery-treeview-edit'));
+	wp_register_script('jquery-treeview', WPFB_PLUGIN_URI.'extras/jquery/treeview/jquery.treeview.js', array('jquery'), WPFB_VERSION);
+	wp_register_script('jquery-treeview-edit', WPFB_PLUGIN_URI.'extras/jquery/treeview/jquery.treeview.edit.js', array('jquery-treeview'), WPFB_VERSION);
+	wp_register_script('jquery-treeview-async', WPFB_PLUGIN_URI.'extras/jquery/treeview/jquery.treeview.async.js', array('jquery-treeview-edit'), WPFB_VERSION);
 	wp_register_style('jquery-treeview', WPFB_PLUGIN_URI.'extras/jquery/treeview/jquery.treeview.css', array(), WPFB_VERSION);
 		
 	
@@ -88,6 +88,9 @@ static function ParseQuery(&$query)
 	global $wp_query;
 	if (!empty($wp_query->query_vars['s']) && self::GetOpt('search_integration'))
 		wpfb_loadclass('Search');
+	
+	if($wp_query->queried_object_id > 0 && $wp_query->queried_object_id == WPFB_Core::GetOpt('file_browser_post_id'))
+		wpfb_call('Output', 'InitFileTreeView'); // this loads the scripts required for file trees (this fixes the wp_print_scripts bug caused by other plugins, but only for the file browser page)
 	
 	add_filter('the_excerpt',	array(__CLASS__, 'SearchExcerptFilter'), 10); // must be lower than 11 (before do_shortcode) and after wpautop (>9)
 }
@@ -260,8 +263,9 @@ function ContentFilter($content)
     return $content;
 }
 
-static function ShortCode($atts) {	
-	return wpfb_call('Output', 'ProcessShortCode', shortcode_atts(array(
+static function ShortCode($atts, $content=null) {
+	wpfb_loadclass('Output');
+	return WPFB_Output::ProcessShortCode(shortcode_atts(array(
 		'tag' => 'list', // file, fileurl, attachments
 		'id' => -1,
 		'path' => null,
@@ -270,7 +274,8 @@ static function ShortCode($atts) {
 		'showcats' => false,
 		'num' => 0,
 		'pagenav' => 1,
-	), $atts));
+		'linktext' => null
+	), $atts), $content);
 }
 
 
@@ -320,8 +325,7 @@ static function UploadDir() {
 	static $upload_path = '';
 	if(empty($upload_path)) { // cache
 		$upload_path = trim(WPFB_Core::GetOpt('upload_path'));
-		if (empty($upload_path))
-			$upload_path = WP_CONTENT_DIR . '/uploads/filebase';
+		if (empty($upload_path)) $upload_path = 'wp-content/uploads/filebase';
 		$upload_path = path_join(ABSPATH, $upload_path);
 	}
 	return $upload_path;

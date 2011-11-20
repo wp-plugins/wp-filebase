@@ -19,7 +19,8 @@ function wpfb_editor_plugin_scripts() {
 	//wp_enqueue_script('tiny-mce-popup', site_url().'/'.WPINC.'/js/tinymce/tiny_mce_popup.js');
 	wp_enqueue_script('jquery');
 	wp_enqueue_script('jquery-treeview-async');
-	wp_enqueue_script( 'postbox' );
+	wp_enqueue_script('postbox');
+	wp_enqueue_script('wpfb-editor-plugin', WPFB_PLUGIN_URI."js/editor-plugin.js", array(), WPFB_VERSION);
 }
 add_action('admin_enqueue_scripts', 'wpfb_editor_plugin_scripts');
 	
@@ -35,7 +36,7 @@ $file = ($file_id > 0) ? WPFB_File::GetFile($file_id) : null;
 $manage_attachments = !empty($_REQUEST['manage_attachments']);
 
 switch($action){
-case 'rmfile':
+case 'detachfile':
 	if($file && $file->file_post_id == $post_id) $file->SetPostId(0);
 	$file = null;
 	break;
@@ -136,57 +137,17 @@ do_action('admin_head');
 
 var userSettings = {'url':'<?php echo SITECOOKIEPATH; ?>','uid':'<?php if ( ! isset($current_user) ) $current_user = wp_get_current_user(); echo $current_user->ID; ?>','time':'<?php echo time(); ?>'};
 var ajaxurl = '<?php echo admin_url('admin-ajax.php'); ?>', pagenow = 'wpfilebase-popup', adminpage = 'wpfilebase-popup', isRtl = <?php echo (int) is_rtl(); ?>;
+var wpfbAjax = '<?php echo WPFB_PLUGIN_URI."wpfb-ajax.php" ?>';
 var usePathTags = <?php echo (int)WPFB_Core::GetOpt('use_path_tags') ?>;
 var yesImgUrl = '<?php echo admin_url( 'images/yes.png' ) ?>';
+var manageAttachments = <?php echo (int)$manage_attachments ?>;
+var autoAttachFiles = <?php echo (int)WPFB_Core::GetOpt('auto_attach_files') ?>;
 
 var theEditor;
 var currentTab = '';
 var selectedCats = [];
 var includeAllCats = false;
 
-jQuery(document).ready( function()
-{
-	jQuery(".media-item a").hide();
-	jQuery(".media-item").hover(
-		function(){jQuery("a",this).show();}, 
-		function(){jQuery("a",this).hide();}
-	);
-	
-<?php if(!$manage_attachments) { ?>
-	var win = window.dialogArguments || opener || parent || top;
-	if(win && typeof(win.tinymce) != 'undefined' && win.tinymce) theEditor = win.tinymce.EditorManager.activeEditor;
-	else theEditor = null;
-
-	tabclick(jQuery("a", jQuery('#sidemenu')).get(0));
-
-	<?php if(!WPFB_Core::GetOpt('auto_attach_files')) { ?>
-	if (theEditor && theEditor.getContent().search(/\[wpfilebase\s+tag\s*=\s*['"]attachments['"]/) != -1)
-		jQuery('#no-auto-attach-note').hide(); 	// no notice if attachments tag is in
-<?php }
-} ?>
-	refreshTrees();
-});
-
-function getTreeViewModel(data) {
-	if(typeof data != 'object') data = {};
-	data.action = "tree";
-	return { url: "<?php echo WPFB_PLUGIN_URI."wpfb-ajax.php" ?>",
-		ajax:{data:data,type:"post"},
-		animated: "medium"
-	};
-}
-
-function refreshTrees() {
-	var model = getTreeViewModel({type:"fileselect",onselect:"selectFile(%d,'%s')",exclude_attached:true});
-	jQuery("#attachbrowser").empty().treeview(model);
-	
-<?php if(!$manage_attachments) { ?>
-	model.ajax.data.exclude_attached = false;
-	jQuery("#filebrowser").empty().treeview(model);
-	model = getTreeViewModel({type:"catselect",onselect:"selectCat(%d,'%s')", cat_id_fmt:'catsel-cat-%d'});
-	jQuery("#catbrowser").empty().treeview(model);
-<?php } ?>
-}
 
 
 
@@ -195,9 +156,9 @@ function selectFile(id, name)
 	var theTag = {"tag":currentTab, <?php echo WPFB_Core::GetOpt('use_path_tags') ? '"path": getFilePath(id)' : '"id":id'; ?>};
 	var el = jQuery('span.file','#wpfb-file-'+id).first();
 	
-	if(<?php echo $manage_attachments?'true':'false' ?> || currentTab == 'attach') {
+	if(manageAttachments || currentTab == 'attach') {
 		jQuery.ajax({
-			url: "<?php echo WPFB_PLUGIN_URI."wpfb-ajax.php" ?>",
+			url: wpfbAjax,
 			data: {
 				action:"attach-file",
 				post_id:<?php echo $post_id ?>,
@@ -205,7 +166,7 @@ function selectFile(id, name)
 			},
 			async: false});
 		//delayedReload();
-		el.css('background-image', 'url(<?php echo admin_url('images/yes.png') ?>)');
+		el.css('background-image', 'url('+yesImgUrl+')');
 		return;
 	} else if(currentTab == 'fileurl') {
 		var linkText = prompt('<?php _e('Enter link text:', WPFB) ?>', name);
@@ -228,27 +189,8 @@ function insBrowserTag()
 	return insertTag(tag);
 }
 
-function insUploadFormTag()
-{
-	var tag = {tag:currentTab};
-	var root = parseInt(jQuery('#uploadform-cat').val());
-	if(root != 0) {
-		if(usePathTags && root != -1)
-			tag.path = getCatPath(root);
-		else
-			tag.id = root;
-	}
-
-	if(jQuery('#list-show-cats:checked').val())
-		tag.overwrite = 1;
-	return insertTag(tag);	
-}
-
 //]]>
 </script>
-
-<script type='text/javascript' src='<?php echo WPFB_PLUGIN_URI."js/editor-plugin.js" ?>'></script>
-
 
 </head>
 <body id="media-upload">
@@ -283,7 +225,7 @@ if($action =='addfile' || $action =='updatefile')
 	if(!wp_verify_nonce($_POST['wpfb-file-nonce'],$nonce_action) || !check_admin_referer($nonce_action,'wpfb-file-nonce'))
 		wp_die(__('Cheatin&#8217; uh?'));
 	
-	$result = WPFB_Admin::InsertFile(array_merge($_POST, $_FILES));
+	$result = WPFB_Admin::InsertFile(stripslashes_deep(array_merge($_POST, $_FILES)));
 	if(isset($result['error']) && $result['error']) {
 		?><div id="message" class="updated fade"><p><?php echo $result['error']; ?></p></div><?php
 		$file = new WPFB_File($_POST);
@@ -310,7 +252,7 @@ if($action != 'editfile' && (!empty($post_attachments) || $manage_attachments)) 
 			<?php if(!empty($pa->file_thumbnail)) { ?><img class="pinkynail toggle" src="<?php echo $pa->GetIconUrl(); ?>" alt="" style="margin-top: 3px; display: block;" /><?php } ?>
 
 			<a class='toggle describe-toggle-on' href="<?php echo add_query_arg(array('file_id'=>$pa->file_id,'action'=>'delfile')) ?>" title="<?php _e('Delete') ?>"><img style="display: inline;" src="<?php echo WPFB_PLUGIN_URI.'extras/jquery/contextmenu/delete_icon.gif'; ?>" /></a>
-			<a class='toggle describe-toggle-on' href="<?php echo add_query_arg(array('file_id'=>$pa->file_id,'action'=>'rmfile')) ?>" title="<?php _e('Remove') ?>"><img src="<?php echo WPFB_PLUGIN_URI.'extras/jquery/contextmenu/page_white_delete.png'; ?>" /></a>
+			<a class='toggle describe-toggle-on' href="<?php echo add_query_arg(array('file_id'=>$pa->file_id,'action'=>'detachfile')) ?>" title="<?php _e('Remove') ?>"><img src="<?php echo WPFB_PLUGIN_URI.'extras/jquery/contextmenu/page_white_delete.png'; ?>" /></a>
 			<a class='toggle describe-toggle-on' href="<?php echo add_query_arg(array('file_id'=>$pa->file_id,'action'=>'editfile')) ?>" title="<?php _e('Edit') ?>"><img src="<?php echo WPFB_PLUGIN_URI.'extras/jquery/contextmenu/page_white_edit.png'; ?>" /></a>
 
 			<div class='filename'>

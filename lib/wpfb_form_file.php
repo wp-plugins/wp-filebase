@@ -9,8 +9,6 @@ $update = $multi_edit ? !empty($item) : (isset($item) && is_object($item) && !em
 $exform = $update || (!$in_editor && !empty($exform));
 
 
-
-
 	
 if(empty($item)) $file = new WPFB_File();
 else $file = &$item;
@@ -35,8 +33,10 @@ if($update) $nonce_action .= ($multi_edit ? $item_ids : $file->file_id);
 if($in_editor) $nonce_action .= "-editor";
 
 $file_category = ($update || empty($_REQUEST['file_category'])) ? $file->file_category : $_REQUEST['file_category'];
-
 ?>
+
+<?php wpfb_call('SWFUpload','Scripts'); ?>
+			
 <form enctype="multipart/form-data" name="<?php echo $action ?>" id="<?php echo $action ?>" method="post" action="<?php echo $form_url ?>" class="validate">
 
 <?php if($in_editor && !$in_widget) { ?><h3 class="media-title"><?php echo $title ?></h3>
@@ -52,7 +52,7 @@ function WPFB_switchFileUpload(i)
 	var as = jQuery('a', jQuery('#wpfilebase-upload-menu')).toArray();
 	jQuery(as[i]).addClass('current');
 	jQuery(as[!i+0]).removeClass('current');
-	jQuery('#file_is_remote').val(i);
+	jQuery('#file_is_remote').val(i); //upd val
 	return false;
 }
 //]]>
@@ -72,17 +72,26 @@ function WPFB_switchFileUpload(i)
 		</div></th>		
 		<td colspan="3" valign="top"><div id="wpfilebase-upload-tabs">
 			<div id="file-upload-wrap" <?php echo ($file->IsRemote() ? 'class="hidden"' : ''); ?>>
-				<label for="file_upload"><?php _e('Choose File', WPFB) ?></label>
-				<input type="file" name="file_upload" id="file_upload" /><br />
-				<?php printf(str_replace('%d%s','%s',__('Maximum upload file size: %d%s'/*def*/)), WPFB_Output::FormatFilesize(WPFB_Core::GetMaxUlSize())) ?> <b>&nbsp;&nbsp;<a href="#" onclick="alert(this.title); return false;" title="<?php printf(__('Ask your webhoster to increase this limit, it is set in %s.',WPFB), 'php.ini'); ?>">?</a></b>
-				<?php if($update) { echo '<br /><b><a href="'.$file->GetUrl().'">' . $file->file_name . '</a></b> (' . $file->GetFormattedSize() . ', '.wpfb_call('Download', 'GetFileType', $file->file_name).')'; } ?>
+			 	<div id="flash-upload-ui">
+					<?php wpfb_call('SWFUpload','Display',$form_url); ?>
+				</div>
+			 	<div id="html-upload-ui">
+					<label for="file_upload"><?php _e('Choose File', WPFB) ?></label>
+					<input type="file" name="file_upload" id="file_upload" /><br />
+										<?php printf(str_replace('%d%s','%s',__('Maximum upload file size: %d%s'/*def*/)), WPFB_Output::FormatFilesize(WPFB_Core::GetMaxUlSize())) ?> <b>&nbsp;&nbsp;<a href="#" onclick="alert(this.title); return false;" title="<?php printf(__('Ask your webhoster to increase this limit, it is set in %s.',WPFB), 'php.ini'); ?>">?</a></b>
+					<p class="upload-html-bypass hide-if-no-js"><?php _e('You are using the Browser uploader.'); 
+					printf( __('Try the <a href="%s">Flash uploader</a> instead.'), esc_url(add_query_arg('flash', 1)) );
+					?></p>
+				</div>
+				<?php if($update) { echo '<div><b><a href="'.$file->GetUrl().'">' . $file->file_name . '</a></b> (' . $file->GetFormattedSize() . ', '.wpfb_call('Download', 'GetFileType', $file->file_name).')</div>'; } ?>
 			</div>
 			<div id="file-remote-wrap" <?php echo ($file->IsRemote() ? '' : 'class="hidden"'); ?>>
 				<label for="file_remote_uri"><?php _e('File URL') ?></label>
 				<input name="file_remote_uri" id="file_remote_uri" type="text" value="<?php echo esc_attr($file->file_remote_uri); ?>" style="width:98%" /><br />
 				<fieldset><legend class="hidden"></legend>
-					<label><input type="radio" name="file_remote_redirect" value="1" <?php checked($file->IsRemote()); ?>/><?php _e('Redirect download to URL', WPFB) ?></label>
-					<label><input type="radio" name="file_remote_redirect" value="0" <?php checked($file->IsLocal()); ?>/><?php _e('Copy file into Filebase (sideload)', WPFB) ?></label>
+					<label><input type="radio" name="file_remote_redirect" value="1" <?php checked($file->IsRemote()); ?> onchange="jQuery('#wpfilebase-remote-scan-wrap').show();" /><?php _e('Redirect download to URL', WPFB) ?></label>
+					<label><input type="radio" name="file_remote_redirect" value="0" <?php checked($file->IsLocal()); ?>  onchange="jQuery('#wpfilebase-remote-scan-wrap').hide();" /><?php _e('Copy file into Filebase (sideload)', WPFB) ?></label>
+					<span id="wpfilebase-remote-scan-wrap" class="hidden"><br /><label><input type="checkbox" name="file_remote_scan" value="1" checked="checked" /><?php _e('Scan remote file (disable for large files)', WPFB) ?></label></span>
 				</fieldset>
 			</div>
 		</div></td>
@@ -109,7 +118,7 @@ function WPFB_switchFileUpload(i)
 	</tr>
 	<tr class="form-field">
 		<th scope="row" valign="top"><label for="file_author"><?php _e('Author') ?></label></th>
-		<td><input name="file_author" id="file_author" type="text" value="<?php echo esc_attr($update ? $file->file_author : WPFB_Core::GetOpt('default_author')); ?>" size="<?php echo ($in_editor||$in_widget) ? 20 : 40 ?>" /></td>
+		<td><input name="file_author" id="file_author" type="text" value="<?php echo esc_attr(!empty($file->file_author) ? $file->file_author : WPFB_Core::GetOpt('default_author')); ?>" size="<?php echo ($in_editor||$in_widget) ? 20 : 40 ?>" /></td>
 		<?php if($exform) { ?>
 		<th scope="row" valign="top"><label for="file_date"><?php _e('Date') ?></label></th>
 		<td><?php
@@ -125,7 +134,7 @@ function WPFB_switchFileUpload(i)
 	<tr class="form-field">
 		<?php } ?>
 		<th scope="row" valign="top"><label for="file_category"><?php _e('Category') ?></label></th>
-		<td><select name="file_category" id="file_category" class="postform"><?php echo WPFB_Output::CatSelTree(array('selected'=>$file_category)) ?></select></td>
+		<td><select name="file_category" id="file_category" class="postform" onchange="WPFB_formCategoryChanged();"><?php echo WPFB_Output::CatSelTree(array('selected'=>$file_category)) ?></select></td>
 		<?php if($exform) { ?>
 		<th scope="row" valign="top"><label for="file_license"><?php _e('License', WPFB) ?></label></th>
 		<td><select name="file_license" id="file_license" class="postform"><?php echo  WPFB_Admin::MakeFormOptsList('licenses', $file ? $file->file_license : null, true) ?></select></td>
@@ -174,21 +183,23 @@ function WPFB_switchFileUpload(i)
 	</tr>
 	<?php if($exform) { ?>
 	<tr>
-		<th scope="row" valign="top"></th>
-		<td><input type="checkbox" name="file_offline" value="1" <?php checked('1', $file->file_offline); ?>/> <label for="file_offline"><?php _e('Offline', WPFB) ?></label></td>
-		
-		<th scope="row" valign="top"><label for="file_members_only"><?php _e('For members only', WPFB) ?></label>
-		<input type="checkbox" name="file_members_only" value="1" <?php checked(true, $file_members_only) ?> onclick="WPFB_CheckBoxShowHide(this, 'file_user_roles')" /></th>
+		<th scope="row" valign="top"><?php _e('Access Permission',WPFB) ?></th>
 		<td>
-			<?php _e('Limit file access by selecting one or more user roles.')?><br />
-			<!-- <label for="file_user_roles"<?php if(!$file_members_only) { echo ' class="hidden"'; } ?>><?php _e('Roles', WPFB) ?></label> -->
-			
-			<div id="file_user_roles" class="<?php if(!$file_members_only) { echo 'hidden'; } ?>"><?php WPFB_Admin::RolesCheckList('file_user_roles', $user_roles) ?></div>
-			<!--  <select name="file_user_roles[]" id="file_user_roles" size="40" multiple="multiple" style="height: 80px;" class="<?php if(!$file_members_only) { echo 'hidden'; } ?>">
-			<?php //WPFB_Output::RolesDropDown($user_roles);
-			?></select><br /> -->
-			<label for="file_user_roles" class="<?php if(!$file_members_only) { echo 'hidden'; } ?>"><?php _e("Select multiple roles by holding the CTRL/COMMAND key.")?></label>
+		<?php if($update) { ?><input type="hidden" name="file_perm_explicit" value="1" />
+		<?php } else { ?>		
+			<label><input type="radio" name="file_perm_explicit" value="0" <?php checked(true); ?> onchange="jQuery('#file_perm_wrap').hide()" /><?php _e('Inherit Permissions', WPFB) ?> (<span id="file_inherited_permissions_label"></span>)</label>
+			<br />
+			<label><input type="radio" name="file_perm_explicit" value="1" onchange="jQuery('#file_perm_wrap').show()" /><?php _e('Explicitly set permissions', WPFB) ?></label>
+		<?php } ?>
+			<div id="file_perm_wrap" <?php if(!$update) { echo 'class="hidden"'; } ?>>
+				<?php _e('Limit file access by selecting one or more user roles.')?>
+				<div id="file_user_roles"><?php WPFB_Admin::RolesCheckList('file_user_roles', $user_roles) ?></div>
+			</div>
 		</td>
+		
+		<th scope="row" valign="top"></th>
+		<td><input type="checkbox" name="file_offline" id="file_offline" value="1" <?php checked('1', $file->file_offline); ?>/> <label for="file_offline"><?php _e('Offline', WPFB) ?></label></td>
+		
 	</tr>
 	<?php } ?>
 	
@@ -203,7 +214,7 @@ function WPFB_switchFileUpload(i)
 	</tr> <?php
 	} ?>
 </table>
-<p class="submit"><input type="submit" class="button-primary" name="submit-btn" value="<?php echo $title ?>" <?php if(false && !$in_editor) { ?>onclick="this.form.submit(); return false;"<?php } ?>/></p>
+<p class="submit"><input type="submit" class="button-primary" id="file-submit" name="submit-btn" value="<?php echo $update?__('Update'):$title; ?>" <?php if(false && !$in_editor) { ?>onclick="this.form.submit(); return false;"<?php } ?>/></p>
 
 <?php
 if($update)

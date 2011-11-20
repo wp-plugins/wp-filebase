@@ -50,7 +50,8 @@ class WPFB_GetID3 {
 		$sql = "SELECT value".($get_keywords?", keywords":"")." FROM $wpdb->wpfilebase_files_id3 WHERE file_id = " . $file->GetId();
 		if($get_keywords) {   // TODO: cache not updated if get_keywords
 			$info = $wpdb->get_row($sql);
-			$info->value = unserialize(base64_decode($info->value));
+			if(!empty($info))
+				$info->value = unserialize(base64_decode($info->value));
 			return $info;
 		}
 		if(is_null($info = $wpdb->get_var($sql)))
@@ -70,7 +71,7 @@ class WPFB_GetID3 {
 	{
 		static $skip_keys = array('getid3_version','streams','seektable','streaminfo',
 		'comments_raw','encoding', 'flags', 'image_data','toc','lame', 'filename', 'filesize', 'md5_file',
-		'data', 'warning', 'error', 'filenamepath', 'filepath','popm','email','priv','ownerid','central_directory','raw');
+		'data', 'warning', 'error', 'filenamepath', 'filepath','popm','email','priv','ownerid','central_directory','raw','apic');
 
 		foreach($info as $key => &$val)
 		{

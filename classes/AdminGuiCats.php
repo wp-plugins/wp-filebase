@@ -148,7 +148,7 @@ static function Display()
 				<td class="num"><?php echo "<a href='".admin_url("admin.php?page=wpfilebase_files&file_category=".$cat->GetId())."'>$cat->cat_num_files</a> / $cat->cat_num_files_total" ?></td>
 				<td><?php echo $parent_cat?('<a href="'.$parent_cat->GetEditUrl().'">'.esc_html($parent_cat->cat_name).'</a>'):'-' ?></td>
 				<td><code><?php echo esc_html($cat->cat_path) ?></code></td>
-				<td><?php echo empty($user_roles) ? ("<i>".__('Everyone',WPFB)."</i>") : join(', ', WPFB_Output::RoleNames($user_roles)) ?></td>
+				<td><?php echo WPFB_Output::RoleNames($user_roles,true) ?></td>
 			</tr>
 			<?php } ?>
 			</tbody>

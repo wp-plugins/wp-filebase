@@ -183,7 +183,7 @@ switch ( $action = $_REQUEST['action'] ) {
 		exit;
 		
 	case 'catinfo':
-			wpfb_loadclass('Category');
+			wpfb_loadclass('Category','Output');
 			if(/*empty($_REQUEST['url']) && */(empty($_REQUEST['id']) || !is_numeric($_REQUEST['id']))) die('-1');
 			$cat = WPFB_Category::GetCat((int)$_REQUEST['id']);
 		
@@ -191,7 +191,9 @@ switch ( $action = $_REQUEST['action'] ) {
 				wpfb_print_json(array(
 						'id' => $cat->GetId(),
 						'url' => $cat->GetUrl(),
-						'path' => $cat->GetLocalPathRel()
+						'path' => $cat->GetLocalPathRel(),
+						'roles' => $cat->GetUserRoles(),
+						'roles_str' => WPFB_Output::RoleNames($cat->GetUserRoles(), true)
 				));
 			} else {
 				echo '-1';
