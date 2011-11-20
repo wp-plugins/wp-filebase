@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=wpfil
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, traffic, widget, filelist, list, thumb, thumbnail, attachment, attachments, category, categories, media, template, ftp, http, mp3, id3
 Requires at least: 3.1
 Tested up to: 3.2.1
-Stable tag: 0.2.9.6
+Stable tag: 0.2.9.7
 
 Adds a powerful downloads manager supporting file categories, download counter, widgets, sorted file lists and more to your WordPress blog.
 
@@ -103,6 +103,21 @@ Goto WP-Filebase Settings and disable Permalinks under "Download". Try to disabl
 4. The Editor Button to insert tags for filelists and download urls
 
 == Changelog ==
+
+= 0.2.9.7 =
+* Flash upload with progress bar
+* New Format for file link shortcodes (old ones still work of course)
+* Improved permission handling
+* Improved sideloading with progress bar
+* Switchable remote file scanning
+* Improved file upload form
+* Better category icon detection (`folder.jpg`)
+* New option *Disable Name Formatting*
+* Fixed automatic MP3 cover art extraction
+* Fixed dashboard file list not showing offline files
+* Fixed upload path bug
+* Minor bug fixes
+* File uploader is now called "owner"
 
 = 0.2.9.6 =
 * Updated getID3() to 1.9.1
