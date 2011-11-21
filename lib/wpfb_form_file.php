@@ -1,5 +1,5 @@
 <?php
-wpfb_loadclass('File', 'Output');
+wpfb_loadclass('File');
 
 $multi_edit = !empty($multi_edit);
 $in_widget = !empty($in_widget);

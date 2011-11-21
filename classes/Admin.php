@@ -933,7 +933,6 @@ static function Sync($hash_sync=false, $output=false)
 		if($output) self::DEcho('done!</p>');
 	}
 	
-	$progress_buffer = 0;
 	for($i = 0; $i < $num_new_files; $i++)
 	{
 		$fn = $new_files[$i];
@@ -946,11 +945,8 @@ static function Sync($hash_sync=false, $output=false)
 		else
 			$result['error'][] = $res['error'] . " (file $fn)";
 		
-		$progress_buffer++;
-		if($progress_buffer > 10) {
-			$progress_bar->step($progress_buffer);
-			$progress_buffer = 0;
-		}
+		if(!empty($progress_bar))
+			$progress_bar->step(1);
 	}
 	
 	if(!empty($progress_bar))
@@ -1163,6 +1159,7 @@ static function UninstallPlugin()
 
 static function PrintForm($name, $item=null, $vars=array())
 {
+	wpfb_loadclass('Output');
 	WPFB_Core::PrintJS(); /* only required for wpfbConf */
 	?>
 <script type="text/javascript">

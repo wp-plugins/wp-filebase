@@ -8,28 +8,23 @@ static function InitClass()
 	global $wp_query, $wpfb_post_url_cache;
 	$wpfb_post_url_cache = array();
 
-	WPFB_Core::LoadLang();
-	
-	// for Developers: New wp-filebase actions
-	add_action('wpfilebase_sync', array(__CLASS__, 'Sync'));
-	
-	//add_action('wp_head', array(__CLASS__, 'Header'));
-	add_action('wp_footer', array(__CLASS__, 'Footer'));
+	WPFB_Core::LoadLang();	
+
 	add_action('parse_query', array(__CLASS__, 'ParseQuery')); // search
+	add_action('wp_enqueue_scripts', array(__CLASS__, 'EnqueueScripts'));
+	add_action('wp_footer', array(__CLASS__, 'Footer'));	
+	add_action('generate_rewrite_rules', array(__CLASS__, 'GenRewriteRules'));
+	add_action('wp_dashboard_setup', array(__CLASS__, 'AdminDashboardSetup'));	
 	add_action(WPFB.'_cron', array(__CLASS__, 'Cron'));
+	add_action('wpfilebase_sync', array(__CLASS__, 'Sync')); // for Developers: New wp-filebase actions
+	
+	add_shortcode('wpfilebase', array(__CLASS__, 'ShortCode'));
 	
 	// for attachments and file browser
 	add_filter('the_content',	array(__CLASS__, 'ContentFilter'), 10); // must be lower than 11 (before do_shortcode) and after wpautop (>9)
-	add_shortcode('wpfilebase', array(__CLASS__, 'ShortCode'));
-	
-
-	// some misc filters & actions
-	//add_filter('query_vars', array(__CLASS__, 'QueryVarsFilter'));	
 	add_filter('ext2type', array(__CLASS__, 'Ext2TypeFilter'));
-	add_action('generate_rewrite_rules', array(__CLASS__, 'GenRewriteRules'));
-	
-	add_filter('get_attached_file', array(__CLASS__, 'GetAttachedFileFilter'));
 	add_filter('wp_get_attachment_url', array(__CLASS__, 'GetAttachmentUrlFilter'));
+	add_filter('get_attached_file', array(__CLASS__, 'GetAttachedFileFilter'));
 	
 	// register treeview stuff
 	//wp_register_script('jquery-cookie', WPFB_PLUGIN_URI.'extras/jquery/jquery.cookie.js', array('jquery'));
@@ -38,15 +33,17 @@ static function InitClass()
 	wp_register_script('jquery-treeview-async', WPFB_PLUGIN_URI.'extras/jquery/treeview/jquery.treeview.async.js', array('jquery-treeview-edit'), WPFB_VERSION);
 	wp_register_style('jquery-treeview', WPFB_PLUGIN_URI.'extras/jquery/treeview/jquery.treeview.css', array(), WPFB_VERSION);
 		
-	
+
 	wp_register_script(WPFB, WPFB_PLUGIN_URI.'js/common.js', array('jquery'), WPFB_VERSION); // cond loading (see Footer)
 	wp_enqueue_style(WPFB, WPFB_PLUGIN_URI.'wp-filebase_css.php', array(), WPFB_VERSION, 'all');
 	
+	// widgets
+	wp_register_sidebar_widget(WPFB_PLUGIN_NAME, WPFB_PLUGIN_NAME .' '. __('File list', WPFB), array(__CLASS__, 'FileWidget'), array('description' => __('Lists the latest or most popular files', WPFB)));
+	wp_register_sidebar_widget(WPFB_PLUGIN_NAME.'_cats', WPFB_PLUGIN_NAME.' ' . __('Category list', WPFB), array(__CLASS__, 'CatWidget'), array('description' => __('Simple listing of file categories', WPFB)));
+	//wp_register_sidebar_widget(WPFB_PLUGIN_NAME.'_upload', WPFB_PLUGIN_NAME.' ' . __('File upload', WPFB), array(__CLASS__, 'UploadWidget'), array('description' => __('Supplies a form for uploading files', WPFB)));
 	
 	if((is_admin() && !empty($_GET['page']) && strpos($_GET['page'], 'wpfilebase_') !== false) || defined('WPFB_EDITOR_PLUGIN'))
-	{
 		wpfb_loadclass('Admin');
-	}
 	
 	// live admin
 	if(current_user_can('upload_files') && !is_admin()) {
@@ -58,19 +55,11 @@ static function InitClass()
 			wp_enqueue_style('jquery-contextmenu', WPFB_PLUGIN_URI.'extras/jquery/contextmenu/jquery.contextmenu.css', array(), WPFB_VERSION);
 		}
 	}
-	
-	// widgets
-	wp_register_sidebar_widget(WPFB_PLUGIN_NAME, WPFB_PLUGIN_NAME .' '. __('File list', WPFB), array(__CLASS__, 'FileWidget'), array('description' => __('Lists the latest or most popular files', WPFB)));
-	wp_register_sidebar_widget(WPFB_PLUGIN_NAME.'_cats', WPFB_PLUGIN_NAME.' ' . __('Category list', WPFB), array(__CLASS__, 'CatWidget'), array('description' => __('Simple listing of file categories', WPFB)));
-	//wp_register_sidebar_widget(WPFB_PLUGIN_NAME.'_upload', WPFB_PLUGIN_NAME.' ' . __('File upload', WPFB), array(__CLASS__, 'UploadWidget'), array('description' => __('Supplies a form for uploading files', WPFB)));
-	
 		
 	// for admin
 	if (current_user_can('edit_posts') || current_user_can('edit_pages'))
 		self::MceAddBtns();
 		
-	add_action('wp_dashboard_setup', array(__CLASS__, 'AdminDashboardSetup'));	
-
 	self::DownloadRedirect();
 	
 	if(current_user_can('upload_files')) {
@@ -88,25 +77,8 @@ static function ParseQuery(&$query)
 	global $wp_query;
 	if (!empty($wp_query->query_vars['s']) && self::GetOpt('search_integration'))
 		wpfb_loadclass('Search');
-	
-	if($wp_query->queried_object_id > 0 && $wp_query->queried_object_id == WPFB_Core::GetOpt('file_browser_post_id'))
-		wpfb_call('Output', 'InitFileTreeView'); // this loads the scripts required for file trees (this fixes the wp_print_scripts bug caused by other plugins, but only for the file browser page)
-	
 	add_filter('the_excerpt',	array(__CLASS__, 'SearchExcerptFilter'), 10); // must be lower than 11 (before do_shortcode) and after wpautop (>9)
 }
-
-/* // this was used to load the file browser js, now done directly in the post
-static function Header() {
-	global $wp_query;
-	
-	/*
-	// conditionally loading the treeview		
-	if(!empty($wp_query->post->ID) && $wp_query->post->ID > 0 && $wp_query->post->ID == WPFB_Core::GetOpt('file_browser_post_id') && !is_feed() && (is_single() || is_page())) {
-		wpfb_loadclass('Output');
-		WPFB_Output::InitFileTreeView('wpfilebase-file-browser');
-	}
-	*//*
-}*/
 
 static function AdminInit() { 
 	wpfb_loadclass('AdminLite');
@@ -324,7 +296,7 @@ static function UpdateOption($name, $value = null) {
 static function UploadDir() {
 	static $upload_path = '';
 	if(empty($upload_path)) { // cache
-		$upload_path = trim(WPFB_Core::GetOpt('upload_path'));
+		$upload_path = WPFB_Core::GetOpt('upload_path');
 		if (empty($upload_path)) $upload_path = 'wp-content/uploads/filebase';
 		$upload_path = path_join(ABSPATH, $upload_path);
 	}
@@ -422,6 +394,14 @@ static function GetFileListSortSql($sort=null, $attach_order=false)
 	$sort = $wpdb->escape($sort);
 	$sortdir = $desc ? 'DESC' : 'ASC';	
 	return $attach_order ? "file_attach_order ASC, `$sort` $sortdir" : "`$sort` $sortdir";
+}
+
+static function EnqueueScripts()
+{
+	global $wp_query;
+	
+	if(!empty($wp_query->queried_object_id) && $wp_query->queried_object_id == WPFB_Core::GetOpt('file_browser_post_id'))
+		wpfb_call('Output', 'InitFileTreeView'); // this loads the scripts required for file trees (this fixes the wp_print_scripts bug caused by other plugins, but only for the file browser page)	
 }
 
 static function PrintJS() {

@@ -137,8 +137,12 @@ static function Display()
 		$messages[] = __('WARNING: Script upload enabled!', WPFB);
 		
 	$upload_path = WPFB_Core::GetOpt('upload_path');
-	if(substr($upload_path, 0, 1) == '/')
-		$messages[] = __(sprintf('NOTICE: The upload path <code>%s</code> is rooted to the filesystem. You should remove the leading slash if you want to use a folder inside your Wordpress directory (i.e: <code>%s</code>)', $upload_path, trim($upload_path, '/')), WPFB);
+	if(path_is_absolute($upload_path))
+	{
+		$rel_path  = str_replace('\\','/',$upload_path);
+		$rel_path = substr($rel_path, strpos($rel_path, '/')+1);
+		$messages[] = __(sprintf('NOTICE: The upload path <code>%s</code> is rooted to the filesystem. You should remove the leading slash if you want to use a folder inside your Wordpress directory (i.e: <code>%s</code>)', $upload_path, $rel_path), WPFB);
+	}
 	
 	WPFB_Admin::FlushRewriteRules();
 	
