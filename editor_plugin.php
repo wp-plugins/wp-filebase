@@ -225,7 +225,7 @@ if($action =='addfile' || $action =='updatefile')
 	if(!wp_verify_nonce($_POST['wpfb-file-nonce'],$nonce_action) || !check_admin_referer($nonce_action,'wpfb-file-nonce'))
 		wp_die(__('Cheatin&#8217; uh?'));
 	
-	$result = WPFB_Admin::InsertFile(stripslashes_deep(array_merge($_POST, $_FILES)));
+	$result = WPFB_Admin::InsertFile(array_merge(stripslashes_deep($_POST), $_FILES));
 	if(isset($result['error']) && $result['error']) {
 		?><div id="message" class="updated fade"><p><?php echo $result['error']; ?></p></div><?php
 		$file = new WPFB_File($_POST);
@@ -251,7 +251,7 @@ if($action != 'editfile' && (!empty($post_attachments) || $manage_attachments)) 
 		<div class='media-item'>
 			<?php if(!empty($pa->file_thumbnail)) { ?><img class="pinkynail toggle" src="<?php echo $pa->GetIconUrl(); ?>" alt="" style="margin-top: 3px; display: block;" /><?php } ?>
 
-			<a class='toggle describe-toggle-on' href="<?php echo add_query_arg(array('file_id'=>$pa->file_id,'action'=>'delfile')) ?>" title="<?php _e('Delete') ?>"><img style="display: inline;" src="<?php echo WPFB_PLUGIN_URI.'extras/jquery/contextmenu/delete_icon.gif'; ?>" /></a>
+			<a class='toggle describe-toggle-on' href="<?php echo add_query_arg(array('file_id'=>$pa->file_id,'action'=>'delfile')) ?>" onclick="return confirm('Do you really want to delete this file?')" title="<?php _e('Delete') ?>"><img style="display: inline;" src="<?php echo WPFB_PLUGIN_URI.'extras/jquery/contextmenu/delete_icon.gif'; ?>" /></a>
 			<a class='toggle describe-toggle-on' href="<?php echo add_query_arg(array('file_id'=>$pa->file_id,'action'=>'detachfile')) ?>" title="<?php _e('Remove') ?>"><img src="<?php echo WPFB_PLUGIN_URI.'extras/jquery/contextmenu/page_white_delete.png'; ?>" /></a>
 			<a class='toggle describe-toggle-on' href="<?php echo add_query_arg(array('file_id'=>$pa->file_id,'action'=>'editfile')) ?>" title="<?php _e('Edit') ?>"><img src="<?php echo WPFB_PLUGIN_URI.'extras/jquery/contextmenu/page_white_edit.png'; ?>" /></a>
 

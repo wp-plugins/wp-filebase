@@ -100,8 +100,9 @@ static function Display()
 			if(!empty($_POST['deleteit'])) {
 				foreach ( (array)$_POST['delete'] as $file_id ) {					
 					if(is_object($file = WPFB_File::GetFile($file_id)))
-						$file->remove();
+						$file->Remove(true);
 				}
+				WPFB_File::UpdateTags();
 			}
 ?>
 	<h2><?php

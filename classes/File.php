@@ -15,6 +15,7 @@ class WPFB_File extends WPFB_Item {
 	var $file_thumbnail;
 	var $file_display_name;
 	var $file_description;
+	var $file_tags; // 0.2.9.9
 	var $file_version;
 	var $file_author;
 	var $file_language;
@@ -293,7 +294,7 @@ class WPFB_File extends WPFB_Item {
 
 	function GetPostUrl() { return empty($this->file_post_id) ? '' : WPFB_Core::GetPostUrl($this->file_post_id).'#wpfb-file-'.$this->file_id; }
 	function GetFormattedSize() { return wpfb_call('Output', 'FormatFilesize', $this->file_size); }
-	function GetFormattedDate() { return ($this->file_date == '0000-01-00 00:00:00') ? null : mysql2date(get_option('date_format'), $this->file_date); }
+	function GetFormattedDate($f='file_date') { return (empty($this->$f) || $this->$f == '0000-01-00 00:00:00') ? null : mysql2date(WPFB_Core::GetOpt('file_date_format'), $this->$f); }
 	function GetModifiedTime($gmt=false) { return mysql2date('U', $this->file_date) + ($gmt ? ( get_option( 'gmt_offset' ) * 3600 ) : 0); }
 	
 	// only deletes file/thumbnail on FS, keeping DB entry
@@ -322,7 +323,7 @@ class WPFB_File extends WPFB_Item {
 	}	
 
 	// completly removes the file from DB and FS
-	function Remove()
+	function Remove($bulk=false)
 	{	
 		global $wpdb;
 
@@ -338,6 +339,9 @@ class WPFB_File extends WPFB_Item {
 		$wpa_id = (int)$this->file_wpattach_id;
 		if($wpa_id > 0 && $wpdb->get_var( $wpdb->prepare("SELECT ID FROM $wpdb->posts WHERE ID = %d AND post_type = 'attachment' AND post_status IN ('private', 'publish')", $wpa_id)))
 			wp_delete_attachment($wpa_id, true);
+			
+		if(!$bulk)
+			self::UpdateTags();			
 		
 		return $this->Delete();
 	}
@@ -395,9 +399,10 @@ class WPFB_File extends WPFB_Item {
 			//case 'file_required_level':	return ($this->file_required_level - 1);
 			
 			case 'file_description':	return nl2br($this->file_description);
+			case 'file_tags':			return str_replace(',',', ',trim($this->file_tags,','));
 			
 			case 'file_date':
-			case 'file_last_dl_time':	return htmlspecialchars(mysql2date(get_option('date_format'), $this->$name));
+			case 'file_last_dl_time':	return htmlspecialchars($this->GetFormattedDate($name));
 			
 			case 'file_extension':		return strtolower(substr(strrchr($this->file_name, '.'), 1));
 			case 'file_type': 			return wpfb_call('Download', 'GetFileType', $this->file_name);
@@ -538,6 +543,33 @@ class WPFB_File extends WPFB_Item {
 		}
 		if(!$this->locked) $this->DBSave();
 		return true;
+	}
+	
+	function SetTags($tags) {
+		if(is_string($tags)) $tags = explode(',', $tags);
+		$tags = array_unique(array_map('trim',(array)$tags));
+		$this->file_tags = ','.implode(',',$tags).',';
+		if(!$this->locked) $this->DBSave();
+		self::UpdateTags($this);
+	}
+	
+	function GetTags() {
+		return explode(',', trim($this->file_tags,','));
+	}
+	
+	static function UpdateTags($cur_file=null)
+	{
+		$tags = array();
+		$files = self::GetFiles2((empty($cur_file) ? "" : "file_id <> $cur_file->file_id AND ") . "file_tags <> ''", false);
+		if(!empty($cur_file)) $files[$cur_file->file_id] = $cur_file;
+		foreach($files as $file) {
+			$fts = $file->GetTags();
+			foreach($fts as $ft) {
+				$tags[$ft] = isset($tags[$ft]) ? ($tags[$ft]+1) : 1;
+			}
+		}
+		ksort($tags);		
+		update_option(WPFB_OPT_NAME.'_ftags', $tags);
 	}
 	
 	function GetWPAttachmentID() {

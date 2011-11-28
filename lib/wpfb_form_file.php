@@ -55,6 +55,65 @@ function WPFB_switchFileUpload(i)
 	jQuery('#file_is_remote').val(i); //upd val
 	return false;
 }
+
+jQuery(document).ready(function($){
+	$('#file_tags').keyup(function() {
+		var tags = $(this).val();
+		var lt = $.trim(tags.substr(tags.lastIndexOf(',') + 1));
+		if(!lt || lt == '') {
+			jQuery('#file_tags_proposal').empty().hide();
+			return;
+		}
+		
+		jQuery.ajax({
+			url: wpfbConf.ajurl,
+			data: {action:"ftag_proposal","tag":lt},
+			dataType: "json",
+			success: (function(data){
+				var fp = $('#file_tags_proposal');
+									
+				if(data.length == 0) {
+					fp.empty().hide();
+					return
+				}
+
+				if(fp.size() == 0) {
+					$('#file_tags').parent().append('<div id="file_tags_proposal"></div>');
+					fp = $('#file_tags_proposal');
+				}
+
+				var html = '<ul>';
+				for(var i = 0; i < data.length; i++) {
+					html += '<li><a href="">'+data[i].t+'</a> ('+data[i].n+')</li>';						
+				}
+				fp.html(html+'</ul>').show();
+
+				fp.find('a').click(function() {
+					WPFB_addTag($(this).html());
+					return false;
+				});
+
+				var p = $('#file_tags').offset();
+				p.top += $('#file_tags').height() + 8;
+				fp.offset(p);	
+			})
+		});
+	});
+
+	$('#file_tags').focusout(function($){jQuery('#file_tags_proposal').fadeOut(400);});
+});
+
+function WPFB_addTag(tag)
+{
+	var inp = jQuery('#file_tags');
+	var v = inp.val();
+	var i = v.lastIndexOf(',') + 1;
+	inp.val(v.substr(0, i) + tag+',');
+	jQuery('#file_tags_proposal').empty().hide();
+	inp.focus();
+}
+
+
 //]]>
 </script>
 
@@ -180,6 +239,10 @@ function WPFB_switchFileUpload(i)
 	<tr class="form-field">
 		<th scope="row" valign="top"><label for="file_description"><?php _e('Description') ?></label></th>
 		<td colspan="3"><textarea name="file_description" id="file_description" rows="5" cols="50" style="width: 97%;"><?php echo esc_html($file->file_description); ?></textarea></td>
+	</tr>
+	<tr class="form-field">
+		<th scope="row" valign="top"><label for="file_tags"><?php _e('Tags') ?></label></th>
+		<td colspan="3"><input name="file_tags" id="file_tags" type="text" value="<?php echo esc_attr(trim($file->file_tags,',')); ?>" size="<?php echo ($in_editor||$in_widget) ? 20 : 40 ?>" maxlength="250" autocomplete="off" /></td>
 	</tr>
 	<?php if($exform) { ?>
 	<tr>

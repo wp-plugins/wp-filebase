@@ -45,7 +45,7 @@ static function SearchWhereSql($search_id3=false, $s=null) {
 	static $search_fields;
 	
 	if(empty($search_fields)) { $search_fields = array_merge(array(
-	'file_name', 'file_thumbnail', 'file_display_name', 'file_description',
+	'file_name', 'file_thumbnail', 'file_display_name', 'file_description', 'file_tags',
 	'file_requirement', 'file_version', 'file_author', 'file_language', 
 	'file_platform', 'file_license'), array_keys(WPFB_Core::GetCustomFields(true)));
 	}	

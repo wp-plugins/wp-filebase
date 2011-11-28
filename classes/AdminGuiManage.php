@@ -17,7 +17,10 @@ static function Display()
 		update_user_option($user_ID, WPFB_OPT_NAME . '_exform', $exform); 
 	} else
 		$exform = (bool)get_user_option(WPFB_OPT_NAME . '_exform');
-	
+		
+	if(!empty($_GET['wpfb-hide-how-start']))
+		update_user_option($user_ID, WPFB_OPT_NAME . '_hide_how_start', 1);		
+	$show_how_start = !(bool)get_user_option(WPFB_OPT_NAME . '_hide_how_start');	
 	
 	WPFB_Admin::PrintFlattrHead();
 	?>
@@ -39,7 +42,14 @@ static function Display()
 	</script>	
 	<div class="wrap">
 	<h2><?php echo WPFB_PLUGIN_NAME; ?></h2>
+	
 	<?php
+
+		
+		
+	if($show_how_start)
+		wpfb_call('AdminHowToStart', 'Display');
+		
 	if(!empty($_GET['action']))
 			echo '<p><a href="' . $clean_uri . '" class="button">' . __('Go back'/*def*/) . '</a></p>';
 	
@@ -151,6 +161,11 @@ static function Display()
 
 			<?php WPFB_Admin::PrintForm('file', null, array('exform' => $exform)) ?>
 			
+		<?php
+			if(!$show_how_start) // display how start here if its hidden
+				wpfb_call('AdminHowToStart', 'Display');
+		?>
+			
 			<h2><?php _e('Copyright'); ?></h2>
 			<p>
 			<?php echo WPFB_PLUGIN_NAME . ' ' . WPFB_VERSION ?> Copyright &copy; 2011 by Fabian Schlieper <a href="http://fabi.me/">
@@ -202,10 +217,11 @@ static function Display()
 				foreach($ids as $id) {
 					$id = intval($id);					
 					if(($file=WPFB_File::GetFile($id))!=null) {
-						$file->remove();
+						$file->Remove(true);
 						$nd++;
 					}
-				}		
+				}
+				WPFB_File::UpdateTags();		
 				
 				echo '<div id="message" class="updated fade"><p>'.sprintf(__('%d Files removed'), $nd).'</p></div>';
 			}

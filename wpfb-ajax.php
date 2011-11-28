@@ -249,4 +249,23 @@ switch ( $action = $_REQUEST['action'] ) {
 			die('-1');
 		$file->SetPostId($_REQUEST['post_id']);
 		die('1');
+		
+	case 'ftag_proposal':
+		$tag = @$_REQUEST['tag'];
+		$tags = (array)get_option(WPFB_OPT_NAME.'_ftags'); // sorted!
+		$props = array();
+		if(($n = count($tags)) > 0) {
+			$ks = array_keys($tags);		
+			for($i = 0; $i < $n; $i++) {
+				if(stripos($ks[$i], $tag) === 0) {
+					while($i < $n && stripos($ks[$i], $tag) === 0) {
+						$props[] = array('t' => $ks[$i], 'n' => $tags[$ks[$i]]);
+						$i++;
+					}
+					//break;
+				}
+			}
+		}
+		wpfb_print_json($props);
+		exit;
 }

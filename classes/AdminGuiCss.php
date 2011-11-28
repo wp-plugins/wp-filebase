@@ -56,7 +56,7 @@ static function Display()
 		 <input type="hidden" name="action" value="edit_css" />
 		<p class="submit">
 		<?php echo "<input type='submit' name='submit' class='button-primary' value='" . esc_attr__('Update File', WPFB) . "' tabindex='2' />" ?>
-		<?php if($exists) { echo "<input type='submit' name='restore_default' class='button' value='" . esc_attr__('Restore Default', WPFB) . "' tabindex='3' />"; } ?>
+		<?php if($exists) { echo "<input type='submit' name='restore_default' class='button' onclick=\"return confirm('Sure?')\" value='" . esc_attr__('Restore Default', WPFB) . "' tabindex='3' />"; } ?>
 		</p>
 		</div>
 </form>

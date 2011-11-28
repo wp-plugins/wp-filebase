@@ -187,7 +187,7 @@ function SearchExcerptFilter($content)
 
 function ContentFilter($content)
 {
-	global $id;
+	global $id, $wpfb_fb;
 	
 	if(!WPFB_Core::GetOpt('parse_tags_rss') && is_feed())
 		return $content;	
@@ -206,6 +206,7 @@ function ContentFilter($content)
 		if(is_single() || is_page()) {
 			if($id == WPFB_Core::GetOpt('file_browser_post_id'))
 			{
+				$wpfb_fb = true;
 				wpfb_loadclass('Output', 'File', 'Category');
 				WPFB_Output::FileBrowser($content, 0, empty($_GET['wpfb_cat']) ? 0 : intval($_GET['wpfb_cat']));
 			}
@@ -252,9 +253,17 @@ static function ShortCode($atts, $content=null) {
 
 
 static function Footer() {
+	global $wpfb_fb; // filebrowser loaded?
+	
 	// TODO: use enque and no cond loading ?
 	if(!empty(self::$load_js)) {
 		self::PrintJS();
+	}
+	
+	if(!empty($wpfb_fb) && !WPFB_Core::GetOpt('disable_footer_credits')) {
+		echo '<div id="wpfb-credits" name="wpfb-credits" style="'.esc_attr(WPFB_Core::GetOpt('footer_credits_style')).'">';
+		printf(__('<a href="%s" title="Wordpress Download Manager Plugin" style="color:inherit;font-size:inherit;">Downloads served by WP-Filebase</a>',WPFB),'http://fabi.me/wordpress-plugins/wp-filebase-file-download-manager/');
+		echo '</div>';
 	}
 }
 
@@ -497,7 +506,7 @@ static function AdminBar() {
 	$wp_admin_bar->add_menu(array('parent' => WPFB, 'id' => WPFB.'-add-file', 'title' => __('Add File', WPFB), 'href' => admin_url('admin.php?page=wpfilebase_files#addfile')));
 	
 	$current_object = get_queried_object();
-	if ( !empty($current_object) && !empty($current_object->post_type)) {
+	if ( !empty($current_object) && !empty($current_object->post_type) && $current_object->ID > 0) {
 		$link = WPFB_PLUGIN_URI.'editor_plugin.php?manage_attachments=1&amp;post_id='.$current_object->ID;
 		$wp_admin_bar->add_menu( array( 'parent' => WPFB, 'id' => WPFB.'-attachments', 'title' => __('Manage attachments', WPFB), 'href' => $link,
 		'meta' => array('onclick' => 'window.open("'.$link.'", "wpfb-manage-attachments", "width=680,height=400,menubar=no,location=no,resizable=no,status=no,toolbar=no,scrollbars=yes");return false;')));

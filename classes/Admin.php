@@ -9,7 +9,9 @@ static function InitClass()
 	
 	wp_enqueue_script('jquery');
 	wp_enqueue_script('jquery-ui-tabs');
-	wp_enqueue_script(WPFB.'-admin', WPFB_PLUGIN_URI.'js/admin.js', array(), WPFB_VERSION);			
+	wp_enqueue_script(WPFB.'-admin', WPFB_PLUGIN_URI.'js/admin.js', array(), WPFB_VERSION);	
+
+	wp_enqueue_style('widgets');
 }
 
 static function SettingsSchema()
@@ -44,6 +46,10 @@ static function SettingsSchema()
 	'filelist_sorting'		=> array('default' => 'file_display_name', 'title' => __('Default sorting', WPFB), 'type' => 'select', 'desc' => __('The file property lists are sorted by', WPFB), 'options' => self::FileSortFields()),
 	'filelist_sorting_dir'	=> array('default' => 0, 'title' => __('Sort Order:'/*def*/), 'type' => 'select', 'desc' => __('The sorting direction of file lists', WPFB), 'options' => array(0 => __('Ascending'), 1 => __('Descending'))),
 	'filelist_num'			=> array('default' => 0, 'title' => __('Number of files per page', WPFB), 'type' => 'number', 'desc' => __('Length of the file list per page. Set to 0 to disable the limit.', WPFB)),
+	
+	'file_date_format'		=> array('default' => get_option('date_format'), 'title' => __('File Date Format', WPFB), 'desc' => __('Date/Time formatting for files.',WPFB).' '.__('<a href="http://codex.wordpress.org/Formatting_Date_and_Time">Documentation on date and time formatting</a>.'), 'type' => 'text', 'class' => 'small-text'),
+	
+	
 	
 	// limits
 	'bitrate_unregistered'	=> array('default' => 0, 'title' => __('Bit rate limit for guests', WPFB), 'type' => 'number', 'unit' => 'KiB/Sec', 'desc' => &$bitrate_desc),
@@ -110,6 +116,10 @@ static function SettingsSchema()
 	'search_id3' =>  array('default' => true, 'title' => __('Search ID3 Tags', WPFB), 'type' => 'checkbox', 'desc' => __('Search in file meta data, like ID3 for MP3 files, EXIF for JPEG... (this option does not increase significantly server load since all data is cached in a MySQL table)', WPFB)),
 	'use_path_tags' => array('default' => false, 'title' => __('Use path instead of ID in Shortcode', WPFB), 'type' => 'checkbox', 'desc' => __('Files and Categories are identified by paths and not by their IDs in the generated Shortcodes', WPFB)),
 	'no_name_formatting'  => array('default' => false, 'title' => __('Disable Name Formatting', WPFB), 'type' => 'checkbox', 'desc' => __('This will disable automatic formatting/uppercasing file names when they are used as title (e.g. when syncing)', WPFB)),
+	
+	'disable_footer_credits'  => array('default' => false, 'title' => __('Remove WP-Filebase Footer credits', WPFB), 'type' => 'checkbox', 'desc' => sprintf(__('This disables the footer credits only displayed on <a href="%s">File Browser Page</a>. Why should you keep the credits? Every backlink helps WP-Filebase to get more popular, popularity motivates the developer to continue work on the plugin. Win-Win!', WPFB), get_permalink(WPFB_Core::GetOpt('file_browser_post_id')).'#wpfb-credits')),
+	'footer_credits_style'  => array('default' => 'margin:0 auto 2px auto; text-align:center; font-size:11px;', 'title' => __('Footer credits Style', WPFB), 'type' => 'text', 'class' => 'code', 'desc' => __('Set custom CSS style for WP-Filebase footer credits',WPFB),'size'=>80),
+	
 	
 	'default_author' => array('default' => '', 'title' => __('Default Author', WPFB), 'desc' => __('This author will be used as form default and when adding files with FTP', WPFB), 'type' => 'text', 'size' => 65),
 	'default_roles' => array('default' => array(), 'title' => __('Default User Roles', WPFB), 'desc' => __('These roles are selected by default and will be used for files added with FTP', WPFB), 'type' => 'roles'),
@@ -218,22 +228,34 @@ static function TplVarsDesc($for_cat=false)
 	'uid'					=> __('A unique ID number to identify elements within a template', WPFB),
 	);
 	else return array_merge(array(	
+	'file_display_name'		=> __('Title', WPFB),
 	'file_name'				=> __('Name of the file', WPFB),
+	
+	'file_url'				=> __('Download URL', WPFB),
+	'file_url_encoded'		=> __('Download URL encoded for use in query strings', WPFB),
+	
+	'file_icon_url'			=> __('URL of the thumbnail or icon', WPFB),	
+	
 	'file_size'				=> __('Formatted file size', WPFB),
 	'file_date'				=> __('Formatted file date', WPFB),
-	'file_thumbnail'		=> __('Name of the thumbnail file', WPFB),
-	'file_display_name'		=> __('Title', WPFB),
-	'file_description'		=> __('Short description', WPFB),
-	'file_version'			=> __('File version', WPFB),
+	'file_version'			=> __('File version', WPFB),	
 	'file_author'			=> __('Author'),
+	'file_tags'				=> __('Tags'),
+	'file_description'		=> __('Short description', WPFB),	
 	'file_languages'		=> __('Supported languages', WPFB),
 	'file_platforms'		=> __('Supported platforms (operating systems)', WPFB),
 	'file_requirements'		=> __('Requirements to use this file', WPFB),
 	'file_license'			=> __('License', WPFB),
+	
+	'file_category'			=> __('The category name', WPFB),	
+	
+	'file_thumbnail'		=> __('Name of the thumbnail file', WPFB),		
+
+	
 	//'file_required_level'	=> __('The minimum user level to download this file (-1 = guest, 0 = Subscriber ...)', WPFB),
 	'file_offline'			=> __('1 if file is offline, otherwise 0', WPFB),
 	'file_direct_linking'	=> __('1 if direct linking is allowed, otherwise 0', WPFB),
-	'file_category'			=> __('The category name', WPFB),
+	
 	//'file_update_of'		=>
 	'file_post_id'			=> __('ID of the post/page this file belongs to', WPFB),
 	'file_added_by'			=> __('User Name of the owner', WPFB),
@@ -246,10 +268,9 @@ static function TplVarsDesc($for_cat=false)
 	'file_extension'		=> sprintf(__('Lowercase file extension (e.g. \'%s\')', WPFB), 'pdf'),
 	'file_type'				=> sprintf(__('File content type (e.g. \'%s\')', WPFB), 'image/png'),
 	
-	'file_url'				=> __('Download URL', WPFB),
-	'file_url_encoded'		=> __('Download URL encoded for use in query strings', WPFB),
+
 	'file_post_url'			=> __('URL of the post/page this file belongs to', WPFB),
-	'file_icon_url'			=> __('URL of the thumbnail or icon', WPFB),
+	
 	'file_path'				=> __('Category path and file name (e.g cat1/cat2/file.ext)', WPFB),
 	
 	'file_id'				=> __('The file ID', WPFB),
@@ -606,6 +627,7 @@ static function InsertFile($data, $in_gui =false)
 	if(!empty($data->file_platforms)) $file->file_platform = implode('|', $data->file_platforms);
 	if(!empty($data->file_requirements)) $file->file_requirement = implode('|', $data->file_requirements);
 	
+	if(isset($data->file_tags)) $file->SetTags($data->file_tags);
 
 	$file->file_offline = (int)(!empty($data->file_offline));
 	
@@ -972,6 +994,7 @@ static function Sync($hash_sync=false, $output=false)
 	if($output) self::DEcho('done!</p>');
 	
 	wpfb_call('Setup','ProtectUploadPath');
+	WPFB_File::UpdateTags();
 	
 	return $result;
 }
@@ -1311,14 +1334,13 @@ public function ProcessWidgetUpload($_posts = null, $_query = null){
 		
 	// if category is set in widget options, force to use this. security done with nonce checking ($_POST['cat'] is reliable)
 	if($_POST['cat'] >= 0) $_POST['file_category'] = $_POST['cat']; 
-		
-	$result = WPFB_Admin::InsertFile(stripslashes_deep(array_merge($_POST, $_FILES)));
+	$result = WPFB_Admin::InsertFile(array_merge(stripslashes_deep($_POST), $_FILES));
 	if(isset($result['error']) && $result['error']) {
 		$content .= '<div id="message" class="updated fade"><p>'.$result['error'].'</p></div>';
 		$title .= __('Error ');
 	} else {
 		// success!!!!
-		$content = _e('The File has been uploaded successfully.', WPFB);
+		$content = __('The File has been uploaded successfully.', WPFB);
 		$file = WPFB_File::GetFile($result['file_id']);
 		$content .= $file->GenTpl();
 		$title = trim(__('File added.', WPFB),'.');

@@ -82,3 +82,8 @@
 .wpfilebase-catselect {
 	width: 100%;
 }
+
+#wpfb-credits {
+	margin: 0 auto 2px auto;
+	text-align: center;
+}

@@ -44,6 +44,8 @@ static function AddOptions()
 
 		update_option(WPFB_OPT_NAME, $new_opts);
 	}
+	
+	add_option(WPFB_OPT_NAME.'_ftags', array(), null, 'no'/*autoload*/); 
 }
 static function AddTpls() {	
 	$tpls_file = array(
@@ -279,6 +281,9 @@ static function SetupDBTables()
 	
 	// since 0.2.9.3
 	$queries[] = "@ALTER TABLE `$tbl_files` ADD `file_wpattach_id` bigint(20) NOT NULL default '0'  AFTER `file_attach_order`";
+	
+	// since 0.2.9.9
+	$queries[] = "@ALTER TABLE `$tbl_files` ADD `file_tags` varchar(255) NOT NULL default ''  AFTER `file_description`";
 	
 	$queries[] = "OPTIMIZE TABLE `$tbl_cats`";
 	$queries[] = "OPTIMIZE TABLE `$tbl_files`";

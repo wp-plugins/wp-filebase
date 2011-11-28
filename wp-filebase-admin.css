@@ -179,6 +179,25 @@
 	display: none;
 }
 
+#file_tags_proposal {
+	position: absolute;
+	z-index: 10;
+	border: 1px solid #ccc;
+	background-color: #eee;
+	min-width: 100px;
+}
+
+#file_tags_proposal ul {
+	margin: 5px;
+	list-style-type: none;
+	list-style-position: inside;
+}
+
+#file_tags_proposal a {
+	background-color: #fff;
+}
+
+
 .wpfilebase-tpl-preview {
 	margin: 5px;
 	padding: 4px;
@@ -246,4 +265,26 @@
 
 #wpfb-liking-toggle.closed {
 	background-position: top center;
+}
+
+#wpfb-how-start .widget-liquid-right {
+	float: none;
+	width: auto;
+	max-width: 800px;
+}
+
+#wpfb-how-start .widgets-sortables
+{
+	min-height: 0;
+	padding: 5px;
+}
+
+#wpfb-how-start ul {
+	margin: 8px 0 8px 15px;
+	list-style-type: disc;
+	list-style-position: outside;
+}
+
+#wpfb-how-start ul li {
+	margin-left: 5px;
 }

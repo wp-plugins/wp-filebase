@@ -2,11 +2,6 @@
 class WPFB_Widget {
 	
 static function InitClass() {
-	add_action('widgets_init', array(__CLASS__, 'RegisterWidgets'));
-}
-
-static function RegisterWidgets()
-{
 	register_widget('WPFB_UploadWidget');
 	register_widget('WPFB_AddCategoryWidget');
 }

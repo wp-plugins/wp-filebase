@@ -349,7 +349,7 @@ static function GeneratePagePostFilter() {
 	
 	$posts[] = $wp_query->queried_object =
 		(object)array(
-			'ID' => '9999999',
+			'ID' => '0',
 			'post_author' => '1',
 			'post_date' => $now,
 			'post_date_gmt' => $now,
