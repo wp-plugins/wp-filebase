@@ -389,7 +389,11 @@ class WPFB_File extends WPFB_Item {
 			case 'file_small_icon':		return '<img src="'.esc_attr($this->GetIconUrl('small')).'" style="vertical-align:middle;height:32px;" />';
 			case 'file_size':			return $this->GetFormattedSize();
 			case 'file_path':			return htmlspecialchars($this->GetLocalPathRel());
-			case 'file_category':		return htmlspecialchars(is_object($parent = $this->GetParent()) ? $parent->cat_name : '');
+			
+			case 'file_category':		return htmlspecialchars(is_object($cat = $this->GetParent()) ? $cat->cat_name : '');
+			case 'cat_small_icon':		return is_null($cat = $this->GetParent()) ? '' : ('<img align="" src="'.htmlspecialchars($cat->GetIconUrl('small')).'" style="height:32px;vertical-align:middle;" />');
+			case 'cat_icon_url':		return is_null($cat = $this->GetParent()) ? '' : htmlspecialchars($cat->GetIconUrl());
+			case 'cat_url':				return is_null($cat = $this->GetParent()) ? '' : htmlspecialchars($cat->GetUrl());
 			
 			case 'file_languages':		return wpfb_call('Output','ParseSelOpts', array('languages', $this->file_language),true);
 			case 'file_platforms':		return wpfb_call('Output','ParseSelOpts', array('platforms', $this->file_platform),true);

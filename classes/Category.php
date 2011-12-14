@@ -12,7 +12,7 @@ class WPFB_Category extends WPFB_Item {
 	//var $cat_files;
 	var $cat_num_files = 0;
 	var $cat_num_files_total = 0;
-	var $cat_user_roles = 0;
+	var $cat_user_roles;
 	var $cat_icon;
 	var $cat_exclude_browser = 0;
 	

@@ -3,8 +3,8 @@ Contributors: fabifott
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=wpfilebase%40fabi%2eme&item_name=WP-Filebase&no_shipping=0&no_note=1&tax=0&currency_code=USD&lc=US&bn=PP%2dDonationsBF&charset=UTF%2d8
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, traffic, widget, filelist, list, thumb, thumbnail, attachment, attachments, category, categories, media, template, ftp, http, mp3, id3
 Requires at least: 3.1
-Tested up to: 3.2.1
-Stable tag: 0.2.9.9
+Tested up to: 3.3
+Stable tag: 0.2.9.10
 
 Adds a powerful downloads manager supporting file categories, download counter, widgets, sorted file lists and more to your WordPress blog.
 
@@ -103,6 +103,13 @@ Goto WP-Filebase Settings and disable Permalinks under "Download". Try to disabl
 4. The Editor Button to insert tags for filelists and download urls
 
 == Changelog ==
+
+= 0.2.9.10 =
+* Removed incompatible flash upload for WP 3.3 and later
+* Added file template variables %cat_small_icon%, %cat_icon_url%, %cat_url% (only defined for files that have a category)
+* Fixed SQL escaping bug
+* Fixed role string explode bug
+* Fixed admin bar for WP 3.3
 
 = 0.2.9.9 =
 * New option for date format

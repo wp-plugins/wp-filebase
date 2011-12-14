@@ -1,6 +1,6 @@
 <?php
 @ob_start();
-require_once(dirname(__FILE__).'/../../../wp-load.php');
+require_once(dirname(__FILE__).'/../../../wp-load.php'); // TODO: dont load whole wp stuff!!
 wpfb_loadclass('Core', 'Download');
 $custom_file = WPFB_Core::UploadDir() .'/_wp-filebase.css';
 $default_file = WPFB_PLUGIN_ROOT . 'wp-filebase.css';

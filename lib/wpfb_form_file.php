@@ -132,15 +132,19 @@ function WPFB_addTag(tag)
 		<td colspan="3" valign="top"><div id="wpfilebase-upload-tabs">
 			<div id="file-upload-wrap" <?php echo ($file->IsRemote() ? 'class="hidden"' : ''); ?>>
 			 	<div id="flash-upload-ui">
-					<?php wpfb_call('SWFUpload','Display',$form_url); ?>
+					<?php // SWF upload not supported on 3.3 and later
+					if(version_compare(get_bloginfo('version'), '3.2.1') <= 0)
+						wpfb_call('SWFUpload','Display',$form_url);
+					?>
 				</div>
 			 	<div id="html-upload-ui">
 					<label for="file_upload"><?php _e('Choose File', WPFB) ?></label>
 					<input type="file" name="file_upload" id="file_upload" /><br />
 										<?php printf(str_replace('%d%s','%s',__('Maximum upload file size: %d%s'/*def*/)), WPFB_Output::FormatFilesize(WPFB_Core::GetMaxUlSize())) ?> <b>&nbsp;&nbsp;<a href="#" onclick="alert(this.title); return false;" title="<?php printf(__('Ask your webhoster to increase this limit, it is set in %s.',WPFB), 'php.ini'); ?>">?</a></b>
-					<p class="upload-html-bypass hide-if-no-js"><?php _e('You are using the Browser uploader.'); 
+					<?php // SWF upload not supported on 3.3 and later
+					if(version_compare(get_bloginfo('version'), '3.2.1') <= 0) { ?><p class="upload-html-bypass hide-if-no-js"><?php _e('You are using the Browser uploader.'); 
 					printf( __('Try the <a href="%s">Flash uploader</a> instead.'), esc_url(add_query_arg('flash', 1)) );
-					?></p>
+					?></p> <?php } ?>
 				</div>
 				<?php if($update) { echo '<div><b><a href="'.$file->GetUrl().'">' . $file->file_name . '</a></b> (' . $file->GetFormattedSize() . ', '.wpfb_call('Download', 'GetFileType', $file->file_name).')</div>'; } ?>
 			</div>

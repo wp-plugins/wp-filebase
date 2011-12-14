@@ -139,7 +139,7 @@ class WPFB_Item {
 			$pos = strpos($var, ($this->is_file?'file_':'cat_'));
 			if($pos === false || $pos != 0 || $var == $id_var || is_array($this->$var) || is_object($this->$var))
 				continue;			
-			$values[$var] = &$this->$var;
+			$values[$var] = $this->$var; // no & ref here, this causes esc of actual objects data!!!!
 		}
 		
 		if($this->is_file) {
@@ -317,7 +317,7 @@ class WPFB_Item {
 	function GetUserRoles() {
 		if(isset($this->roles_array)) return $this->roles_array; //caching
 		$rs = $this->is_file?$this->file_user_roles:$this->cat_user_roles;
-		return ($this->roles_array = empty($rs) ? array() : explode('|', $rs));
+		return ($this->roles_array = empty($rs) ? array() : (is_string($rs) ? explode('|', $rs) : (array)$rs));
 	}
 	
 	function SetUserRoles($roles) {

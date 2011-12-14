@@ -235,7 +235,7 @@ static function SetupDBTables()
 	$queries[] = "CREATE TABLE IF NOT EXISTS `$tbl_files_id3` (
   `file_id` bigint(20) unsigned NOT NULL auto_increment,
   `analyzetime` INT(11) NOT NULL DEFAULT '0',
-  `value` TEXT NOT NULL,
+  `value` LONGTEXT NOT NULL,
   `keywords` TEXT NOT NULL,
   PRIMARY KEY  (`file_id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8";
@@ -284,6 +284,9 @@ static function SetupDBTables()
 	
 	// since 0.2.9.9
 	$queries[] = "@ALTER TABLE `$tbl_files` ADD `file_tags` varchar(255) NOT NULL default ''  AFTER `file_description`";
+	
+	// 0.2.9.10
+	$queries[] = "@ALTER TABLE `$tbl_files_id3` CHANGE `value` `value` LONGTEXT"; 
 	
 	$queries[] = "OPTIMIZE TABLE `$tbl_cats`";
 	$queries[] = "OPTIMIZE TABLE `$tbl_files`";

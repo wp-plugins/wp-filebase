@@ -27,12 +27,15 @@ class WPFB_GetID3 {
 		
 		$keywords = array();
 		self::getKeywords($info, $keywords);
-		
+		$keywords = strip_tags(join(' ', $keywords));
+		$keywords = str_replace(array('\n','&#10;'),'', $keywords);
+		$keywords = preg_replace('/\s\s+/', ' ', $keywords);
+		$keywords = utf8_encode($keywords);
 		return $wpdb->replace($wpdb->wpfilebase_files_id3, array(
 			'file_id' => (int)$file_id,
 			'analyzetime' => time(),
 			'value' => $data,
-			'keywords' => utf8_encode(join(' ', $keywords))
+			'keywords' => $keywords
 		));
 	}
 	
@@ -71,11 +74,11 @@ class WPFB_GetID3 {
 	{
 		static $skip_keys = array('getid3_version','streams','seektable','streaminfo',
 		'comments_raw','encoding', 'flags', 'image_data','toc','lame', 'filename', 'filesize', 'md5_file',
-		'data', 'warning', 'error', 'filenamepath', 'filepath','popm','email','priv','ownerid','central_directory','raw','apic');
+		'data', 'warning', 'error', 'filenamepath', 'filepath','popm','email','priv','ownerid','central_directory','raw','apic','iTXt','IDAT');
 
 		foreach($info as $key => &$val)
 		{
-			if(empty($val) || in_array(strtolower($key), $skip_keys) || strpos($key, "UndefinedTag") !== false)
+			if(empty($val) || in_array(strtolower($key), $skip_keys) || strpos($key, "UndefinedTag") !== false || strpos($key, "XML") !== false)
 			{
 				unset($info[$key]);
 				continue;
@@ -100,7 +103,7 @@ class WPFB_GetID3 {
 		{
 			if(is_array($val) || is_object($val)) {
 				self::getKeywords($val, $keywords);
-				self::getKeywords(array_keys($val), $keywords);
+				self::getKeywords(array_keys($val), $keywords); // this is for archive files, where file names are array keys
 			} else if(is_string($val)) {				
 				if(!in_array($val, $keywords))
 					array_push($keywords, $val);

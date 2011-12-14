@@ -269,7 +269,7 @@ static function PrintFileInfo($info, $path='file_info')
 		$p = $path.'/'.$key;
 		if(is_array($val) && count($val) == 1 && isset($val[0])) // if its a single array, just take the first element
 			$val = $val[0];
-		echo '<b>',$p,"</b> = ",$val,"\n";
+		echo '<b>',esc_html($p),"</b> = ",esc_html($val),"\n";
 		if(is_array($val) || is_object($val))
 		{			
 			self::PrintFileInfo($val, $p);

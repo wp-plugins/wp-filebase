@@ -1,4 +1,12 @@
 - bulk load
+-optimize css
+- blank page on add file
+- FAQ: wpfilebase_sync action
+
+Warning: explode() expects parameter 2 to be string, array given in /home/tristace/public_html/wp-content/plugins/wp-filebase/classes/Item.php on line 320
+\\\' - fixed
+
+ multi widget
 
 - permission form: inherit checkbox
 - fix default permissions, inherited!

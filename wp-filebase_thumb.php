@@ -2,7 +2,7 @@
 ob_start();  // suppress any errors
 
 error_reporting(0);
-require(dirname(__FILE__).'/../../../wp-load.php');
+require(dirname(__FILE__).'/../../../wp-load.php'); // TODO: dont load all wordpress-stuff!
 error_reporting(0);
 wpfb_loadclass('File','Category','Download');
 

@@ -218,6 +218,9 @@ static function TplVarsDesc($for_cat=false)
 	'cat_path'				=> __('Category path (e.g cat1/cat2/)', WPFB),
 	'cat_folder'			=> __('Just the category folder name, not the path', WPFB),
 	
+	'cat_icon_url'			=> __('URL of the thumbnail or icon', WPFB),
+	'cat_small_icon'		=> sprintf(__('HTML image tag for a small icon (height %d)'), 32),
+	
 	'cat_parent_name'		=> __('Name of the parent categories (empty if none)', WPFB),
 	'cat_num_files'			=> __('Number of files in the category', WPFB),
 	'cat_num_files_total'			=> __('Number of files in the category and all child categories', WPFB),
@@ -249,7 +252,10 @@ static function TplVarsDesc($for_cat=false)
 	
 	'file_category'			=> __('The category name', WPFB),	
 	
-	'file_thumbnail'		=> __('Name of the thumbnail file', WPFB),		
+	'file_thumbnail'		=> __('Name of the thumbnail file', WPFB),	
+	'cat_icon_url'			=> __('URL of the category icon (if any)', WPFB),
+	'cat_small_icon'		=> __('Category').': '.sprintf(__('HTML image tag for a small icon (height %d)'), 32),
+	
 
 	
 	//'file_required_level'	=> __('The minimum user level to download this file (-1 = guest, 0 = Subscriber ...)', WPFB),
@@ -389,7 +395,7 @@ static function InsertCategory($catarr)
 	if (empty($cat_name) && empty($cat_folder)) return array( 'error' => __('You must enter a category name or a folder name.', WPFB) );
 	if(!$add_existing && !empty($cat_folder)) {
 		$cat_folder = preg_replace('/\s/', ' ', $cat_folder);
-		if(!preg_match('/^[0-9a-z-_.+,\s()]+$/i', $cat_folder)) return array( 'error' => __('The category folder name contains invalid characters.', WPFB) );	
+		if(!preg_match('/^[0-9a-z-_.+,\'\s()]+$/i', $cat_folder)) return array( 'error' => __('The category folder name contains invalid characters.', WPFB) );	
 	}
 	wpfb_loadclass('Output');
 	if (empty($cat_name)) $cat_name = WPFB_Core::GetOpt('no_name_formatting') ? $cat_folder : WPFB_Output::Filename2Title($cat_folder, false);
@@ -858,7 +864,7 @@ static function Sync($hash_sync=false, $output=false)
 	$num_new_files = 0;
 	$num_files_to_add = 0;
 	
-	// 1ps filter	
+	// 1ps filter	 (check extension, special file names, and filter existing file names and thumbnails)
 	$fext_blacklist = array_map('strtolower', array_map('trim', explode(',', WPFB_Core::GetOpt('fext_blacklist'))));
 	for($i = 0; $i < $num_all_files; $i++)
 	{
@@ -1359,7 +1365,7 @@ public function ProcessWidgetAddCat() {
 	if(!wp_verify_nonce($_POST['wpfb-cat-nonce'],$nonce_action) || !check_admin_referer($nonce_action,'wpfb-cat-nonce'))
 		wp_die(__('Cheatin&#8217; uh?'));
 	
-	$result = WPFB_Admin::InsertCategory($_POST);
+	$result = WPFB_Admin::InsertCategory(array_merge(stripslashes_deep($_POST), $_FILES));
 	if(isset($result['error']) && $result['error']) {
 		$content .= '<div id="message" class="updated fade"><p>'.$result['error'].'</p></div>';
 		$title .= __('Error ');

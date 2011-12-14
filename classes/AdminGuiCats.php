@@ -44,7 +44,7 @@ static function Display()
 			if ( !current_user_can('manage_categories') )
 				wp_die(__('Cheatin&#8217; uh?'/*def*/));
 			
-			$result = WPFB_Admin::InsertCategory(array_merge($_POST, $_FILES));
+			$result = WPFB_Admin::InsertCategory(array_merge(stripslashes_deep($_POST), $_FILES));
 			if(isset($result['error']) && $result['error']) {
 				$message = $result['error'];
 			} else {
