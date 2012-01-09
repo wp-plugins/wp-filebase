@@ -72,11 +72,20 @@ static function Display()
 				}
 				
 				if(!empty($error_msg)) echo '<div class="error default-password-nag"><p>'.$error_msg.'</p></div>';				
-				if(WPFB_Core::GetOpt('tag_conv_req')) {
+					if(WPFB_Core::GetOpt('tag_conv_req')) {
 					echo '<div class="updated"><p><a href="'.add_query_arg('action', 'convert-tags').'">';
-					_e('WP-Filebase content tags must be converted');
+					_e('WP-Filebase content tags must be converted',WPFB);
 					echo '</a></p></div><div style="clear:both;"></div>';
 				}
+				
+				/*
+				wpfb_loadclass('Config');
+				if(!WPFB_Config::IsWritable()) {
+					echo '<div class="updated"><p>';
+					printf(__('The config file %s is not writable or could not be created. Please create the file and make it writable for the webserver.',WPFB), WPFB_Config::$file);
+					echo '</p></div><div style="clear:both;"></div>';
+				}
+				*/
 		?>
 	<?php if(self::PluginHasBeenUsedAWhile()) { ?>		
 <div id="wpfb-support-col">

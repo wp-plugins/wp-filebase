@@ -4,7 +4,7 @@
  *
  */
 
-define('TMP_FILE_MAX_AGE', 3600*12);
+define('TMP_FILE_MAX_AGE', 3600*3);
 
 ob_start();
 define('WP_ADMIN', true);

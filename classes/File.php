@@ -224,7 +224,7 @@ class WPFB_File extends WPFB_Item {
 		
 		$ext = trim($this->GetExtension(), '.');
 	
-		if($ext != 'bmp' && @getimagesize($src_image) === false) { // check if valid image
+		if($ext != 'bmp' && ($src_size = @getimagesize($src_image)) === false) { // check if valid image
 			if($tmp_src) @unlink($src_image);
 			return;
 		}
@@ -247,6 +247,11 @@ class WPFB_File extends WPFB_Item {
 		
 		if($ext != 'bmp') {
 			$thumb = @wp_create_thumbnail($src_image, $thumb_size);
+			if(is_wp_error($thumb)) { // error occurs when image is smaller than thumb_size. in this case, just copy original
+				$name = wp_basename($src_image, ".$ext");
+				$thumb = dirname($src_image)."/{$name}-{$src_size[0]}x{$src_size[1]}.{$ext}";
+				copy($src_image, $thumb);
+			}
 		} else {
 			$extras_dir = WPFB_PLUGIN_ROOT . 'extras/';
 			if(@file_exists($extras_dir . 'phpthumb.functions.php') && @file_exists($extras_dir . 'phpthumb.bmp.php'))

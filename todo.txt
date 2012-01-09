@@ -1,3 +1,10 @@
+-wp-filebase search widget
+- multi wigets
+- default sorting for cats
+- test new css loading multisite
+- enable file attachemnts in file archive
+- custom cat sorting!
+
 - bulk load
 -optimize css
 - blank page on add file
@@ -22,8 +29,6 @@ _ widget: users which cannot upload files should not change widget!!
 - default user roles options
 - search lists WP attachments without permissions (due to generated content!)
 + create post for files
-+ no custom fields fix 
-+ search: drafts visible!!
 -ppollplll
 - better syncing many files!
 Comments
@@ -58,36 +63,15 @@ report error form
 
 force download per file
 
-/*
-archive lister?
-per-page download list
-
-* upload by guests
-* upload progress bar
-* searchboxes
-*/W
+inline upload for guests
 
 global hotlink protecting
 
-rename hotlink to deeplink?
- 
- fix hotlink?
- 
  batch actions for files: set properties, delete, create thumbnails, etc...
+    
+ attachment form in post! (switchable!)
  
- hide download links
-   
-  attachment form in post! (switchable!)
- 
- file ratings!!
- 
- list files under categories
- 
+ ################# low
+ file ratings
  converter from other plugins
- 
- 
- ################### low
- 
- fix analytics url bug 
- review JS loading and minimize!!
  

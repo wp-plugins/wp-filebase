@@ -20,15 +20,7 @@ class WPFB_SWFUpload
 		
 <script type="text/javascript">
 //<![CDATA[
-var uploaderMode = 0;
-jQuery(document).ready(function($){
-	uploaderMode = getUserSetting('uploader');
-	$('.upload-html-bypass a').click(function(){deleteUserSetting('uploader');uploaderMode=0;swfuploadPreLoad();return false;});
-	$('.upload-flash-bypass a').click(function(){setUserSetting('uploader', '1');uploaderMode=1;swfuploadPreLoad();return false;});
-	$('#file-upload-progress').hide();
-	$('#cancel-upload').hide();
-});
-		
+
 function fileQueued(fileObj) {
 	jQuery('#file-upload-progress').show().html('<div class="progress"><div class="bar"></div></div><div class="filename original"><span class="percent"></span> ' + fileObj.name + '</div>');
 	jQuery('.progress', '#file-upload-progress').show();
@@ -92,7 +84,7 @@ function uploadComplete(fileObj) {
 <?php
 	}
 	
-	function Display($flash_action_url) {
+	function Display($form_url) {
 
 // #8545. wmode=transparent cannot be used with SWFUpload
 

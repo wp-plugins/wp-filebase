@@ -262,7 +262,7 @@ class WPFB_Item {
 
 		if(!empty($this->file_thumbnail) && file_exists($this->GetThumbPath()))
 		{
-			return WPFB_PLUGIN_URI . 'wp-filebase_thumb.php?fid=' . $this->file_id;
+			return WPFB_PLUGIN_URI . 'wp-filebase_thumb.php?fid='.$this->file_id.'&name='.$this->file_thumbnail; // name var only for correct caching!
 		}
 				
 		$type = $this->GetType();

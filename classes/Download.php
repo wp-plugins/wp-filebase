@@ -334,8 +334,10 @@ function SendFile($file_path, $args=array())
 		'md5_hash' => null
 	);
 	extract(wp_parse_args($args, $defaults), EXTR_SKIP);
-		
-	error_reporting(0);
+	
+	@ini_set('max_execution_time', '0');
+	@set_time_limit(0);
+	@error_reporting(0);
 	while(@ob_end_clean()){}
 	
 	$no_cache = WPFB_Core::GetOpt('http_nocache') && ($cache_max_age <= 0);

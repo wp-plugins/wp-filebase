@@ -9,7 +9,7 @@ static function InitClass()
 		$page = $_GET['page'];
 		if($page == 'wpfilebase_files') {
 			wp_enqueue_script( 'postbox' );
-			wp_admin_css( 'css/dashboard' );
+			wp_enqueue_style('dashboard');
 		} elseif($page == 'wpfilebase' && isset($_GET['action']) && $_GET['action'] == 'sync') {
 			do_action('wpfilebase_sync');
 			wp_die("Filebase synced.");
@@ -32,7 +32,7 @@ static function SetupMenu()
 	add_menu_page(WPFB_PLUGIN_NAME, WPFB_PLUGIN_NAME, 'manage_categories', $pm_tag, array(__CLASS__, 'DisplayManagePage'), WPFB_PLUGIN_URI.'images/admin_menu_icon.png' /*, $position*/ );
 	
 	$menu_entries = array(
-		array('tit'=>'Files',				'tag'=>'files',	'fnc'=>'DisplayFilesPage',	'desc'=>'View uploaded files and edit them',													'cap'=>'upload_files'),
+		array('tit'=>'Files',						'tag'=>'files',	'fnc'=>'DisplayFilesPage',	'desc'=>'View uploaded files and edit them',													'cap'=>'upload_files'),
 		array('tit'=>__('Categories'/*def*/),		'tag'=>'cats',	'fnc'=>'DisplayCatsPage',	'desc'=>'Manage existing categories and add new ones.',											'cap'=>'manage_categories'),
 		//array('tit'=>'Sync Filebase', 'hide'=>true, 'tag'=>'sync',	'fnc'=>'DisplaySyncPage',	'desc'=>'Synchronises the database with the file system. Use this to add FTP-uploaded files.',	'cap'=>'upload_files'),
 		array('tit'=>'Edit Stylesheet',				'tag'=>'css',	'fnc'=>'DisplayStylePage',	'desc'=>'Edit the CSS for the file template',													'cap'=>'edit_themes'),
@@ -60,7 +60,7 @@ static function DisplaySettingsPage(){wpfb_call('AdminGuiSettings', 'Display');}
 static function DisplaySupportPage(){wpfb_call('AdminGuiSupport', 'Display');}
 
 static function McePlugins($plugins) {
-	$plugins['wpfilebase'] = WPFB_PLUGIN_URI . '/tinymce/editor_plugin.js';
+	$plugins['wpfilebase'] = WPFB_PLUGIN_URI . 'tinymce/editor_plugin.js';
 	return $plugins;
 }
 

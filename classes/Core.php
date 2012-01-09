@@ -2,12 +2,15 @@
 class WPFB_Core {
 static $load_js = false;
 static $file_browser_search = false;
+//static $options = null;
 
 static function InitClass()
 {
 	global $wp_query, $wpfb_post_url_cache;
 	$wpfb_post_url_cache = array();
 
+	if(defined('WPFB_SIMPLE_LOAD')) return;
+	
 	WPFB_Core::LoadLang();	
 
 	add_action('parse_query', array(__CLASS__, 'ParseQuery')); // search
@@ -35,7 +38,9 @@ static function InitClass()
 		
 
 	wp_register_script(WPFB, WPFB_PLUGIN_URI.'js/common.js', array('jquery'), WPFB_VERSION); // cond loading (see Footer)
-	wp_enqueue_style(WPFB, WPFB_PLUGIN_URI.'wp-filebase_css.php', array(), WPFB_VERSION, 'all');
+	$upload_path = WPFB_Core::GetOpt('upload_path');
+	if(path_is_absolute($upload_path)) $upload_path = '';
+	wp_enqueue_style(WPFB, WPFB_PLUGIN_URI."wp-filebase_css.php?rp=$upload_path", array(), WPFB_VERSION, 'all');
 	
 	// widgets
 	wp_register_sidebar_widget(WPFB_PLUGIN_NAME, WPFB_PLUGIN_NAME .' '. __('File list', WPFB), array(__CLASS__, 'FileWidget'), array('description' => __('Lists the latest or most popular files', WPFB)));
@@ -574,5 +579,23 @@ static function GetAttachmentUrlFilter($url)  {
 	}
 	
 	return $url;
+}
+
+/*
+static function LoadOptsDirect() {
+	global $wpdb;
+	$opts = $wpdb->get_var("SELECT option_value FROM $wpdb->options WHERE option_name = '".WPFB_OPT_NAME."' LIMIT 1");
+	return (self::$options = empty($opts) ? array() : (array)$opts);
+}
+*/
+static function GetCustomCssPath($path=null) {
+	if(empty($path)) {
+		$path = self::UploadDir();
+	} else {
+		$path = ABSPATH .'/'.trim(str_replace('\\','/',str_replace('..','', $path)),'/');
+		if(!@is_dir($path)) return null;
+	}
+	$path .= "/_wp-filebase.css";
+	return $path; 
 }
 }

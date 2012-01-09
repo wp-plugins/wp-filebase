@@ -5,7 +5,7 @@ static $FilesPerPage = 50;
 static function Display()
 {
 	global $wpdb, $user_ID;
-	
+
 	wpfb_loadclass('File', 'Category', 'Admin', 'Output');
 	
 	$_POST = stripslashes_deep($_POST);
@@ -200,8 +200,8 @@ static function Display()
 				<tr id='file-<?php echo $file_id ?>'<?php if($file->file_offline) { echo " class='offline'"; } ?>>
 						    <th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $file_id ?>' /></th>
 						    <td class="num"><?php echo $file_id ?></td>
-							<td class="wpfilebase-admin-list-row-title"><a class='row-title' href='<?php echo $file->GetEditUrl() ?>' title='&quot;<?php echo esc_attr($file->file_display_name); ?>&quot; bearbeiten'>
-							<?php if(!empty($file->file_thumbnail)) { ?><img src="<?php echo $file->GetIconUrl(); ?>" height="32" /><?php } ?>
+							<td class="wpfilebase-admin-list-row-title"><a class='row-title' href='<?php echo esc_attr($file->GetEditUrl()) ?>' title='&quot;<?php echo esc_attr($file->file_display_name); ?>&quot; bearbeiten'>
+							<?php if(!empty($file->file_thumbnail)) { ?><img src="<?php echo esc_attr($file->GetIconUrl()); ?>" height="32" /><?php } ?>
 							<span><?php if($file->IsRemote()){echo '*';} echo esc_html($file->file_display_name); ?></span>
 							</a></td>
 							<td><a href="<?php echo $file->GetUrl() ?>"><?php echo esc_html($file->file_name); ?></a></td>
@@ -289,7 +289,7 @@ static function FileInfoPathsBox($info)
 }
 }
 
-
+/*
 class WPFB_File_List_Table extends WP_List_Table {
 	static $FilesPerPage = 50;
 	
@@ -357,7 +357,7 @@ class WPFB_File_List_Table extends WP_List_Table {
 
 		if ( !empty($_num_posts['trash']) )
 			$type_links['trash'] = '<a href="upload.php?status=trash"' . ( (isset($_GET['status']) && $_GET['status'] == 'trash' ) ? ' class="current"' : '') . '>' . sprintf( _nx( 'Trash <span class="count">(%s)</span>', 'Trash <span class="count">(%s)</span>', $_num_posts['trash'], 'uploaded files' ), number_format_i18n( $_num_posts['trash'] ) ) . '</a>';
-*/
+* /
 		
 		$type_links['remote'] = 'remote';
 		$type_links['offline'] = 'off';
@@ -419,9 +419,9 @@ class WPFB_File_List_Table extends WP_List_Table {
 		$posts_columns['id'] = 'ID';
 		$posts_columns['title'] = __('Name');
 		$posts_columns['file'] = __('Filename', WPFB);
-		$posts_columns['size'] = __('Size'/*def*/);
-		$posts_columns['desc'] = __('Description'/*def*/);		
-		$posts_columns['cat'] = __('Category'/*def*/);
+		$posts_columns['size'] = __('Size'/*def* /);
+		$posts_columns['desc'] = __('Description'/*def* /);		
+		$posts_columns['cat'] = __('Category'/*def* /);
 		$posts_columns['perm'] = __('Access Permission',WPFB);
 		$posts_columns['uploader'] = __('Owner',WPFB);
 		$posts_columns['hits'] = __('Hits', WPFB);
@@ -520,4 +520,5 @@ foreach ( $columns as $column_name => $column_display_name ) {
 <?php } // foreach file
 	}
 }
+*/
 

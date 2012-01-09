@@ -168,11 +168,32 @@
 
 #wpfilebase-upload-tabs .upload-flash-bypass, #wpfilebase-upload-tabs .upload-html-bypass {
 	font-size: 10px;
+	line-height: 10px;
 }
 
 #wpfilebase-upload-tabs .media-item {
 	margin: 2px;
 	overflow:hidden;
+}
+
+#wpfilebase-upload-tabs .drag-drop #drag-drop-area {
+	width: 370px;
+	height: 40px;
+	border-width: 2px;
+}
+
+#wpfilebase-upload-tabs .drag-drop-inside {
+	margin: 5px;
+	width: 370px;
+}
+
+#wpfilebase-upload-tabs .drag-drop-inside p {
+	margin: 0;
+	font-size: 12px;
+}
+
+#wpfilebase-upload-tabs .drag-drop-buttons {
+	display: inline;
 }
 
 #file_user_roles.hidden {

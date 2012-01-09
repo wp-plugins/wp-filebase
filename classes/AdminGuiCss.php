@@ -16,13 +16,21 @@ static function Display()
 	<div class="wrap">
 	<?php
 	
+	$upload_path = WPFB_Core::GetOpt('upload_path');
+	if(path_is_absolute($upload_path))
+	{
+		echo '<div class="updated fade"><p>';
+		printf(__('Custom CSS does only work if upload path is relative to WordPress path. It is currently set to <code>%s</code>, so <b>custom CSS will not work!</b>',WPFB), $upload_path);
+		echo "</p></div>";
+	}
+	
 	switch($action)
 	{		
 		default:
 			if(!current_user_can('edit_themes'))
 				wp_die(__('Cheatin&#8217; uh?'));
 		
-			$css_path_edit = WPFB_Core::UploadDir() . '/_wp-filebase.css';
+			$css_path_edit = WPFB_Core::GetCustomCssPath();
 			$css_path_default = WPFB_PLUGIN_ROOT . 'wp-filebase.css';
 			
 			$exists = file_exists($css_path_edit) && is_file($css_path_edit);

@@ -33,9 +33,12 @@ if($update) $nonce_action .= ($multi_edit ? $item_ids : $file->file_id);
 if($in_editor) $nonce_action .= "-editor";
 
 $file_category = ($update || empty($_REQUEST['file_category'])) ? $file->file_category : $_REQUEST['file_category'];
+
+$adv_uploader = (version_compare(get_bloginfo('version'), '3.2.1') <= 0) ? 'SWFUpload' : 'PLUpload';
+
 ?>
 
-<?php wpfb_call('SWFUpload','Scripts'); ?>
+<?php wpfb_call($adv_uploader,'Scripts'); ?>
 			
 <form enctype="multipart/form-data" name="<?php echo $action ?>" id="<?php echo $action ?>" method="post" action="<?php echo $form_url ?>" class="validate">
 
@@ -45,6 +48,8 @@ $file_category = ($update || empty($_REQUEST['file_category'])) ? $file->file_ca
 
 <script type="text/javascript">
 //<![CDATA[
+var uploaderMode = 0;
+
 function WPFB_switchFileUpload(i)
 {
 	jQuery('#file-upload-wrap').toggleClass('hidden');
@@ -56,7 +61,23 @@ function WPFB_switchFileUpload(i)
 	return false;
 }
 
-jQuery(document).ready(function($){
+jQuery(document).ready(function($){	
+	$('#file-upload-progress').hide();
+	$('#cancel-upload').hide();
+
+	WPFB_switchUploader(getUserSetting('wpfb_adv_uploader'));
+	$('#file-upload-wrap').bind('click.uploader', function(e) {
+		var target = $(e.target);
+
+		if ( target.is('.upload-flash-bypass a') || target.is('a.uploader-html') ) { // switch uploader to html4
+			WPFB_switchUploader(0);
+			return false;
+		} else if ( target.is('.upload-html-bypass a') ) { // switch uploader to multi-file
+			WPFB_switchUploader(1);
+			return false;
+		}
+	});
+	
 	$('#file_tags').keyup(function() {
 		var tags = $(this).val();
 		var lt = $.trim(tags.substr(tags.lastIndexOf(',') + 1));
@@ -103,6 +124,21 @@ jQuery(document).ready(function($){
 	$('#file_tags').focusout(function($){jQuery('#file_tags_proposal').fadeOut(400);});
 });
 
+function WPFB_switchUploader(adv) {
+	if (adv) {
+		jQuery('#flash-upload-ui').show();
+		jQuery('#html-upload-ui').hide();
+		setUserSetting('wpfb_adv_uploader', '1');
+		if ( typeof(uploader) == 'object' )
+			uploader.refresh();
+		if(typeof(swfuploadPreLoad) == 'function') swfuploadPreLoad();
+	} else {
+		jQuery('#flash-upload-ui').hide();
+		jQuery('#html-upload-ui').show();
+		deleteUserSetting('wpfb_adv_uploader');
+	}
+}
+
 function WPFB_addTag(tag)
 {
 	var inp = jQuery('#file_tags');
@@ -131,21 +167,15 @@ function WPFB_addTag(tag)
 		</div></th>		
 		<td colspan="3" valign="top"><div id="wpfilebase-upload-tabs">
 			<div id="file-upload-wrap" <?php echo ($file->IsRemote() ? 'class="hidden"' : ''); ?>>
-			 	<div id="flash-upload-ui">
-					<?php // SWF upload not supported on 3.3 and later
-					if(version_compare(get_bloginfo('version'), '3.2.1') <= 0)
-						wpfb_call('SWFUpload','Display',$form_url);
-					?>
-				</div>
 			 	<div id="html-upload-ui">
 					<label for="file_upload"><?php _e('Choose File', WPFB) ?></label>
 					<input type="file" name="file_upload" id="file_upload" /><br />
-										<?php printf(str_replace('%d%s','%s',__('Maximum upload file size: %d%s'/*def*/)), WPFB_Output::FormatFilesize(WPFB_Core::GetMaxUlSize())) ?> <b>&nbsp;&nbsp;<a href="#" onclick="alert(this.title); return false;" title="<?php printf(__('Ask your webhoster to increase this limit, it is set in %s.',WPFB), 'php.ini'); ?>">?</a></b>
-					<?php // SWF upload not supported on 3.3 and later
-					if(version_compare(get_bloginfo('version'), '3.2.1') <= 0) { ?><p class="upload-html-bypass hide-if-no-js"><?php _e('You are using the Browser uploader.'); 
+					<?php printf(str_replace('%d%s','%s',__('Maximum upload file size: %d%s'/*def*/)), WPFB_Output::FormatFilesize(WPFB_Core::GetMaxUlSize())) ?> <b>&nbsp;&nbsp;<a href="#" onclick="alert(this.title); return false;" title="<?php printf(__('Ask your webhoster to increase this limit, it is set in %s.',WPFB), 'php.ini'); ?>">?</a></b>
+					<p class="upload-html-bypass hide-if-no-js"><?php _e('You are using the Browser uploader.'); 
 					printf( __('Try the <a href="%s">Flash uploader</a> instead.'), esc_url(add_query_arg('flash', 1)) );
-					?></p> <?php } ?>
+					?>
 				</div>
+			 	<div id="flash-upload-ui"><?php wpfb_call($adv_uploader,'Display',$form_url); ?></div> <!--  flash-upload-ui -->
 				<?php if($update) { echo '<div><b><a href="'.$file->GetUrl().'">' . $file->file_name . '</a></b> (' . $file->GetFormattedSize() . ', '.wpfb_call('Download', 'GetFileType', $file->file_name).')</div>'; } ?>
 			</div>
 			<div id="file-remote-wrap" <?php echo ($file->IsRemote() ? '' : 'class="hidden"'); ?>>
@@ -165,7 +195,7 @@ function WPFB_addTag(tag)
 		<td class="form-field" colspan="3"><input type="file" name="file_upload_thumb" id="file_upload_thumb" />
 		<br /><?php _e('You can optionally upload a thumbnail here. If the file is a valid image, a thumbnail is generated automatically.', WPFB); ?>
 		<?php if($update && !empty($file->file_thumbnail)) { ?>
-			<br /><img src="<?php echo $file->GetIconUrl(); ?>" /><br />
+			<br /><img src="<?php echo esc_attr($file->GetIconUrl()); ?>" /><br />
 			<b><?php echo $file->file_thumbnail; ?></b><br />
 			<label for="file_delete_thumb"><?php _e('Delete') ?></label><input type="checkbox" value="1" name="file_delete_thumb" id="file_delete_thumb" style="display:inline; width:30px;" />
 		<?php } ?>
