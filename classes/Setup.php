@@ -191,6 +191,7 @@ static function SetupDBTables()
   `cat_user_roles` varchar(255) NOT NULL default '',
   `cat_icon` varchar(255) default NULL,
   `cat_exclude_browser` enum('0','1') NOT NULL default '0',
+  `cat_order` int(8) NOT NULL default '0',
   PRIMARY KEY  (`cat_id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1";
 				
@@ -286,7 +287,10 @@ static function SetupDBTables()
 	$queries[] = "@ALTER TABLE `$tbl_files` ADD `file_tags` varchar(255) NOT NULL default ''  AFTER `file_description`";
 	
 	// 0.2.9.10
-	$queries[] = "@ALTER TABLE `$tbl_files_id3` CHANGE `value` `value` LONGTEXT"; 
+	$queries[] = "@ALTER TABLE `$tbl_files_id3` CHANGE `value` `value` LONGTEXT";
+	
+	// 0.2.9.12
+	$queries[] = "@ALTER TABLE `$tbl_cats` ADD `cat_order` int(8) NOT NULL default '0'  AFTER `cat_exclude_browser`";
 	
 	$queries[] = "OPTIMIZE TABLE `$tbl_cats`";
 	$queries[] = "OPTIMIZE TABLE `$tbl_files`";

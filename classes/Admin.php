@@ -40,6 +40,7 @@ static function SettingsSchema()
 
 	'attach_pos'			=> array('default' => 1, 'title' => __('Attachment Position', WPFB), 'desc' => __('', WPFB), 'type' => 'select', 'options' => array(__('Before the Content',WPFB),__('After the Content',WPFB))),
 	
+	'attach_loop' 			=> array('default' => false,'title' => __('Attachments in post lists', WPFB), 'type' => 'checkbox', 'desc' => __('Attach files to posts in archives, index and search result.', WPFB)),
 	
 	// display
 	'auto_attach_files' 	=> array('default' => true,'title' => __('Show attached files', WPFB), 'type' => 'checkbox', 'desc' => __('If enabled, all associated files are listed below an article', WPFB)),
@@ -332,6 +333,8 @@ static function CatSortFields()
 	'cat_num_files'		=> __('Number of files directly in the category', WPFB),
 	'cat_num_files_total' => __('Number of all files in the category and all sub-categories', WPFB),
 	
+	'cat_order'			=> __('Custom Category Order', WPFB)
+	
 	//'cat_required_level' => __('The minimum user level to access (-1 = guest, 0 = Subscriber ...)', WPFB)
 	);
 }
@@ -380,7 +383,7 @@ static function MoveDir($from, $to)
 
 static function InsertCategory($catarr)
 {	
-	$catarr = wp_parse_args($catarr, array('cat_id' => 0, 'cat_name' => '', 'cat_description' => '', 'cat_parent' => 0, 'cat_folder' => ''));
+	$catarr = wp_parse_args($catarr, array('cat_id' => 0, 'cat_name' => '', 'cat_description' => '', 'cat_parent' => 0, 'cat_folder' => '', 'cat_order' => 0));
 	extract($catarr, EXTR_SKIP);
 	$data = (object)$catarr;
 
@@ -404,7 +407,8 @@ static function InsertCategory($catarr)
 
 	$cat->cat_name = trim($cat_name);
 	$cat->cat_description = trim($cat_description);
-	$cat->cat_exclude_browser = (int)!empty($cat_exclude_browser);	
+	$cat->cat_exclude_browser = (int)!empty($cat_exclude_browser);
+	$cat->cat_order = intval($cat_order);
 		
 	// handle parent cat
 	if($cat_parent <= 0 || $cat_parent == $cat_id) {

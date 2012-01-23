@@ -1,24 +1,14 @@
--wp-filebase search widget
 - multi wigets
-- default sorting for cats
-- test new css loading multisite
-- enable file attachemnts in file archive
-- custom cat sorting!
+- filename in file upload widget
+-batch action on categories/files: delete thumbnail, rescan id3, set author, set permission, set redirecting set offline
 
 - bulk load
--optimize css
-- blank page on add file
 - FAQ: wpfilebase_sync action
 
 Warning: explode() expects parameter 2 to be string, array given in /home/tristace/public_html/wp-content/plugins/wp-filebase/classes/Item.php on line 320
 \\\' - fixed
 
- multi widget
-
 - permission form: inherit checkbox
-- fix default permissions, inherited!
-- bulk action
-- option: no display name formatting
 _ widget: users which cannot upload files should not change widget!!
 - upload widget: fixed category
 - editor plugin: field box not collapsable, missing JS

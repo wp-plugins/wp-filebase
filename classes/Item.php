@@ -28,7 +28,7 @@ class WPFB_Item {
 	function GetName(){return $this->is_file?$this->file_name:$this->cat_folder;}	
 	function GetTitle($maxlen=0){
 		$t = $this->is_file?$this->file_display_name:$this->cat_name;
-		if($maxlen > 3 && strlen($t) > $maxlen) $t = substr($t, 0, $maxlen-3).'...';
+		if($maxlen > 3 && strlen($t) > $maxlen) $t = mb_substr($t, 0, $maxlen-3,'utf8').'...';
 		return $t;
 	}	
 	function Equals($item){return (isset($item->is_file) && $this->is_file == $item->is_file && $this->GetId() > 0 && $this->GetId() == $item->GetId());}	
@@ -193,6 +193,21 @@ class WPFB_Item {
 				return true;
 		}
 		return false;
+	}
+	
+	function CurUserCanEdit()
+	{
+		global $current_user;
+		if($current_user->ID > 0 && empty($current_user->roles[0]))
+			$current_user = new WP_User($current_user->ID);// load the roles!
+		
+		if(in_array('administrator',$current_user->roles)) return true;
+		if(!current_user_can('upload_files')) return false;
+		
+		if($this->is_file)
+			return ($this->file_added_by == $current_user->ID || (current_user_can('edit_others_posts') && !WPFB_Core::GetOpt('private_files')));
+		else
+			return current_user_can('manage_categories');
 	}
 	
 	function GetUrl($rel=false)

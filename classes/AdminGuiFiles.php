@@ -45,8 +45,8 @@ static function Display()
 				if(!is_array($_POST['files'])) $_POST['files'] = explode(',',$_POST['files']);
 				$files = array();
 				foreach($_POST['files'] as $file_id) {
-					$file_id = intval($file_id);
-					if($file_id > 0) $files[] = WPFB_File::GetFile($file_id);
+					$file = WPFB_File::GetFile($file_id);
+					if(!is_null($file) && $file->CurUserCanEdit()) $files[] = $file;
 				}
 				if(count($files) > 0)
 					WPFB_Admin::PrintForm('file', $files, array('multi_edit' => true));
@@ -54,6 +54,8 @@ static function Display()
 					wp_die('No files to edit.');
 			} else {
 				$file = &WPFB_File::GetFile($_GET['file_id']);
+				if(is_null($file) || !$file->CurUserCanEdit())
+					wp_die(__('You do not have the permission to edit this file!',WPFB));
 				WPFB_Admin::PrintForm('file', $file);
 			}
 			break;
@@ -61,7 +63,9 @@ static function Display()
 		case 'updatefile':
 			$file_id = (int)$_POST['file_id'];
 			$update = true;
-			
+			$file = WPFB_File::GetFile($file_id);
+			if(is_null($file) || !$file->CurUserCanEdit())
+				wp_die(__('Cheatin&#8217; uh?'));			
 		case 'addfile':
 			$update = !empty($update);
 			
@@ -143,7 +147,7 @@ static function Display()
 			if(!empty($_GET['file_category'])) 
 				$where = (empty($where) ? '' : ("($where) AND ")) . "file_category = " . intval($_GET['file_category']);
 
-			$files = WPFB_File::GetFiles2($where, false, $order, $filesperpage, $pagestart);
+			$files = WPFB_File::GetFiles2($where, 'edit', $order, $filesperpage, $pagestart);
 			
 			if(empty($files) && !empty($wpdb->last_error)) {
 				wp_die("<b>Database error</b>: ".$wpdb->last_error);
@@ -152,7 +156,7 @@ static function Display()
 			$page_links = paginate_links( array(
 				'base' => add_query_arg( 'pagenum', '%#%' ),
 				'format' => '',
-				'total' => ceil(WPFB_File::GetNumFiles2($where, false) / $filesperpage),
+				'total' => ceil(WPFB_File::GetNumFiles2($where, 'edit') / $filesperpage),
 				'current' => $pagenum
 			));
 

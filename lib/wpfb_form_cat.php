@@ -96,6 +96,10 @@ $form_action = add_query_arg('page', 'wpfilebase_cats', remove_query_arg(array('
 			<th scope="row" valign="top"><label for="cat_exclude_browser"><?php _e('Exclude from file browser', WPFB) ?></label></th>
 			<td><input type="checkbox" name="cat_exclude_browser" value="1" <?php checked($file_category->cat_exclude_browser) ?> /></td>
 		</tr>
+		<tr class="form-field">
+			<th scope="row" valign="top"><label for="cat_order"><?php _e('Custom Sort Order', WPFB) ?></label></th>
+			<td><input name="cat_order" id="cat_order" type="text" value="<?php echo esc_attr($file_category->cat_order); ?>" class="small-text" size="8" style="width:60px; text-align:right;" /></td>
+		</tr>
 	</table>
 <p class="submit"><input type="submit" class="button-primary" name="submit" value="<?php echo _e($update?'Update':'Add New Category') ?>" /></p>
 </form>

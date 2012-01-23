@@ -88,7 +88,7 @@ class WPFB_File extends WPFB_Item {
 	
 	private static function genSelectSql($where, $check_permissions, $order = null, $limit = -1, $offset = -1)
 	{
-		global $wpdb;
+		global $wpdb, $current_user;
 		
 		// parse where
 		if(empty($where)) $where_str = '1=1';
@@ -101,8 +101,14 @@ class WPFB_File extends WPFB_Item {
 			}
 		} else $where_str =& $where;
 		
-		if($check_permissions)
-			$where_str = "($where_str) AND (".self::GetPermissionWhere().") AND file_offline = '0'";
+		if($check_permissions) {
+			if($check_permissions == 'edit') {
+				$edit_cond = (current_user_can('edit_others_posts') && !WPFB_Core::GetOpt('private_files')) ? "1=1" : ("file_added_by = ".((int)$current_user->ID));
+				$where_str = "($where_str) AND ($edit_cond)";
+			} else
+				$where_str = "($where_str) AND (".self::GetPermissionWhere().") AND file_offline = '0'";
+		}
+			
 		
 		// join id3 table if found in where clause
 		$join_str = (strpos($where_str, $wpdb->wpfilebase_files_id3) !== false) ? " LEFT JOIN $wpdb->wpfilebase_files_id3 ON ( $wpdb->wpfilebase_files_id3.file_id = $wpdb->wpfilebase_files.file_id ) " : "";
@@ -547,7 +553,7 @@ class WPFB_File extends WPFB_Item {
 		if(is_numeric($mysql_date_or_timestamp)) $mysql_date_or_timestamp = gmdate('Y-m-d H:i:s', $mysql_date_or_timestamp);
 		$this->file_date = $mysql_date_or_timestamp;
 		if($this->IsLocal()) {
-			if(!touch($this->GetLocalPath(), mysql2date('U', $this->file_date)+0))
+			if(!@touch($this->GetLocalPath(), mysql2date('U', $this->file_date)+0))
 				return false;
 		}
 		if(!$this->locked) $this->DBSave();

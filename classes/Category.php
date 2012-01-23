@@ -15,6 +15,7 @@ class WPFB_Category extends WPFB_Item {
 	var $cat_user_roles;
 	var $cat_icon;
 	var $cat_exclude_browser = 0;
+	var $cat_order;
 	
 	static $cache = array();
 	static $cache_complete = false;

@@ -44,7 +44,7 @@ static function InitClass()
 	
 	// widgets
 	wp_register_sidebar_widget(WPFB_PLUGIN_NAME, WPFB_PLUGIN_NAME .' '. __('File list', WPFB), array(__CLASS__, 'FileWidget'), array('description' => __('Lists the latest or most popular files', WPFB)));
-	wp_register_sidebar_widget(WPFB_PLUGIN_NAME.'_cats', WPFB_PLUGIN_NAME.' ' . __('Category list', WPFB), array(__CLASS__, 'CatWidget'), array('description' => __('Simple listing of file categories', WPFB)));
+	wp_register_sidebar_widget(WPFB_PLUGIN_NAME.'_cats', "[DEPRECATED]".WPFB_PLUGIN_NAME.' ' . __('Category list', WPFB), array(__CLASS__, 'CatWidget'), array('description' => __('Simple listing of file categories', WPFB)));
 	//wp_register_sidebar_widget(WPFB_PLUGIN_NAME.'_upload', WPFB_PLUGIN_NAME.' ' . __('File upload', WPFB), array(__CLASS__, 'UploadWidget'), array('description' => __('Supplies a form for uploading files', WPFB)));
 	
 	if((is_admin() && !empty($_GET['page']) && strpos($_GET['page'], 'wpfilebase_') !== false) || defined('WPFB_EDITOR_PLUGIN'))
@@ -82,6 +82,8 @@ static function ParseQuery(&$query)
 	global $wp_query;
 	if (!empty($wp_query->query_vars['s']) && self::GetOpt('search_integration'))
 		wpfb_loadclass('Search');
+	if(!empty($_GET['wpfb_s']))
+		WPFB_Core::$file_browser_search = true;		
 	add_filter('the_excerpt',	array(__CLASS__, 'SearchExcerptFilter'), 10); // must be lower than 11 (before do_shortcode) and after wpautop (>9)
 }
 
@@ -192,7 +194,7 @@ function SearchExcerptFilter($content)
 
 function ContentFilter($content)
 {
-	global $id, $wpfb_fb;
+	global $id, $wpfb_fb, $post;
 	
 	if(!WPFB_Core::GetOpt('parse_tags_rss') && is_feed())
 		return $content;	
@@ -206,25 +208,22 @@ function ContentFilter($content)
 	}
 	*/
 	
-	if(!empty($id) && $id > 0 && !post_password_required())
+	if(!empty($post) && is_object($post) && !post_password_required())
 	{
-		if(is_single() || is_page()) {
-			if($id == WPFB_Core::GetOpt('file_browser_post_id'))
-			{
-				$wpfb_fb = true;
-				wpfb_loadclass('Output', 'File', 'Category');
-				WPFB_Output::FileBrowser($content, 0, empty($_GET['wpfb_cat']) ? 0 : intval($_GET['wpfb_cat']));
-			}
+		$single = is_single() || is_page();
 		
-			if(WPFB_Core::GetOpt('auto_attach_files'))
-			{
-				wpfb_loadclass('Output');
-				
-				if(WPFB_Core::GetOpt('attach_pos') == 0)
-					$content = WPFB_Output::PostAttachments(true) . $content;
-				else
-					$content .= WPFB_Output::PostAttachments(true);
-			}
+		if($single && $post->ID == WPFB_Core::GetOpt('file_browser_post_id')) {
+			$wpfb_fb = true;
+			wpfb_loadclass('Output', 'File', 'Category');
+			WPFB_Output::FileBrowser($content, 0, empty($_GET['wpfb_cat']) ? 0 : intval($_GET['wpfb_cat']));
+		}
+	
+		if(self::GetOpt('auto_attach_files') && ($single || self::GetOpt('attach_loop'))) {
+			wpfb_loadclass('Output');			
+			if(WPFB_Core::GetOpt('attach_pos') == 0)
+				$content = WPFB_Output::PostAttachments(true) . $content;
+			else
+				$content .= WPFB_Output::PostAttachments(true);
 		}
 		
 		// TODO: file resulst are generated twice, 2nd time in the_excerpt filter (SearchExcerptFilter)
