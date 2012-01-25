@@ -101,8 +101,8 @@ class WPFB_File extends WPFB_Item {
 			}
 		} else $where_str =& $where;
 		
-		if($check_permissions) {
-			if($check_permissions == 'edit') {
+		if($check_permissions != false) {
+			if(is_string($check_permissions) && $check_permissions == 'edit') {
 				$edit_cond = (current_user_can('edit_others_posts') && !WPFB_Core::GetOpt('private_files')) ? "1=1" : ("file_added_by = ".((int)$current_user->ID));
 				$where_str = "($where_str) AND ($edit_cond)";
 			} else

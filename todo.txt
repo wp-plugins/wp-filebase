@@ -1,3 +1,4 @@
+-move files/categories to another
 - multi wigets
 - filename in file upload widget
 -batch action on categories/files: delete thumbnail, rescan id3, set author, set permission, set redirecting set offline
