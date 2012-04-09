@@ -44,7 +44,7 @@ static function InitClass()
 	
 	// widgets
 	wp_register_sidebar_widget(WPFB_PLUGIN_NAME, WPFB_PLUGIN_NAME .' '. __('File list', WPFB), array(__CLASS__, 'FileWidget'), array('description' => __('Lists the latest or most popular files', WPFB)));
-	wp_register_sidebar_widget(WPFB_PLUGIN_NAME.'_cats', "[DEPRECATED]".WPFB_PLUGIN_NAME.' ' . __('Category list', WPFB), array(__CLASS__, 'CatWidget'), array('description' => __('Simple listing of file categories', WPFB)));
+	//wp_register_sidebar_widget(WPFB_PLUGIN_NAME.'_cats', "[DEPRECATED]".WPFB_PLUGIN_NAME.' ' . __('Category list', WPFB), array(__CLASS__, 'CatWidget'), array('description' => __('Simple listing of file categories', WPFB)));
 	//wp_register_sidebar_widget(WPFB_PLUGIN_NAME.'_upload', WPFB_PLUGIN_NAME.' ' . __('File upload', WPFB), array(__CLASS__, 'UploadWidget'), array('description' => __('Supplies a form for uploading files', WPFB)));
 	
 	if((is_admin() && !empty($_GET['page']) && strpos($_GET['page'], 'wpfilebase_') !== false) || defined('WPFB_EDITOR_PLUGIN'))
@@ -111,7 +111,7 @@ static function GetOpt($name = null) {
 }
 
 static function FileWidget($args) { return wpfb_call('Widget', 'FileList', $args); }
-static function CatWidget($args) { return wpfb_call('Widget', 'CatList', $args); }
+//static function CatWidget($args) { return wpfb_call('Widget', 'CatList', $args); } // DEPRECATED
 //static function UploadWidget($args) { return wpfb_call('Widget', 'Upload', $args); } // uses new class-style widgets
 
 static function DownloadRedirect()

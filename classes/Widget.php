@@ -176,7 +176,7 @@ function CatTree(&$root_cat)
 	echo '</li>';
 }
 
-
+// DEPRECATED TODO remove
 function CatListCntrl()
 {
 	echo "DEPRECATED";
@@ -313,10 +313,7 @@ class WPFB_SearchWidget extends WP_Widget {
 		parent::WP_Widget( false, WPFB_PLUGIN_NAME .' '.__('Search'), array('description' => __('Widget for searching files.',WPFB)) );
 	}
 
-	function widget( $args, $instance ) {			
-		if(!current_user_can('upload_files'))
-			return;
-
+	function widget( $args, $instance ) {
 		wpfb_loadclass('File', 'Category', 'Output');
 		
         extract( $args );

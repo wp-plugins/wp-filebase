@@ -202,11 +202,13 @@ static function SetupDBTables()
   `file_path` varchar(255) NOT NULL default '',
   `file_size` bigint(20) unsigned NOT NULL default '0',
   `file_date` datetime NOT NULL default '0000-00-00 00:00:00',
+  `file_mtime` bigint(20) unsigned NOT NULL default '0',
   `file_hash` char(32) NOT NULL,
   `file_remote_uri` varchar(255) NOT NULL default '',
   `file_thumbnail` varchar(255) default NULL,
   `file_display_name` varchar(255) NOT NULL default '',
   `file_description` text,
+  `file_tags` varchar(255) NOT NULL default '',
   `file_requirement` varchar(255) default NULL,
   `file_version` varchar(64) default NULL,
   `file_author` varchar(255) default NULL,
@@ -292,6 +294,7 @@ static function SetupDBTables()
 	// 0.2.9.12
 	$queries[] = "@ALTER TABLE `$tbl_cats` ADD `cat_order` int(8) NOT NULL default '0'  AFTER `cat_exclude_browser`";
 	
+
 	$queries[] = "OPTIMIZE TABLE `$tbl_cats`";
 	$queries[] = "OPTIMIZE TABLE `$tbl_files`";
 
@@ -306,6 +309,19 @@ static function SetupDBTables()
 		}
 			
 	}
+	
+	// since 0.2.9.13 : file_mtime, use file_date as default
+	if(!$wpdb->get_var("SHOW COLUMNS FROM `$tbl_files` LIKE 'file_mtime'")) {		
+		$wpdb->query("ALTER TABLE `$tbl_files` ADD `file_mtime` bigint(20) unsigned NOT NULL default '0' AFTER `file_date`");
+		
+		$files = $wpdb->get_results("SELECT file_id,file_date FROM $tbl_files");
+		foreach ( (array) $files as $file ) {
+			$wpdb->query("UPDATE `$tbl_files` SET `file_mtime` = '".mysql2date('U', $file->file_date)."' WHERE `file_id` = $file->file_id");
+		}
+		// this is faster, but UNIX_TIMESTAMP adds leap seconds, so all files will be synced again!
+		//$wpdb->query("UPDATE `$tbl_files` SET `file_mtime` = UNIX_TIMESTAMP(`file_date`) WHERE file_mtime = 0;");
+	}
+	
 
 	// convert all required_level -> user_roles
 	if(!!$wpdb->get_var("SHOW COLUMNS FROM `$tbl_files` LIKE 'file_required_level'")) {		

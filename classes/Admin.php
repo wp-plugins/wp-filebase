@@ -512,8 +512,6 @@ static function InsertFile($data, $in_gui =false)
 	// are we uploading a thumbnail?
 	$upload_thumb = (!$add_existing && @is_uploaded_file($data->file_upload_thumb['tmp_name']) && self::IsValidImage($data->file_upload_thumb['tmp_name']) !== false);
 	
-	if(empty($file->file_date)) $file->SetModifiedTime(time());
-	
 	if($remote_upload) {
 		unset($file_src_path);
 		$remote_file_info = self::GetRemoteFileInfo($data->file_remote_uri);
@@ -593,14 +591,19 @@ static function InsertFile($data, $in_gui =false)
 			$file->CreateThumbnail();	// check if the file is an image and create thumbnail
 	}
 	
+	// handle date/time stuff
+	if(!empty($data->file_date)) {
+		$file->file_date = $data->file_date;
+	} elseif($add_existing || empty($file->file_date)) {
+		$file->file_date = gmdate('Y-m-d H:i:s', filemtime($file->GetLocalPath()));
+	}
+	
 	// get file info
 	if(!($update && $remote_redirect) && is_file($file->GetLocalPath()))
 	{
 		$file->file_size = filesize($file->GetLocalPath());
+		$file->file_mtime = filemtime($file->GetLocalPath());
 		$file->file_hash = md5_file($file->GetLocalPath());
-		
-		if($add_existing) $file->file_date = gmdate('Y-m-d H:i:s', filemtime($file->GetLocalPath()));
-		else $file->SetModifiedTime(!empty($file_date) ? $file_date : filemtime($file->GetLocalPath()));
 		
 		if(!WPFB_Core::GetOpt('disable_id3'))
 		{
@@ -650,7 +653,7 @@ static function InsertFile($data, $in_gui =false)
 		
 	$file->file_author = isset($data->file_author) ? $data->file_author : WPFB_Core::GetOpt('default_author');
 	
-	$var_names = array('remote_uri', 'date', 'description', 'hits', 'license');
+	$var_names = array('remote_uri', 'description', 'hits', 'license');
 	for($i = 0; $i < count($var_names); $i++)
 	{
 		$vn = 'file_' . $var_names[$i];
@@ -792,6 +795,8 @@ static function Sync($hash_sync=false, $output=false)
 	
 	$result = array('missing_files' => array(), 'missing_folders' => array(), 'changed' => array(), 'not_added' => array(), 'error' => array(), 'updated_categories' => array());
 	
+	$sync_id3 = !WPFB_Core::GetOpt('disable_id3');
+	
 	// some syncing/updating
 	self::UpdateItemsPath();
 	self::SyncCustomFields();
@@ -809,7 +814,7 @@ static function Sync($hash_sync=false, $output=false)
 			$db_files[] = str_replace('//','/',str_replace('\\', '/', $file->GetThumbPath()));
 		
 		if($file->file_category > 0 && is_null($file->GetParent()))
-			$result['warnings'][] = sprintf(__('Category (ID %d) of file %s does not exist!'), $file->file_category, $file->GetRelPath()); 
+			$result['warnings'][] = sprintf(__('Category (ID %d) of file %s does not exist!'), $file->file_category, $file->GetLocalPathRel()); 
 			
 		// TODO: check for file changes remotly
 		if($file->IsRemote())
@@ -823,17 +828,19 @@ static function Sync($hash_sync=false, $output=false)
 		
 		if($hash_sync) $file_hash = @md5_file($file_path);
 		$file_size = (int)@filesize($file_path);
-		$file_time = filemtime($file_path);
-		$file_analyzetime = WPFB_Core::GetOpt('disable_id3') ? $file_time : WPFB_GetID3::GetFileAnalyzeTime($file);
+		$file_mtime = filemtime($file_path);
+		$file_analyzetime = !$sync_id3 ? $file_mtime : WPFB_GetID3::GetFileAnalyzeTime($file);
 		if(is_null($file_analyzetime)) $file_analyzetime = 0;
 		
-		if( ($hash_sync && $file->file_hash != $file_hash) || $file->file_size != $file_size || $file->GetModifiedTime() != $file_time || $file_analyzetime < $file_time)
+		if( ($hash_sync && $file->file_hash != $file_hash)
+			|| $file->file_size != $file_size || $file->file_mtime != $file_mtime
+			|| $file_analyzetime < $file_mtime)
 		{
 			$file->file_size = $file_size;
-			$file->file_date = gmdate('Y-m-d H:i:s', $file_time);
+			$file->file_mtime = $file_mtime;
 			$file->file_hash = $hash_sync ? $file_hash : @md5_file($file_path);
 			
-			if(!WPFB_Core::GetOpt('disable_id3'))
+			if($sync_id3)
 				WPFB_GetID3::UpdateCachedFileInfo($file);
 			
 			$res = $file->DBSave();

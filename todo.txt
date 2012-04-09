@@ -1,3 +1,20 @@
+ 
+ todo: -self check: modify HTTP/1.x header works? for caching?
+ - check editor-plugin.php??
+ - check wpfb-ajax.php
+ 
+ 
+-check permissions system:
+private files
+editor plugin ajax tree (hide inaccessible)
+different user/user roles
+-upload widget: checbox: attach to current post
+-disable date sync
+- safe mode options
+- sync settings tab
+
+force download per file
+
 -move files/categories to another
 - multi wigets
 - filename in file upload widget
@@ -6,10 +23,6 @@
 - bulk load
 - FAQ: wpfilebase_sync action
 
-Warning: explode() expects parameter 2 to be string, array given in /home/tristace/public_html/wp-content/plugins/wp-filebase/classes/Item.php on line 320
-\\\' - fixed
-
-- permission form: inherit checkbox
 _ widget: users which cannot upload files should not change widget!!
 - upload widget: fixed category
 - editor plugin: field box not collapsable, missing JS
@@ -31,38 +44,46 @@ Comments
 -check sortings
 http://forum.wpml.org/topic.php?id=2894
 http://www.reddit.com/r/Wordpress/comments/f6c0f/question_for_anyone_using_the_plugin_wpfilebase/
--single download pages
--query links without jquery
+
 gettext update, add new textssss
 list templates doc, page nav uand stuff
 
 file list header foooter doc (serach form, page nav)
 
-- file tags
+
 - handle web search crawler
 - multiple widgets
 -ADD WPFB-FILE-ID TO TEMPLATE1
 .multiple posts per file 
 
-new tpl tags:
-added by [user]
-
-file ratings
 file updates
 file dependencies
 report error form
 
-force download per file
+
 
 inline upload for guests
 
 global hotlink protecting
 
- batch actions for files: set properties, delete, create thumbnails, etc...
-    
- attachment form in post! (switchable!)
+ batch actions for files: set properties, delete, create thumbnails, hotlink protection etc...
+
+conflicts:
+http://wordpress.org/support/topic/plugin-simple-facebook-connect-conflict-with-wp-filebase-plugin?replies=2
+http://wordpress.org/support/topic/plugin-wp-filebase-download-manager-conflict-with-debug-bar-console-plugin?replies=1
  
- ################# low
- file ratings
- converter from other plugins
- 
+ wpfilebase:
+-batch syncing! http://wordpress.org/support/topic/plugin-wp-filebase-download-manager-synchronizing-filebase-with-ftp-uploaded-files-not-complete?replies=2
+-multi uploadh
+-quick edit
+-wigets
+-public upload (like inline upload)
+-multi categories
+-cat syncing
+-id3 sorting!!
+-file ratings
+- file tags
+-single download pages
+- remote ftp sync
+- Custom field for post edit screen http://wordpress.org/support/topic/plugin-wp-filebase-download-manager-custom-field-for-post-edit-screen?replies=1
+

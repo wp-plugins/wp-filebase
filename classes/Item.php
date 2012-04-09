@@ -180,10 +180,10 @@ class WPFB_Item {
 		if($current_user->ID > 0 && empty($current_user->roles[0]))
 			$current_user = new WP_User($current_user->ID);// load the roles!
 		
-		if(($for_tpl && !WPFB_Core::GetOpt('hide_inaccessible')) || in_array('administrator',$current_user->roles))
+		if( ($for_tpl && !WPFB_Core::GetOpt('hide_inaccessible')) || in_array('administrator',$current_user->roles) || ($this->is_file && $this->CurUserIsOwner()) )
 			return true;
 		
-		if($this->is_file && WPFB_Core::GetOpt('private_files') && $this->file_added_by != 0 && $this->file_added_by != $current_user->ID) // check private files
+		if($this->is_file && WPFB_Core::GetOpt('private_files') && $this->file_added_by != 0 && !$this->CurUserIsOwner()) // check private files
 			return false;
 			
 		$frs = $this->GetUserRoles();
@@ -201,24 +201,21 @@ class WPFB_Item {
 		if($current_user->ID > 0 && empty($current_user->roles[0]))
 			$current_user = new WP_User($current_user->ID);// load the roles!
 		
-		if(in_array('administrator',$current_user->roles)) return true;
+		if(in_array('administrator',$current_user->roles) || ($this->is_file && $this->CurUserIsOwner())) return true;
 		if(!current_user_can('upload_files')) return false;
 		
-		if($this->is_file)
-			return ($this->file_added_by == $current_user->ID || (current_user_can('edit_others_posts') && !WPFB_Core::GetOpt('private_files')));
-		else
-			return current_user_can('manage_categories');
+		return $this->is_file ? (current_user_can('edit_others_posts') && !WPFB_Core::GetOpt('private_files')) : current_user_can('manage_categories');
 	}
 	
 	function GetUrl($rel=false)
 	{
 		$ps = WPFB_Core::GetOpt('disable_permalinks') ? null : get_option('permalink_structure');		
 		if($this->is_file) {
-			if(!empty($ps)) $url = home_url(WPFB_Core::GetOpt('download_base').'/'.$this->GetLocalPathRel());
+			if(!empty($ps)) $url = home_url(str_replace('#','%23',WPFB_Core::GetOpt('download_base').'/'.$this->GetLocalPathRel()));
 			else $url = home_url('?wpfb_dl='.$this->file_id);
 		} else {
 			$url = get_permalink(WPFB_Core::GetOpt('file_browser_post_id'));	
-			if(!empty($ps)) $url .= $this->GetLocalPathRel().'/';
+			if(!empty($ps)) $url .= str_replace('#','%23',$this->GetLocalPathRel()).'/';
 			elseif($this->cat_id > 0) $url = add_query_arg(array('wpfb_cat' => $this->cat_id), $url);
 			$url .= "#wpfb-cat-$this->cat_id";	
 		}
@@ -431,6 +428,7 @@ class WPFB_Item {
 							$thumb_path = substr($thumb_path, 0, $p)."($i)".substr($thumb_path, $p);
 							$this->file_thumbnail = basename($thumb_path);			
 						}
+						if(!is_dir(dirname($thumb_path))) WPFB_Admin::Mkdir(dirname($thumb_path));
 						if(!@rename($old_thumb_path, $thumb_path)) return array( 'error' =>'Unable to move thumbnail! '.$thumb_path);
 						@chmod($thumb_path, octdec(WPFB_PERM_FILE));
 					}

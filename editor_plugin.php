@@ -169,7 +169,7 @@ function selectFile(id, name)
 		el.css('background-image', 'url('+yesImgUrl+')');
 		return;
 	} else if(currentTab == 'fileurl') {
-		var linkText = prompt('<?php _e('Enter link text:', WPFB) ?>', name);
+		var linkText = prompt("<?php echo esc_attr(__('Enter link text:', WPFB)); ?>", name);
 		if(!linkText || linkText == null || linkText == '')	return;
 		theTag.linktext = linkText;
 	} else {

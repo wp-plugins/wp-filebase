@@ -10,6 +10,7 @@ class WPFB_File extends WPFB_Item {
 	var $file_path;
 	var $file_size = 0;
 	var $file_date;
+	var $file_mtime = 0;
 	var $file_hash;
 	var $file_remote_uri;
 	var $file_thumbnail;
@@ -253,7 +254,7 @@ class WPFB_File extends WPFB_Item {
 		
 		if($ext != 'bmp') {
 			$thumb = @wp_create_thumbnail($src_image, $thumb_size);
-			if(is_wp_error($thumb)) { // error occurs when image is smaller than thumb_size. in this case, just copy original
+			if(is_wp_error($thumb) && max($src_size) <= $thumb_size) { // error occurs when image is smaller than thumb_size. in this case, just copy original
 				$name = wp_basename($src_image, ".$ext");
 				$thumb = dirname($src_image)."/{$name}-{$src_size[0]}x{$src_size[1]}.{$ext}";
 				copy($src_image, $thumb);
@@ -284,19 +285,21 @@ class WPFB_File extends WPFB_Item {
 		}
 		
 		$success = (!empty($thumb) && !is_wp_error($thumb) && is_string($thumb) && file_exists($thumb));
-		
+
 		if(!$src_set && !$success) {
 			$this->file_thumbnail = null;
 		} else {
-			// fallback to source image
+			// fallback to source image WARNING: src img will be moved or deleted!
 			if($src_set && !$success)
 				$thumb = $src_image;
 			
 			$this->file_thumbnail = basename(trim($thumb , '.')); // FIX: need to trim . when image has no extension
 			
-			if(!@rename($thumb, $this->GetThumbPath()))
+			if(!is_dir(dirname($this->GetThumbPath()))) WPFB_Admin::Mkdir(dirname($this->GetThumbPath()));
+			if(!@rename($thumb, $this->GetThumbPath())) {
 				$this->file_thumbnail = null;
-			else
+				@unlink($thumb);
+			} else
 				@chmod($this->GetThumbPath(), octdec(WPFB_PERM_FILE));
 		}
 		
@@ -306,7 +309,7 @@ class WPFB_File extends WPFB_Item {
 	function GetPostUrl() { return empty($this->file_post_id) ? '' : WPFB_Core::GetPostUrl($this->file_post_id).'#wpfb-file-'.$this->file_id; }
 	function GetFormattedSize() { return wpfb_call('Output', 'FormatFilesize', $this->file_size); }
 	function GetFormattedDate($f='file_date') { return (empty($this->$f) || $this->$f == '0000-01-00 00:00:00') ? null : mysql2date(WPFB_Core::GetOpt('file_date_format'), $this->$f); }
-	function GetModifiedTime($gmt=false) { return mysql2date('U', $this->file_date) + ($gmt ? ( get_option( 'gmt_offset' ) * 3600 ) : 0); }
+	function GetModifiedTime($gmt=false) { return $this->file_mtime + ($gmt ? ( get_option( 'gmt_offset' ) * 3600 ) : 0); }
 	
 	// only deletes file/thumbnail on FS, keeping DB entry
 	function Delete()
@@ -550,14 +553,16 @@ class WPFB_File extends WPFB_Item {
 	
 	function SetModifiedTime($mysql_date_or_timestamp)
 	{
-		if(is_numeric($mysql_date_or_timestamp)) $mysql_date_or_timestamp = gmdate('Y-m-d H:i:s', $mysql_date_or_timestamp);
-		$this->file_date = $mysql_date_or_timestamp;
+		if(!is_numeric($mysql_date_or_timestamp)) $mysql_date_or_timestamp = mysql2date('U', $mysql_date_or_timestamp);
 		if($this->IsLocal()) {
-			if(!@touch($this->GetLocalPath(), mysql2date('U', $this->file_date)+0))
+			if(!@touch($this->GetLocalPath(), $mysql_date_or_timestamp))
 				return false;
+			$this->file_mtime = filemtime($this->GetLocalPath());
+		} else {
+			$this->file_mtime = $mysql_date_or_timestamp;
 		}
 		if(!$this->locked) $this->DBSave();
-		return true;
+		return $this->file_mtime;
 	}
 	
 	function SetTags($tags) {
@@ -769,6 +774,11 @@ class WPFB_File extends WPFB_Item {
 	
 	function IsRemote() { return !empty($this->file_remote_uri); }	
 	function IsLocal() { return empty($this->file_remote_uri); }
+		
+	function CurUserIsOwner() {
+		global $current_user;
+		return (!empty($current_user->ID) && $this->file_added_by > 0 && $this->file_added_by == $current_user->ID);
+	}
 }
 
 ?>

@@ -272,7 +272,7 @@ static function CatSelTree($args=null, $root_cat_id = 0, $depth = 0)
 		$out .= '<option value="0"'.((0==$s_sel)?' selected="selected"':'').' style="font-style:italic;">' .(empty($s_nol) ? __('None'/*def*/) : $s_nol) . ($s_count?' ('.WPFB_File::GetNumFiles(0).')':'').'</option>';
 		$cats = &WPFB_Category::GetCats();
 		foreach($cats as $c) {
-			if($c->cat_parent <= 0 && $c->cat_id != $s_ex)
+			if($c->cat_parent <= 0 && $c->cat_id != $s_ex && $c->CurUserCanAccess())
 				$out .= self::CatSelTree(null, $c->cat_id, 0);	
 		}
 	} else {
@@ -281,7 +281,7 @@ static function CatSelTree($args=null, $root_cat_id = 0, $depth = 0)
 
 		if(isset($cat->cat_childs)) {
 			foreach($cat->cat_childs as $c) {
-				if($c->cat_id != $s_ex)
+				if($c->cat_id != $s_ex && $c->CurUserCanAccess())
 					$out .= self::CatSelTree(null, $c->cat_id, $depth + 1);
 			}
 		}

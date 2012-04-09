@@ -52,9 +52,10 @@ var uploaderMode = 0;
 
 function WPFB_switchFileUpload(i)
 {
-	jQuery('#file-upload-wrap').toggleClass('hidden');
-	jQuery('#file-remote-wrap').toggleClass('hidden');
-	var as = jQuery('a', jQuery('#wpfilebase-upload-menu')).toArray();
+	var as = jQuery('#file-upload-wrap,#file-remote-wrap').toArray();
+	jQuery(as[i]).removeClass('hidden');
+	jQuery(as[!i+0]).addClass('hidden');	
+	as = jQuery('a', jQuery('#wpfilebase-upload-menu')).toArray();
 	jQuery(as[i]).addClass('current');
 	jQuery(as[!i+0]).removeClass('current');
 	jQuery('#file_is_remote').val(i); //upd val
@@ -309,7 +310,10 @@ function WPFB_addTag(tag)
 		<th scope="row" valign="top"><label for="<?php echo $hid; ?>"><?php echo esc_html($cn) ?></label></th>
 		<td colspan="3"><textarea name="<?php echo $hid; ?>" id="<?php echo $hid; ?>" rows="2" cols="50" style="width: 97%;"><?php echo empty($file->$hid) ? '' : esc_html($file->$hid); ?></textarea></td>
 	</tr> <?php
-	} ?>
+	} 
+	if(!empty($custom_fields)) { ?>
+	<tr><td colspan="4" style="text-align:right;margin:0;padding:0;"><a href="<?php echo admin_url('admin.php?page=wpfilebase_sets#'.sanitize_title(__('Form Presets', WPFB))); ?>"><?php _e('Manage Custom Fields',WPFB) ?></a></td></tr>
+	<?php } ?>
 </table>
 <p class="submit"><input type="submit" class="button-primary" id="file-submit" name="submit-btn" value="<?php echo $update?__('Update'):$title; ?>" <?php if(false && !$in_editor) { ?>onclick="this.form.submit(); return false;"<?php } ?>/></p>
 
@@ -318,7 +322,7 @@ if($update)
 {
 	wpfb_loadclass('GetID3');
 	$info = WPFB_GetID3::GetFileInfo($file, true);
-	if(!empty($info)) {		
+	if(!empty($info->value)) {		
 		wpfb_loadclass('AdminGuiFiles');
 		add_meta_box('wpfb_file_info_paths', __('File Info Tags (ID3 Tags)', WPFB), array('WPFB_AdminGuiFiles','FileInfoPathsBox'), 'wpfb_file_form', 'normal', 'core');
 	?>
