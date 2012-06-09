@@ -270,9 +270,15 @@ class WPFB_Item {
 	}
 	
 	function GetIconUrl($size=null) {
-		if($this->is_category) return WPFB_PLUGIN_URI . (empty($this->cat_icon) ? ('images/'.(($size=='small')?'folder48':'crystal_cat').'.png') : 'wp-filebase_thumb.php?cid=' . $this->cat_id);
+		// todo: remove file operations!
+		
+		if($this->is_category)
+		{
+			// add mtime for cache updates
+			return WPFB_PLUGIN_URI . (empty($this->cat_icon) ? ('images/'.(($size=='small')?'folder48':'crystal_cat').'.png') : "wp-filebase_thumb.php?cid=$this->cat_id&t=".filemtime($this->GetThumbPath()));
+		}
 
-		if(!empty($this->file_thumbnail) && file_exists($this->GetThumbPath()))
+		if(!empty($this->file_thumbnail) /* && file_exists($this->GetThumbPath())*/) // speedup
 		{
 			return WPFB_PLUGIN_URI . 'wp-filebase_thumb.php?fid='.$this->file_id.'&name='.$this->file_thumbnail; // name var only for correct caching!
 		}

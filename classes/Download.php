@@ -289,7 +289,7 @@ function ShouldSendDLHeader($file_path, $file_type)
 		return true;
 	
 	$file_name = basename($file_path);
-	$request_path = parse_url($_SERVER['REQUEST_URI']);
+	$request_path = parse_url($_SERVER['SCRIPT_NAME']);
 	$request_path = urldecode($request_path['path']);
 	$request_file_name = basename($request_path);
 	if($file_name == $request_file_name)

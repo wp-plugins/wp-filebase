@@ -324,12 +324,13 @@ class WPFB_SearchWidget extends WP_Widget {
 		$form_url = add_query_arg('wpfb_add_cat', 1);
 		$nonce_action = $prefix;
 		?>
-		<form name="<?php echo $prefix ?>form" method="get" action="<?php echo remove_query_arg(array('p','post_id','page_id','wpfb_s')); ?>">
+		<form name="<?php echo $prefix ?>form" method="get" action="<?php echo remove_query_arg(array('p','post_id','page_id','wpfb_s')); ?>" class="searchform" id="searchform">
 		<input name="p" type="hidden" value="<?php echo WPFB_Core::GetOpt('file_browser_post_id') ?>" />
-			<p>
-				<input name="wpfb_s" id="<?php echo $prefix ?>search" type="text" value="" />
-			</p>
-			<p style="text-align:right;"><input type="submit" class="button-primary" name="btn" value="<?php _e('Search'/*def*/) ?>" /></p>
+		<fieldset>
+			<input name="wpfb_s" id="<?php echo $prefix ?>search" type="text" value="<?php echo empty($_GET['wpfb_s']) ? '' : esc_attr(stripslashes($_GET['wpfb_s'])) ?>" />
+			<!-- <button type="submit" name="searchsubmit" value="Search"></button> -->
+			<input type="submit" class="button-primary" name="searchsubmit" value="<?php _e('Search'/*def*/) ?>" />
+		</fieldset>	
 		</form>
 	<?php
 		echo $after_widget;

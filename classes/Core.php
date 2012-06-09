@@ -127,9 +127,9 @@ static function DownloadRedirect()
 		$base = WPFB_Core::GetOpt('download_base');
 		if(!$base || is_admin()) return;
 		$dl_url_path = parse_url(home_url($base.'/'), PHP_URL_PATH);
-		$pos = strpos($_SERVER['REQUEST_URI'], $dl_url_path);
+		$pos = strpos($_SERVER['SCRIPT_NAME'], $dl_url_path);
 		if($pos !== false && $pos == 0) {
-			$filepath = trim(substr($_SERVER['REQUEST_URI'], strlen($dl_url_path)), '/');
+			$filepath = trim(substr($_SERVER['SCRIPT_NAME'], strlen($dl_url_path)), '/');
 			if(!empty($filepath)) {
 				wpfb_loadclass('File','Category');
 				$file = WPFB_File::GetByPath($filepath);
@@ -210,22 +210,6 @@ function ContentFilter($content)
 	
 	if(!empty($post) && is_object($post) && !post_password_required())
 	{
-		$single = is_single() || is_page();
-		
-		if($single && $post->ID == WPFB_Core::GetOpt('file_browser_post_id')) {
-			$wpfb_fb = true;
-			wpfb_loadclass('Output', 'File', 'Category');
-			WPFB_Output::FileBrowser($content, 0, empty($_GET['wpfb_cat']) ? 0 : intval($_GET['wpfb_cat']));
-		}
-	
-		if(self::GetOpt('auto_attach_files') && ($single || self::GetOpt('attach_loop'))) {
-			wpfb_loadclass('Output');			
-			if(WPFB_Core::GetOpt('attach_pos') == 0)
-				$content = WPFB_Output::PostAttachments(true) . $content;
-			else
-				$content .= WPFB_Output::PostAttachments(true);
-		}
-		
 		// TODO: file resulst are generated twice, 2nd time in the_excerpt filter (SearchExcerptFilter)
 		// some themes do not use excerpts in search resulsts!!
 		// replace file browser post content with search results
@@ -234,6 +218,22 @@ function ContentFilter($content)
 			wpfb_loadclass('Search','File','Category');
 			$content = '';
 			WPFB_Search::FileSearchContent($content);
+		} else { // do not hanlde attachments when searching
+			$single = is_single() || is_page();
+			
+			if($single && $post->ID == WPFB_Core::GetOpt('file_browser_post_id')) {
+				$wpfb_fb = true;
+				wpfb_loadclass('Output', 'File', 'Category');
+				WPFB_Output::FileBrowser($content, 0, empty($_GET['wpfb_cat']) ? 0 : intval($_GET['wpfb_cat']));
+			}
+		
+			if(self::GetOpt('auto_attach_files') && ($single || self::GetOpt('attach_loop'))) {
+				wpfb_loadclass('Output');			
+				if(WPFB_Core::GetOpt('attach_pos') == 0)
+					$content = WPFB_Output::PostAttachments(true) . $content;
+				else
+					$content .= WPFB_Output::PostAttachments(true);
+			}
 		}
 	}
 

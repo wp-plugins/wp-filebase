@@ -1,3 +1,10 @@
+ - disbale search widget if file browser not set (and add notices that search does not work!)
+ -disable id3 search by default
+ - fix search box above lists!
+ - fix global file search in file browser: listing all files!!?? why?
+- option: disable file tree link!
+ 
+ - file list: category link: no edit but filter!
  
  todo: -self check: modify HTTP/1.x header works? for caching?
  - check editor-plugin.php??
@@ -86,4 +93,7 @@ http://wordpress.org/support/topic/plugin-wp-filebase-download-manager-conflict-
 -single download pages
 - remote ftp sync
 - Custom field for post edit screen http://wordpress.org/support/topic/plugin-wp-filebase-download-manager-custom-field-for-post-edit-screen?replies=1
-
+- drag & drop widget
+- better cronjobbing
+-pdf thumbs!
+- auto redirect dl page
