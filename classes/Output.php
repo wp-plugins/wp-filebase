@@ -120,7 +120,8 @@ static function FileBrowser(&$content, $root_cat_id=0, $cur_cat_id=0)
 		if($cur_cat_id > 0) {
 			$cur_cat = WPFB_Category::GetCat($cur_cat_id);
 		} else {
-			$url = (is_ssl()?'https':'http').'://'.$_SERVER["HTTP_HOST"].$_SERVER["SCRIPT_NAME"];		
+			$url = (is_ssl()?'https':'http').'://'.$_SERVER["HTTP_HOST"].$_SERVER['REQUEST_URI'];
+			if( ($qs=strpos($url,'?')) !== false ) $url = substr($url,0,$qs); // remove query string	
 			$path = trim(substr($url, strlen(WPFB_Core::GetPostUrl(self::GetPostId()))), '/');
 			if(!empty($path))
 				$cur_cat = WPFB_Category::GetByPath($path);

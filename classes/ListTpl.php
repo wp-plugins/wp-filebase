@@ -50,18 +50,19 @@ class WPFB_ListTpl {
 				$sb = empty($wp_query->query_vars['s'])?null:$wp_query->query_vars['s']; 
 				$wp_query->query_vars['s'] = $_GET['wpfb_s'];
 			}
-			if($searching) $wp_query->query_vars['s'] = $sb;
 			
 			ob_start();
 			get_search_form();
 			$form = ob_get_clean();
 			if(empty($form)) echo "Searchform empty!";
+			
+			if($searching) $wp_query->query_vars['s'] = $sb; // restore query var s
 
 			$form = preg_replace('/action=["\'].+?["\']/', 'action=""', $form);
 			$form = str_replace('="s"', '="wpfb_s"', $form);
 			$form = str_replace("='s'", "='wpfb_s'", $form);
 			$gets = '';
-			foreach($_GET as $name => $value) if($name != 'wpfb_s') $gets.='<input type="hidden" name="'.esc_attr(stripslashes($name)).'" value="'.esc_attr(stripslashes($value)).'" />';
+			foreach($_GET as $name => $value) if($name != 'wpfb_s' && $name != 'wpfb_list_page') $gets.='<input type="hidden" name="'.esc_attr(stripslashes($name)).'" value="'.esc_attr(stripslashes($value)).'" />';
 			$form = str_ireplace('</form>', "$gets</form>", $form);
 			$str = str_replace('%search_form%', $form, $str);
 		}

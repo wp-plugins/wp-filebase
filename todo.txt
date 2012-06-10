@@ -1,8 +1,15 @@
+ I was wondering if it was possible to add a class to an indented child of a parent in the Categories.
+So we can have them show like
+http://i.imgur.com/CAuSA.jpg
+And a similar example
+http://i.imgur.com/lljts.png
+ 
+ 
+ 
  - disbale search widget if file browser not set (and add notices that search does not work!)
  -disable id3 search by default
  - fix search box above lists!
- - fix global file search in file browser: listing all files!!?? why?
-- option: disable file tree link!
+ 
  
  - file list: category link: no edit but filter!
  
@@ -80,6 +87,7 @@ http://wordpress.org/support/topic/plugin-simple-facebook-connect-conflict-with-
 http://wordpress.org/support/topic/plugin-wp-filebase-download-manager-conflict-with-debug-bar-console-plugin?replies=1
  
  wpfilebase:
+ - download page +2
 -batch syncing! http://wordpress.org/support/topic/plugin-wp-filebase-download-manager-synchronizing-filebase-with-ftp-uploaded-files-not-complete?replies=2
 -multi uploadh
 -quick edit
@@ -97,3 +105,5 @@ http://wordpress.org/support/topic/plugin-wp-filebase-download-manager-conflict-
 - better cronjobbing
 -pdf thumbs!
 - auto redirect dl page
+1. superuser - can upload files to any user and see files for any user
+2. user - can upload and access only his/hers own files (including those uploaded by superuser)?

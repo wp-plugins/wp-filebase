@@ -127,9 +127,10 @@ static function DownloadRedirect()
 		$base = WPFB_Core::GetOpt('download_base');
 		if(!$base || is_admin()) return;
 		$dl_url_path = parse_url(home_url($base.'/'), PHP_URL_PATH);
-		$pos = strpos($_SERVER['SCRIPT_NAME'], $dl_url_path);
+		$pos = strpos($_SERVER['REQUEST_URI'], $dl_url_path);
 		if($pos !== false && $pos == 0) {
-			$filepath = trim(substr($_SERVER['SCRIPT_NAME'], strlen($dl_url_path)), '/');
+			$filepath = trim(substr($_SERVER['REQUEST_URI'], strlen($dl_url_path)), '/');
+			if( ($qs=strpos($filepath,'?')) !== false ) $filepath = substr($filepath,0,$qs); // remove query string
 			if(!empty($filepath)) {
 				wpfb_loadclass('File','Category');
 				$file = WPFB_File::GetByPath($filepath);
