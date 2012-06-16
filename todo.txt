@@ -3,6 +3,8 @@ So we can have them show like
 http://i.imgur.com/CAuSA.jpg
 And a similar example
 http://i.imgur.com/lljts.png
+
+late script loading
  
  
  
@@ -16,6 +18,12 @@ http://i.imgur.com/lljts.png
  todo: -self check: modify HTTP/1.x header works? for caching?
  - check editor-plugin.php??
  - check wpfb-ajax.php
+ 
+ SELF-CHECK:
+ -check proper css loading (check for slow loading)
+ - check jquery loading on filebrowser page
+ - check that filebrowser page is set
+ - test download file
  
  
 -check permissions system:

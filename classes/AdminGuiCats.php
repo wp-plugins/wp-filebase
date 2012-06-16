@@ -12,7 +12,7 @@ static function CatRow($cat, $sub_level=0)
 	?>
 			<tr id="cat-<?php echo $cat_id; ?>">
 				<th scope="row" class="check-column"><input type="checkbox" name="delete[]" value="<?php echo $cat_id; ?>" /></th>
-				<td class="wpfilebase-admin-list-row-title"><a class="row-title" href="<?php echo $clean_uri; ?>&amp;action=editcat&amp;cat_id=<?php echo $cat_id; ?>" title="&quot;<?php echo $title; ?>&quot; bearbeiten">
+				<td class="wpfilebase-admin-list-row-title"><a class="row-title" href="<?php echo esc_attr($cat->GetEditUrl()); ?>" title="&quot;<?php echo $title; ?>&quot; bearbeiten">
 				<?php if(!empty($cat->cat_icon)) { ?><img src="<?php echo $cat->GetIconUrl(); ?>" height="32" /><?php } ?>
 				<span><?php echo $title; ?></span>
 				</a></td>

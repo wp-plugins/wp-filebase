@@ -1141,3 +1141,11 @@ msgstr ""
 
 msgid "Owner"
 msgstr ""
+
+Searching for new files...
+
+Category (ID %d) of file %s does not exist!
+
+Checking for file changes...
+
+%d Files found, %d new.

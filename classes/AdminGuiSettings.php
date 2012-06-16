@@ -196,7 +196,7 @@ jQuery(document).ready( function() {
 	$option_categories = array(
 		__('Common', WPFB)					=> array('upload_path','search_integration' /*'cat_drop_down'*/),
 		__('Display', WPFB)					=> array('file_date_format','thumbnail_size','auto_attach_files', 'attach_loop','attach_pos', 'filelist_sorting', 'filelist_sorting_dir', 'filelist_num', /* TODO: remove? 'parse_tags_rss',*/ 'decimal_size_format'),
-		__('File Browser',WPFB)				=> array('file_browser_post_id','file_browser_cat_sort_by','file_browser_cat_sort_dir','file_browser_file_sort_by','file_browser_file_sort_dir','disable_footer_credits','footer_credits_style'),
+		__('File Browser',WPFB)				=> array('file_browser_post_id','file_browser_cat_sort_by','file_browser_cat_sort_dir','file_browser_file_sort_by','file_browser_file_sort_dir','late_script_loading','disable_footer_credits','footer_credits_style'),
 		__('Download', WPFB)				=> array('disable_permalinks', 'download_base', 'force_download', 'range_download', 'http_nocache', 'ignore_admin_dls', 'accept_empty_referers','allowed_referers'),
 		__('Form Presets', WPFB)			=> array('default_author','default_roles', 'languages', 'platforms', 'licenses', 'requirements', 'custom_fields'),
 		__('Limits', WPFB)					=> array('bitrate_unregistered', 'bitrate_registered', 'traffic_day', 'traffic_month', 'traffic_exceeded_msg', 'file_offline_msg', 'daily_user_limits', 'daily_limit_subscriber', 'daily_limit_contributor', 'daily_limit_author', 'daily_limit_editor', 'daily_limit_exceeded_msg'),

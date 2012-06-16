@@ -467,16 +467,17 @@ static function ProtectUploadPath()
 }
 
 static function OnActivateOrVerChange() {
-	WPFB_Setup::SetupDBTables();
+	self::SetupDBTables();
 	$old_options = get_option(WPFB_OPT_NAME);
-	WPFB_Setup::AddOptions();
-	WPFB_Setup::AddTpls();
+	self::AddOptions();
+	self::AddTpls();
 	WPFB_Admin::SettingsUpdated($old_options, get_option(WPFB_OPT_NAME));
-	WPFB_Setup::ProtectUploadPath();
+	self::ProtectUploadPath();
 	WPFB_Admin::FlushRewriteRules();
-	WPFB_Admin::UpdateItemsPath();
+	wpfb_loadclass('Sync');
+	WPFB_Sync::UpdateItemsPath();
 	if(WPFB_Category::GetNumCats() < 500) // avoid long activation time
-		WPFB_Admin::SyncCats();
+		WPFB_Sync::SyncCats();
 	
 	if (!wp_next_scheduled(WPFB.'_cron'))	
 		wp_schedule_event(time(), 'hourly', WPFB.'_cron');	

@@ -250,8 +250,8 @@ static function Display()
 			
 		case 'sync':
 			echo '<h2>'.__('Synchronisation').'</h2>';
-			
-			$result = WPFB_Admin::Sync(!empty($_GET['hash_sync']), true);
+			wpfb_loadclass('Sync');
+			$result = WPFB_Sync::Sync(!empty($_GET['hash_sync']), true);
 			$num_changed = $num_added = $num_errors = 0;
 			foreach($result as $tag => $group)
 			{

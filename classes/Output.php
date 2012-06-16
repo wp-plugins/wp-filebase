@@ -135,7 +135,7 @@ static function FileBrowser(&$content, $root_cat_id=0, $cur_cat_id=0)
 		self::InitFileTreeView($el_id, $root_cat);
 		
 		// thats all, JS is loaded in Core::Header
-		$content .= '<ul id="'.$el_id.'">';
+		$content .= '<ul id="'.$el_id.'" class="treeview">';
 	
 		$parents = array();
 		if(!is_null($cur_cat)) {
@@ -292,22 +292,18 @@ static function CatSelTree($args=null, $root_cat_id = 0, $depth = 0)
 
 
 static function InitFileTreeView($id=null, $root=0)
-{
-	static $tv_plugin_loaded = false;
-	
+{	
 	WPFB_Core::$load_js = true;
 	
-	if(!$tv_plugin_loaded) {
-		if($id == null) {
-			wp_enqueue_script('jquery-treeview-async');
-			wp_enqueue_style('jquery-treeview');
-		} else { // when id is set, assume that this was called inside the content, so have to print scripts here 
-			wp_print_scripts('jquery-treeview-async');
-			wp_print_styles('jquery-treeview');
-		}
-		$tv_plugin_loaded = true;
-	}
-	
+	$lsl = WPFB_Core::GetOpt('late_script_loading');
+	if($id != null && $lsl) { // $id != null => called from content filter
+		wp_print_scripts('jquery-treeview-async');
+		wp_print_styles('jquery-treeview');
+	} elseif($id == null && !$lsl) { // $id == null => called from header
+		wp_enqueue_script('jquery-treeview-async');
+		wp_enqueue_style('jquery-treeview');		
+	} 
+		
 	if(is_object($root)) $root = $root->GetId();
 	
 	if($id != null) {

@@ -524,11 +524,11 @@ static function AdminBar() {
 	
 }
 
-static function Sync() { return wpfb_call('Admin', 'Sync'); }
+static function Sync() { wpfb_call('Sync', 'Sync'); }
 
 static function Cron() {
 	if(self::GetOpt('cron_sync'))
-		self::Sync();
+		wpfb_call('Sync', 'Sync');
 }
 
 static function GetMaxUlSize() {
