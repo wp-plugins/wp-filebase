@@ -5,6 +5,7 @@ static function Display()
 	global $wpdb;
 
 	wpfb_loadclass('Admin', 'Output');
+	WPFB_Core::PrintJS(); // prints wpfbConf.ajurl
 
 	if(!current_user_can('manage_options'))
 		wp_die(__('Cheatin&#8217; uh?'));
@@ -21,8 +22,6 @@ static function Display()
 	
 	$options = get_option(WPFB_OPT_NAME);
 	$option_fields = WPFB_Admin::SettingsSchema();
-	
-	
 	
 	if(isset($post['reset']))
 	{		
@@ -202,7 +201,7 @@ jQuery(document).ready( function() {
 		__('Limits', WPFB)					=> array('bitrate_unregistered', 'bitrate_registered', 'traffic_day', 'traffic_month', 'traffic_exceeded_msg', 'file_offline_msg', 'daily_user_limits', 'daily_limit_subscriber', 'daily_limit_contributor', 'daily_limit_author', 'daily_limit_editor', 'daily_limit_exceeded_msg'),
 		__('Security', WPFB)				=> array('allow_srv_script_upload', 'hide_inaccessible', 'inaccessible_msg', 'inaccessible_redirect', 'login_redirect_src', 'protect_upload_path', 'private_files'),
 		__('Templates and Scripts', WPFB)	=> array('template_file', 'template_cat', 'dlclick_js'),
-		__('Misc')							=> $misc_tags
+		__('Misc')							=> $misc_tags,
 	);
 	?>
 	<div id="wpfb-tabs">

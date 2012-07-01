@@ -3,7 +3,7 @@ class WPFB_Output {
 static $page_title = '';
 static $page_content = '';
 
-static function ProcessShortCode($args, $content = null)
+static function ProcessShortCode($args, $content = null, $tag = null)
 {
 	$id = empty($args ['id']) ? -1 : intval($args ['id']);
 	if($id <= 0 && !empty($args['path'])) { // path indentification
@@ -101,7 +101,7 @@ static function FileList($args)
 		}
 	}
 	
-	return $tpl->Generate($cats, $args['showcats'], $args['sort'], $args['num']);
+	return $tpl->Generate($cats, $args['showcats'], $args['sort'], $args['num'], $args['sortcats']);
 }
 
 static function FileBrowser(&$content, $root_cat_id=0, $cur_cat_id=0)
@@ -295,14 +295,9 @@ static function InitFileTreeView($id=null, $root=0)
 {	
 	WPFB_Core::$load_js = true;
 	
-	$lsl = WPFB_Core::GetOpt('late_script_loading');
-	if($id != null && $lsl) { // $id != null => called from content filter
-		wp_print_scripts('jquery-treeview-async');
-		wp_print_styles('jquery-treeview');
-	} elseif($id == null && !$lsl) { // $id == null => called from header
-		wp_enqueue_script('jquery-treeview-async');
-		wp_enqueue_style('jquery-treeview');		
-	} 
+	// see Core::EnqueueScripts(), where scripts are enqueued if late script loading is disabled
+	wp_print_scripts('jquery-treeview-async');
+	wp_print_styles('jquery-treeview');
 		
 	if(is_object($root)) $root = $root->GetId();
 	
@@ -404,5 +399,35 @@ static function RoleNames($roles, $fmt_string=false) {
 	foreach($roles as $role)
 		$names[$role] = translate_user_role($wp_roles->roles[$role]['name']);
 	return $fmt_string ? (empty($names) ? ("<i>".__('Everyone',WPFB)."</i>") : join(', ',$names)) : $names;
+}
+
+static function FileForm($prefix, $form_url, $vars, $secret_key=null) {
+	$category = $vars['cat'];
+	$nonce_action = "$prefix=";
+	if(!empty($secret_key)) $nonce_action .= $secret_key
+	?>
+		<form enctype="multipart/form-data" name="<?php echo $prefix; ?>form" method="post" action="<?php echo $form_url; ?>">
+		<?php 
+		foreach($vars as $n => $v) {
+			echo '<input type="hidden" name="'.esc_attr($n).'" value="'.esc_attr($v).'" />';
+			$nonce_action .= "&$n=$v";
+		}
+		
+		wp_nonce_field($nonce_action, 'wpfb-file-nonce'); ?>
+			<input type="hidden" name="prefix" value="<?php echo $prefix ?>" />
+			<p>
+				<label for="<?php echo $prefix ?>file_upload"><?php _e('Choose File', WPFB) ?></label>
+				<input type="file" name="file_upload" id="<?php echo $prefix ?>file_upload" /><br /> <!--   style="width: 160px" size="10" -->
+				<small><?php printf(str_replace('%d%s','%s',__('Maximum upload file size: %d%s'/*def*/)), WPFB_Output::FormatFilesize(WPFB_Core::GetMaxUlSize())) ?></small>
+				<?php if($category == -1) { ?><br />
+				<label for="<?php echo $prefix ?>file_category"><?php _e('Category') ?></label>
+				<select name="file_category" id="<?php echo $prefix; ?>file_category"><?php wpfb_loadclass('Category'); echo WPFB_Output::CatSelTree(); ?></select>
+				<?php } else { ?>
+				<input type="hidden" name="file_category" value="<?php echo $category; ?>" />
+				<?php } ?>
+			</p>	
+			<p style="text-align:right;"><input type="submit" class="button-primary" name="submit-btn" value="<?php _ex('Add New', 'file'); ?>" /></p>
+		</form>	
+	<?php
 }
 }

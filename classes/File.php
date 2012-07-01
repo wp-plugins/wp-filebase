@@ -87,6 +87,12 @@ class WPFB_File extends WPFB_Item {
 		return $permission_sql;
 	}
 	
+	static function GetSqlCatWhereStr($cat_id)
+	{
+		$cat_id = (int)$cat_id;
+		return " (`file_category` = $cat_id) ";
+	}
+	
 	private static function genSelectSql($where, $check_permissions, $order = null, $limit = -1, $offset = -1)
 	{
 		global $wpdb, $current_user;
@@ -209,7 +215,7 @@ class WPFB_File extends WPFB_Item {
 	}	
 	
 	function CreateThumbnail($src_image='', $del_src=false)
-	{
+	{		
 		$src_set = !empty($src_image) && file_exists($src_image);
 		$tmp_src = $del_src;
 		if(!$src_set)
@@ -231,11 +237,11 @@ class WPFB_File extends WPFB_Item {
 		
 		$ext = trim($this->GetExtension(), '.');
 	
-		if($ext != 'bmp' && ($src_size = @getimagesize($src_image)) === false) { // check if valid image
+		if($ext != 'bmp' && 
+		($src_size = @getimagesize($src_image)) === false) { // check if valid image
 			if($tmp_src) @unlink($src_image);
 			return;
 		}
-			
 		$this->DeleteThumbnail(); // delete old thumbnail
 		
 		$thumb = null;
@@ -251,16 +257,9 @@ class WPFB_File extends WPFB_Item {
 			}
 		}
 			
+		$extras_dir = WPFB_PLUGIN_ROOT . 'extras/';
 		
-		if($ext != 'bmp') {
-			$thumb = @wp_create_thumbnail($src_image, $thumb_size);
-			if(is_wp_error($thumb) && max($src_size) <= $thumb_size) { // error occurs when image is smaller than thumb_size. in this case, just copy original
-				$name = wp_basename($src_image, ".$ext");
-				$thumb = dirname($src_image)."/{$name}-{$src_size[0]}x{$src_size[1]}.{$ext}";
-				copy($src_image, $thumb);
-			}
-		} else {
-			$extras_dir = WPFB_PLUGIN_ROOT . 'extras/';
+		if($ext == 'bmp') {			
 			if(@file_exists($extras_dir . 'phpthumb.functions.php') && @file_exists($extras_dir . 'phpthumb.bmp.php'))
 			{
 				@include($extras_dir . 'phpthumb.functions.php');
@@ -272,7 +271,7 @@ class WPFB_File extends WPFB_Item {
 					
 					$im = $phpthumb_bmp->phpthumb_bmpfile2gd($src_image);
 					if($im) {
-						$jpg_file = $src_image . '__.tmp.jpg';
+						$jpg_file = $src_image . '_thumb.jpg';
 						@imagejpeg($im, $jpg_file, 100);
 						if(@file_exists($jpg_file) && @filesize($jpg_file) > 0)
 						{
@@ -281,7 +280,14 @@ class WPFB_File extends WPFB_Item {
 						@unlink($jpg_file);
 					}						
 				}
-			}				
+			}
+		} else {
+			$thumb = @wp_create_thumbnail($src_image, $thumb_size);
+			if(is_wp_error($thumb) && max($src_size) <= $thumb_size) { // error occurs when image is smaller than thumb_size. in this case, just copy original
+				$name = wp_basename($src_image, ".$ext");
+				$thumb = dirname($src_image)."/{$name}-{$src_size[0]}x{$src_size[1]}.{$ext}";
+				copy($src_image, $thumb);
+			}
 		}
 		
 		$success = (!empty($thumb) && !is_wp_error($thumb) && is_string($thumb) && file_exists($thumb));

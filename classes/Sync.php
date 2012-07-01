@@ -1,5 +1,9 @@
 <?php class WPFB_Sync {
 
+private static function cleanPath($path) {
+	return str_replace('//','/',str_replace('\\', '/', $path));
+}
+
 static function DEcho($str) {
 	echo $str;
 	@ob_flush();
@@ -55,6 +59,32 @@ static function SyncCats()
 	return $updated_cats;
 }
 
+static function AddNewFiles($new_files, $thumbnails, $progress_bar=null)
+{
+	$num_new_files = count($new_files);
+	$upload_dir = self::cleanPath(WPFB_Core::UploadDir());
+	$upload_dir_len = strlen($upload_dir);
+	
+	for($i = 0; $i < $num_new_files; $i++)
+	{
+		$fn = $new_files[$i];
+		if(empty($fn)) continue;
+		$fbn = basename($fn);
+					
+		$res = WPFB_Admin::AddExistingFile($fn, empty($thumbnails[$fn]) ? null : $thumbnails[$fn]);			
+		if(empty($res['error']))
+			$result['added'][] = empty($res['file']) ? substr($fn, $upload_dir_len) : $res['file'];
+		else
+			$result['error'][] = $res['error'] . " (file $fn)";
+		
+		if(!empty($progress_bar))
+			$progress_bar->step(1);
+	}
+	
+	if(!empty($progress_bar))
+		$progress_bar->complete();
+}
+
 static function Sync($hash_sync=false, $output=false)
 {
 	@ini_set('max_execution_time', '0');
@@ -78,10 +108,10 @@ static function Sync($hash_sync=false, $output=false)
 	$db_files = array();
 	foreach($files as $id => /* & PHP 4 compability */ $file)
 	{
-		$file_path = str_replace('//','/',str_replace('\\', '/', $file->GetLocalPath(true)));
+		$file_path = self::cleanPath($file->GetLocalPath(true));
 		$db_files[] = $file_path;
 		if($file->GetThumbPath())
-			$db_files[] = str_replace('//','/',str_replace('\\', '/', $file->GetThumbPath()));
+			$db_files[] = self::cleanPath($file->GetThumbPath());
 		
 		if($file->file_category > 0 && is_null($file->GetParent()))
 			$result['warnings'][] = sprintf(__('Category (ID %d) of file %s does not exist!', WPFB), $file->file_category, $file->GetLocalPathRel()); 
@@ -110,8 +140,7 @@ static function Sync($hash_sync=false, $output=false)
 			$file->file_mtime = $file_mtime;
 			$file->file_hash = $hash_sync ? $file_hash : @md5_file($file_path);
 			
-			if($sync_id3)
-				WPFB_GetID3::UpdateCachedFileInfo($file);
+			WPFB_GetID3::UpdateCachedFileInfo($file);
 			
 			$res = $file->DBSave();
 			
@@ -135,10 +164,10 @@ static function Sync($hash_sync=false, $output=false)
 	if($output) self::DEcho('<p>'. __('Searching for new files...',WPFB).' ');
 	
 	// search for not added files
-	$upload_dir = str_replace('//','/',str_replace('\\', '/', WPFB_Core::UploadDir()));
+	$upload_dir = self::cleanPath(WPFB_Core::UploadDir());
 	$upload_dir_len = strlen($upload_dir);
 	
-	$all_files = str_replace('//','/',str_replace('\\', '/', list_files($upload_dir)));
+	$all_files = self::cleanPath(list_files($upload_dir));
 	$num_all_files = count($all_files);
 	
 	$new_files = array();
@@ -242,24 +271,7 @@ static function Sync($hash_sync=false, $output=false)
 		if($output) self::DEcho('done!</p>');
 	}
 	
-	for($i = 0; $i < $num_new_files; $i++)
-	{
-		$fn = $new_files[$i];
-		if(empty($fn)) continue;
-		$fbn = basename($fn);
-					
-		$res = WPFB_Admin::AddExistingFile($fn, empty($thumbnails[$fn]) ? null : $thumbnails[$fn]);			
-		if(empty($res['error']))
-			$result['added'][] = empty($res['file']) ? substr($fn, $upload_dir_len) : $res['file'];
-		else
-			$result['error'][] = $res['error'] . " (file $fn)";
-		
-		if(!empty($progress_bar))
-			$progress_bar->step(1);
-	}
-	
-	if(!empty($progress_bar))
-		$progress_bar->complete();
+	self::AddNewFiles($new_files, $thumbnails, $progress_bar);
 	
 	// chmod
 	if($output) self::DEcho('<p>Setting permissions...');

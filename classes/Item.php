@@ -76,13 +76,19 @@ class WPFB_Item {
 		return reset($items);
 	}
 	
-	// Sorts an array of Items by SQL ORDER Clause
+	// Sorts an array of Items by SQL ORDER Clause ( or shortcode order clause (<file_name)
 	static function Sort(&$items, $order_sql) {
-		$p = strpos($order_sql,','); // strip multi order clauses
-		if($p >= 0) $order_sql = substr($order_sql, $p + 1);
-		$sort = explode(" ", trim($order_sql));
-		$on = trim($sort[0],'`');
-		$desc = (trim($sort[1]) == "DESC");					
+		$order_sql = str_replace(array('&gt;','&lt;'), array('>','<'), $order_sql);
+		if(($desc = ($order_sql{0} == '>')) || $order_sql{0} = '<')
+			$on = substr($order_sql,1);
+		else {
+			$p = strpos($order_sql,','); // strip multi order clauses
+			if($p >= 0) $order_sql = substr($order_sql, $p + 1);
+			$sort = explode(" ", trim($order_sql));
+			$on = trim($sort[0],'`');
+			$desc = (trim($sort[1]) == "DESC");
+		}
+		$on	= preg_replace('/[^0-9a-z]/i', '', $on); //strip hacking
 	    $comparer = $desc ? "return -strcmp(\$a->{$on},\$b->{$on});" : "return strcmp(\$a->{$on},\$b->{$on});";
     	usort($items, create_function('$a,$b', $comparer)); 
 	}

@@ -177,7 +177,7 @@ function WPFB_addTag(tag)
 					?>
 				</div>
 			 	<div id="flash-upload-ui"><?php wpfb_call($adv_uploader,'Display',$form_url); ?></div> <!--  flash-upload-ui -->
-				<?php if($update) { echo '<div><b><a href="'.$file->GetUrl().'">' . $file->file_name . '</a></b> (' . $file->GetFormattedSize() . ', '.wpfb_call('Download', 'GetFileType', $file->file_name).')</div>'; } ?>
+				<?php if($update) { echo '<div><b><a href="'.$file->GetUrl().'">' . $file->file_name . '</a></b> (' . $file->GetFormattedSize() . ', '.wpfb_call('Download', 'GetFileType', $file->file_name).', MD5: <code>'.$file->file_hash.'</code>)</div>'; } ?>
 			</div>
 			<div id="file-remote-wrap" <?php echo ($file->IsRemote() ? '' : 'class="hidden"'); ?>>
 				<label for="file_remote_uri"><?php _e('File URL') ?></label>
@@ -235,6 +235,8 @@ function WPFB_addTag(tag)
 		<?php } ?>
 	</tr>
 
+<!--
+-->
 	<tr class="form-field">
 		<?php if(!$in_editor) { ?>
 		<th scope="row" valign="top"><label for="file_post_id"><?php _e('Post') ?> ID</label></th>

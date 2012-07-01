@@ -4,7 +4,7 @@ class WPFB_Admin {
 static $MIN_SIZE_FOR_PROGRESSBAR = 2097152;//2MiB
 
 static function InitClass()
-{
+{	
 	wpfb_loadclass('AdminLite', 'Item', 'File', 'Category');
 	
 	wp_enqueue_script('jquery');
@@ -16,7 +16,7 @@ static function InitClass()
 
 static function SettingsSchema()
 {
-	$multiple_entries_desc = __('One entry per line. Seperate the title and a short tag (not longer than 8 characters) with \'|\'.<br />All lines beginning with \'*\' are selected by default.', WPFB);
+	$multiple_entries_desc = __("One entry per line. Seperate the title and a short tag (not longer than 8 characters) with '|'.<br />All lines beginning with '*' are selected by default.", WPFB);
 	$multiple_line_desc = __('One entry per line.', WPFB);
 	$bitrate_desc = __('Limits the maximum tranfer rate for downloads. 0 = unlimited', WPFB);
 	$traffic_desc = __('Limits the maximum data traffic. 0 = unlimited', WPFB);
@@ -588,7 +588,7 @@ static function InsertFile($data, $in_gui =false)
 	if($upload || $remote_upload || $add_existing) {
 		if($add_existing && !empty($data->file_thumbnail))
 			$file->file_thumbnail = $data->file_thumbnail; // we already got the thumbnail on disk!		
-		elseif(empty($file->file_thumbnail) && !$upload_thumb && ($file->GetExtension() == '.bmp' || @getimagesize($file->GetLocalPath()) !== false) && (!$remote_redirect || $remote_scan))
+		elseif(empty($file->file_thumbnail) && !$upload_thumb && (!$remote_redirect || $remote_scan))
 			$file->CreateThumbnail();	// check if the file is an image and create thumbnail
 	}
 	
@@ -606,12 +606,9 @@ static function InsertFile($data, $in_gui =false)
 		$file->file_mtime = filemtime($file->GetLocalPath());
 		$file->file_hash = md5_file($file->GetLocalPath());
 		
-		if(!WPFB_Core::GetOpt('disable_id3'))
-		{
-			wpfb_loadclass('GetID3');
-			$file_info = WPFB_GetID3::AnalyzeFile($file->GetLocalPath());
-		}
-		
+		wpfb_loadclass('GetID3');
+		$file_info = WPFB_GetID3::AnalyzeFile($file);
+				
 		if(!empty($file_info['comments']['picture'][0]['data']))
 			$cover_img =& $file_info['comments']['picture'][0]['data'];
 		elseif(!empty($file_info['id3v2']['APIC'][0]['data']))
@@ -1055,14 +1052,15 @@ static function PrintFlattrButton() {
 }
 
 // this is used for post filter
-public function ProcessWidgetUpload($_posts = null, $_query = null){	
+public function ProcessWidgetUpload(){	
 	$content = '';
 	$title = '';
 
+		$nonce_action = $_POST['prefix']."=&cat=".((int)$_POST['cat'])."&overwrite=".((int)$_POST['overwrite']);
+	
 	// nonce/referer check (security)
-	$nonce_action = $_POST['prefix']."-".((int)$_POST['overwrite'])."-".((int)$_POST['cat']);
 	if(!wp_verify_nonce($_POST['wpfb-file-nonce'],$nonce_action) || !check_admin_referer($nonce_action,'wpfb-file-nonce'))
-		wp_die(__('Cheatin&#8217; uh?'));
+		wp_die('NONCE'.__('Cheatin&#8217; uh?'));
 		
 	// if category is set in widget options, force to use this. security done with nonce checking ($_POST['cat'] is reliable)
 	if($_POST['cat'] >= 0) $_POST['file_category'] = $_POST['cat']; 
@@ -1196,5 +1194,17 @@ static function GetTmpFile($name='') {
 	$dir = WPFB_Core::UploadDir().'/.tmp/';
 	self::Mkdir($dir);
 	return wp_tempnam($name, $dir);
+}
+
+static function LockUploadDir($lock=true)
+{
+	$f = WPFB_Core::UploadDir().'/.lock';
+	return $lock ? touch($f) : unlink($f);
+}
+
+static function UploadDirIsLocked()
+{
+	$f = WPFB_Core::UploadDir().'/.lock';
+	return file_exists($f) && ( (time()-filemtime($f)) < 120 ); // max lock for 120 seconds without update!
 }
 }

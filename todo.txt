@@ -1,3 +1,7 @@
+preview for file lists broken!
+
+file list category sorting
+
  I was wondering if it was possible to add a class to an indented child of a parent in the Categories.
 So we can have them show like
 http://i.imgur.com/CAuSA.jpg

@@ -178,7 +178,6 @@ static function SetupDBTables()
 	$tbl_cats = $wpdb->prefix . 'wpfb_cats';
 	$tbl_files = $wpdb->prefix . 'wpfb_files';
 	$tbl_files_id3 = $wpdb->prefix . 'wpfb_files_id3';
-	
 	$queries[] = "CREATE TABLE IF NOT EXISTS `$tbl_cats` (
   `cat_id` int(8) unsigned NOT NULL auto_increment,
   `cat_name` varchar(255) NOT NULL default '',
@@ -242,8 +241,7 @@ static function SetupDBTables()
   `keywords` TEXT NOT NULL,
   PRIMARY KEY  (`file_id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8";
-
-
+	
 	// errors of queries starting with @ are supressed
 	
 	$queries[] = "@ALTER TABLE `$tbl_cats` DROP INDEX `FULLTEXT`";
@@ -294,7 +292,6 @@ static function SetupDBTables()
 	// 0.2.9.12
 	$queries[] = "@ALTER TABLE `$tbl_cats` ADD `cat_order` int(8) NOT NULL default '0'  AFTER `cat_exclude_browser`";
 	
-
 	$queries[] = "OPTIMIZE TABLE `$tbl_cats`";
 	$queries[] = "OPTIMIZE TABLE `$tbl_files`";
 
@@ -344,7 +341,8 @@ static function SetupDBTables()
 static function DropDBTables()
 {
 	global $wpdb;	
-	$tables = array($wpdb->wpfilebase_files, $wpdb->wpfilebase_files_id3, $wpdb->wpfilebase_cats);		
+	$tables = array($wpdb->wpfilebase_files, $wpdb->wpfilebase_files_id3, $wpdb->wpfilebase_cats
+);		
 	foreach($tables as $tbl)
 		$wpdb->query("DROP TABLE IF EXISTS `$tbl`");
 }
@@ -486,4 +484,5 @@ static function OnActivateOrVerChange() {
 static function OnDeactivate() {
 	wp_clear_scheduled_hook(WPFB.'_cron');
 }
+
 }

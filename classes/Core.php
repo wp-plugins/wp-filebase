@@ -67,7 +67,8 @@ static function InitClass()
 		
 	self::DownloadRedirect();
 	
-	if(current_user_can('upload_files')) {
+	if(current_user_can('upload_files'))
+	{
 		if(!empty($_GET['wpfb_upload_file']) || !empty($_GET['wpfb_add_cat'])) {
 			wpfb_call('Admin', empty($_GET['wpfb_upload_file'])?'ProcessWidgetAddCat':'ProcessWidgetUpload');
 		}
@@ -241,7 +242,7 @@ function ContentFilter($content)
     return $content;
 }
 
-static function ShortCode($atts, $content=null) {
+static function ShortCode($atts, $content=null, $tag=null) {
 	wpfb_loadclass('Output');
 	return WPFB_Output::ProcessShortCode(shortcode_atts(array(
 		'tag' => 'list', // file, fileurl, attachments
@@ -250,10 +251,11 @@ static function ShortCode($atts, $content=null) {
 		'tpl' => null,
 		'sort' => null,
 		'showcats' => false,
+		'sortcats' => null,
 		'num' => 0,
 		'pagenav' => 1,
-		'linktext' => null
-	), $atts), $content);
+		'linktext' => null,
+	), $atts), $content, $tag);
 }
 
 
@@ -414,8 +416,12 @@ static function EnqueueScripts()
 {
 	global $wp_query;
 	
-	if(!empty($wp_query->queried_object_id) && $wp_query->queried_object_id == WPFB_Core::GetOpt('file_browser_post_id'))
-		wpfb_call('Output', 'InitFileTreeView'); // this loads the scripts required for file trees (this fixes the wp_print_scripts bug caused by other plugins, but only for the file browser page)	
+	if( !WPFB_Core::GetOpt('late_script_loading')
+			&& ((!empty($wp_query->queried_object_id) && $wp_query->queried_object_id == WPFB_Core::GetOpt('file_browser_post_id')) ||
+			!empty($wp_query->post) && $wp_query->post->ID == WPFB_Core::GetOpt('file_browser_post_id'))) {
+		wp_enqueue_script('jquery-treeview-async');
+		wp_enqueue_style('jquery-treeview');
+	}
 }
 
 static function PrintJS() {
