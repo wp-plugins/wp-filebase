@@ -1,4 +1,19 @@
+
+thumnails in safari broken?
+editor_plugin: if test is marked, wrap file links around!
 preview for file lists broken!
+
+extended form in editor plugin
+simpel form by default!
+
+Download.php line 445 session destroy??? (only one download at a time??)
+toggle destroy session
+
+filebrowser subpage links to parent??!? fix?!
+
+ftp sideload link
+multi istance file widget
+upload widget: attach to current post
 
 file list category sorting
 

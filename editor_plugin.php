@@ -169,8 +169,10 @@ function selectFile(id, name)
 		el.css('background-image', 'url('+yesImgUrl+')');
 		return;
 	} else if(currentTab == 'fileurl') {
+<?php if(empty($_GET['content'])) {?>
 		var linkText = prompt("<?php echo esc_attr(__('Enter link text:', WPFB)); ?>", name);
 		if(!linkText || linkText == null || linkText == '')	return;
+<?php } else echo " var linkText = '".$_GET['content']."'; "; ?>
 		theTag.linktext = linkText;
 	} else {
 		var tpl = jQuery('input[name=filetpl]:checked', '#filetplselect').val();
@@ -189,6 +191,8 @@ function insBrowserTag()
 	return insertTag(tag);
 }
 
+<?php
+?>
 //]]>
 </script>
 
@@ -203,7 +207,8 @@ function insBrowserTag()
 		<li><a href="#fileurl" onclick="return tabclick(this)"><?php _e('File URL', WPFB) ?></a></li>
 		<li><a href="#list" onclick="return tabclick(this)"><?php _e('File list', WPFB) ?></a></li>
 		<li><a href="#browser" onclick="return tabclick(this)"><?php _e('File Tree View', WPFB) ?></a></li>
-		<!-- <li><a href="#uploadform" onclick="return tabclick(this)"><?php _e('Inline Upload Form', WPFB) ?></a></li> -->
+<?php
+?>
 	</ul>
 <?php } ?>
 </div>
@@ -262,7 +267,7 @@ if($action != 'editfile' && (!empty($post_attachments) || $manage_attachments)) 
 		</div>
 	<?php }	?>
 	</div>
-	<input type="submit" name="change-order" value="<?php _e('Change Order') ?>" />
+	<input type="submit" name="change-order" value="<?php _e('Change Order', WPFB) ?>" />
 	</form>
 	<?php
 }
@@ -326,9 +331,9 @@ WPFB_Admin::PrintForm('file', $file, array('in_editor'=>true, 'post_id'=>$post_i
 	<label for="list-show-cats"><?php _e('List selected Categories',WPFB) ?></label>
 	</p>
 	<p id="cat-sorting-wrap">
-	<label for="list-cat-sort-by"><?php _e("Category sorting:") ?></label>
+	<label for="list-cat-sort-by"><?php _e("Category order",WPFB) ?>:</label>
 	<select name="list-cat-sort-by" id="list-cat-sort-by" style="width:100%">
-		<option value=""><?php _e('None (Order of IDs in shortcode)'); ?></option>
+		<option value=""><?php _e('None (order of IDs in shortcode)', WPFB); ?></option>
 		<?php $opts = WPFB_Admin::CatSortFields();
 		foreach($opts as $tag => $name) echo '<option value="'.$tag.'">'.$tag.' - '.$name.'</option>'; ?>
 	</select>	
@@ -349,6 +354,10 @@ WPFB_Admin::PrintForm('file', $file, array('in_editor'=>true, 'post_id'=>$post_i
 	
 	<p><a class="button" style="float: right;" href="javascript:void(0)" onclick="return insBrowserTag()"><?php echo _e('Insert') ?></a></p>
 </form>
+
+
+<?php
+?>
 
 <!-- 
 <form id="uploadform">

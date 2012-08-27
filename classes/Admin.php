@@ -79,6 +79,8 @@ static function SettingsSchema()
 	'file_browser_file_sort_by'		=> array('default' => 'file_display_name', 'title' => __('File browser file sorting', WPFB), 'type' => 'select', 'desc' => __('The file property files in the file browser are sorted by', WPFB), 'options' => self::FileSortFields()),
 	'file_browser_file_sort_dir'	=> array('default' => 0, 'title' => __('Sort Order:'/*def*/), 'type' => 'select', 'desc' => '', 'options' => array(0 => __('Ascending'), 1 => __('Descending'))),
 	
+	'file_browser_fbc'		=> array('default' => false, 'title' => __('Files before Categories', WPFB), 'type' => 'checkbox', 'desc' => __('Files will appear above categories in the file browser.', WPFB)),
+	
 	
 	'cat_drop_down'			=> array('default' => false, 'title' => __('Category drop down list', WPFB), 'type' => 'checkbox', 'desc' => __('Use category drop down list in the file browser instead of listing like files.', WPFB)),
 
@@ -99,6 +101,8 @@ static function SettingsSchema()
 	'protect_upload_path'	=> array('default' => true, 'title' => __('Protect upload path', WPFB), 'type' => 'checkbox', 'desc' => __('This prevents direct access to files in the upload directory.', WPFB)),
 	
 	'private_files'			=> array('default' => false, 'title' => __('Private Files', WPFB), 'type' => 'checkbox', 'desc' => __('Access to files is only permitted to owner and administrators.', WPFB)),
+	
+	'frontend_upload'  		=> array('default' => false, 'title' => __('Enabled front end uploads', WPFB), 'type' => 'checkbox', 'desc' => __('Global option to allow file uploads from widgets and embedded file forms', WPFB)), //  (Pro only)
 	
 	
 	'accept_empty_referers'	=> array('default' => true, 'title' => __('Accept empty referers', WPFB), 'type' => 'checkbox', 'desc' => __('If enabled, direct-link-protected files can be downloaded when the referer is empty (i.e. user entered file url in address bar or browser does not send referers)', WPFB)),	
@@ -126,7 +130,8 @@ static function SettingsSchema()
 	'default_author' => array('default' => '', 'title' => __('Default Author', WPFB), 'desc' => __('This author will be used as form default and when adding files with FTP', WPFB), 'type' => 'text', 'size' => 65),
 	'default_roles' => array('default' => array(), 'title' => __('Default User Roles', WPFB), 'desc' => __('These roles are selected by default and will be used for files added with FTP', WPFB), 'type' => 'roles'),
 	
-	
+	'default_cat' => array('default' => 0, 'title' => __('Default Category', WPFB), 'desc' => __('Preset Category in the file form', WPFB), 'type' => 'cat'),
+		
 	'languages'				=> array('default' => "English|en\nDeutsch|de", 'title' => __('Languages'), 'type' => 'textarea', 'desc' => &$multiple_entries_desc),
 	'platforms'				=> array('default' => "Windows 95|win95\n*Windows 98|win98\n*Windows 2000|win2k\n*Windows XP|winxp\n*Windows Vista|vista\n*Windows 7|win7\nLinux|linux\nMac OS X|mac", 'title' => __('Platforms', WPFB), 'type' => 'textarea', 'desc' => &$multiple_entries_desc, 'nowrap' => true),	
 	'licenses'				=> array('default' =>
@@ -523,7 +528,7 @@ static function InsertFile($data, $in_gui =false)
 		if($remote_file_info['time'] > 0) $file->SetModifiedTime($remote_file_info['time']);
 	} else {
 		$file_src_path = $upload ? $data->file_upload['tmp_name'] : ($add_existing ? $data->file_path : null);
-		$file_name = $upload ? $data->file_upload['name'] : ((empty($file_src_path) && $update) ? $file->file_name : basename($file_src_path));		
+		$file_name = $upload ? str_replace('\\','',$data->file_upload['name']) : ((empty($file_src_path) && $update) ? $file->file_name : basename($file_src_path));		
 	}
 		
 	
@@ -604,7 +609,7 @@ static function InsertFile($data, $in_gui =false)
 	{
 		$file->file_size = filesize($file->GetLocalPath());
 		$file->file_mtime = filemtime($file->GetLocalPath());
-		$file->file_hash = md5_file($file->GetLocalPath());
+		$file->file_hash = WPFB_Admin::GetFileHash($file->GetLocalPath());
 		
 		wpfb_loadclass('GetID3');
 		$file_info = WPFB_GetID3::AnalyzeFile($file);
@@ -685,13 +690,13 @@ static function InsertFile($data, $in_gui =false)
 	
 	// save into db
 	$file->Lock(false);
-	$result = $file->DBSave();	
+	$result = $file->DBSave();
 	if(!empty($result['error'])) return $result;		
 	$file_id = (int)$result['file_id'];
 	
 	if(!empty($file_info))
 		WPFB_GetID3::StoreFileInfo($file_id, $file_info);
-	
+
 	return array( 'error' => false, 'file_id' => $file_id, 'file' => $file);
 }
 
@@ -764,7 +769,7 @@ private static function SideloadFile($url, $dest_file = null, $size_for_progress
 	}
 	
 	if( $size_for_progress >= self::$MIN_SIZE_FOR_PROGRESSBAR) {
-		include(WPFB_PLUGIN_ROOT.'extras/progressbar.class.php');
+		include_once(WPFB_PLUGIN_ROOT.'extras/progressbar.class.php');
 		$progress_bar = new progressbar(0, $size_for_progress, 300, 30, '#aaa');
 		echo "<p><code>".esc_html($url)."</code> ...</p>";
 		$progress_bar->print_code();
@@ -809,7 +814,7 @@ static function AddExistingFile($file_path, $thumb=null)
 	// check if file still exists (it could be renamed while creating the category if its used for category icon!)
 	if(!is_file($file_path))
 		return array();
-	
+		
 	return self::InsertFile(array('add_existing' => true, 'file_category' => $last_cat_id, 'file_path' => $file_path, 'file_thumbnail' => $thumb));
 }
 
@@ -1055,12 +1060,15 @@ static function PrintFlattrButton() {
 public function ProcessWidgetUpload(){	
 	$content = '';
 	$title = '';
+	
+	if(!WPFB_Core::GetOpt('frontend_upload') && !current_user_can('upload_files'))
+		wp_die(__('Cheatin&#8217; uh?'). " (disabled)");
 
 		$nonce_action = $_POST['prefix']."=&cat=".((int)$_POST['cat'])."&overwrite=".((int)$_POST['overwrite']);
-	
+
 	// nonce/referer check (security)
 	if(!wp_verify_nonce($_POST['wpfb-file-nonce'],$nonce_action) || !check_admin_referer($nonce_action,'wpfb-file-nonce'))
-		wp_die('NONCE'.__('Cheatin&#8217; uh?'));
+		wp_die(__('Cheatin&#8217; uh?') . ' (nonce)');
 		
 	// if category is set in widget options, force to use this. security done with nonce checking ($_POST['cat'] is reliable)
 	if($_POST['cat'] >= 0) $_POST['file_category'] = $_POST['cat']; 
@@ -1207,4 +1215,17 @@ static function UploadDirIsLocked()
 	$f = WPFB_Core::UploadDir().'/.lock';
 	return file_exists($f) && ( (time()-filemtime($f)) < 120 ); // max lock for 120 seconds without update!
 }
+
+static function GetFileHash($filename)
+{
+	static $use_php_func = false;
+	if($use_php_func) return md5_file($filename);
+	$hash = substr(@exec("md5sum \"$filename\""), 0, 32);
+	if(empty($hash) && file_exists($filename)) {
+		$use_php_func = true;
+		return md5_file($filename);
+	}
+	return $hash;
+}
+
 }

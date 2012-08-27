@@ -190,7 +190,7 @@ class WPFB_UploadWidget extends WP_Widget {
 	}
 
 	function widget( $args, $instance ) {			
-		if(!current_user_can('upload_files'))
+		if(!WPFB_Core::GetOpt('frontend_upload'))
 			return;
 
 		wpfb_loadclass('File', 'Category', 'Output');
@@ -219,6 +219,10 @@ class WPFB_UploadWidget extends WP_Widget {
 	}
 	
 	function form( $instance ) {
+		if(!WPFB_Core::GetOpt('frontend_upload')) {
+			_e('Frontend upload is disabled in security settings!', WPFB);
+			return;
+		}
 		wpfb_loadclass('File', 'Category', 'Output');
 		if(!isset($instance['title'])) $instance['title'] = __('Upload File',WPFB);
 		?><div>

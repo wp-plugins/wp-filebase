@@ -40,6 +40,8 @@ class WPFB_File extends WPFB_Item {
 	var $file_last_dl_ip;
 	var $file_last_dl_time;
 	
+	//var $file_meta;
+	
 	static $cache = array();
 	//static $cache_complete = false;
 	
@@ -262,8 +264,8 @@ class WPFB_File extends WPFB_Item {
 		if($ext == 'bmp') {			
 			if(@file_exists($extras_dir . 'phpthumb.functions.php') && @file_exists($extras_dir . 'phpthumb.bmp.php'))
 			{
-				@include($extras_dir . 'phpthumb.functions.php');
-				@include($extras_dir . 'phpthumb.bmp.php');
+				@include_once($extras_dir . 'phpthumb.functions.php');
+				@include_once($extras_dir . 'phpthumb.bmp.php');
 				
 				if(class_exists('phpthumb_functions') && class_exists('phpthumb_bmp'))
 				{

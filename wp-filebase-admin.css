@@ -232,6 +232,8 @@
 	border: 2px inset #ccf;
 	clear: both;
 	word-wrap: normal;
+	max-height: 300px;
+	overflow: auto;
 }
 
 #wpfb-support-col {

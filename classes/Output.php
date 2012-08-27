@@ -156,6 +156,14 @@ static function FileBrowserList(&$content, &$parents, $cat_tpl, $file_tpl, $root
 {
 	$cats = WPFB_Category::GetFileBrowserCats(is_null($root_cat) ? 0 : $root_cat->cat_id);
 	$open_cat = array_pop($parents);
+	$files_before_cats = WPFB_Core::GetOpt('file_browser_fbc');
+	
+	$files =  WPFB_File::GetFiles2(array('file_category' => $root_cat ? $root_cat->GetId() : 0), WPFB_Core::GetOpt('hide_inaccessible'), WPFB_Core::GetFileListSortSql((WPFB_Core::GetOpt('file_browser_file_sort_dir')?'>':'<').WPFB_Core::GetOpt('file_browser_file_sort_by')));
+	if($files_before_cats) {
+		foreach($files as $file)
+			$content .= '<li id="wpfb-file-'.$file->file_id.'"><span>'.$file->GenTpl($file_tpl, 'ajax')."</span></li>\n";
+	}	
+	
 	foreach($cats as $cat) {
 		if(!$cat->CurUserCanAccess()) continue;
 		
@@ -175,9 +183,11 @@ static function FileBrowserList(&$content, &$parents, $cat_tpl, $file_tpl, $root
 		$content .= "</li>\n";
 	}
 	
-	$files =  WPFB_File::GetFiles2(array('file_category' => $root_cat ? $root_cat->GetId() : 0), WPFB_Core::GetOpt('hide_inaccessible'), WPFB_Core::GetFileListSortSql((WPFB_Core::GetOpt('file_browser_file_sort_dir')?'>':'<').WPFB_Core::GetOpt('file_browser_file_sort_by')));
-	foreach($files as $file)
+
+	if(!$files_before_cats) {
+		foreach($files as $file)
 			$content .= '<li id="wpfb-file-'.$file->file_id.'"><span>'.$file->GenTpl($file_tpl, 'ajax')."</span></li>\n";
+	}
 }
 
 // used when retrieving a multi select tpl var
@@ -396,8 +406,10 @@ static function RolesDropDown($selected_roles=array()) {
 static function RoleNames($roles, $fmt_string=false) {
 	global $wp_roles;
 	$names = array();
-	foreach($roles as $role)
-		$names[$role] = translate_user_role($wp_roles->roles[$role]['name']);
+	if(!empty($roles)) {
+		foreach($roles as $role)
+			$names[$role] = translate_user_role($wp_roles->roles[$role]['name']);
+	}
 	return $fmt_string ? (empty($names) ? ("<i>".__('Everyone',WPFB)."</i>") : join(', ',$names)) : $names;
 }
 

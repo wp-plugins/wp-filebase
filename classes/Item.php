@@ -409,8 +409,8 @@ class WPFB_Item {
 							@unlink($new_path);
 					}
 				} else {
-					// rename item if filename collision
-					while(@file_exists($new_path) || !is_null($ex_file = WPFB_File::GetByPath($new_path_rel))) {
+					// rename item if filename collision (ignore if coliding with $this)
+					while(@file_exists($new_path) || (!is_null($ex_file = WPFB_File::GetByPath($new_path_rel)) && !$this->Equals($ex_file))) {
 						$i++;	
 						if($this->is_file) {
 							$p = strrpos($name, '.');

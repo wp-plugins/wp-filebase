@@ -1,5 +1,9 @@
 <?php
+
 class WPFB_Setup {
+const MANY_FILES = 2000;
+const MANY_CATEGORIES = 500;
+
 static function AddOptions()
 {
 	$default_opts = &WPFB_Admin::SettingsSchema();		
@@ -46,6 +50,7 @@ static function AddOptions()
 	}
 	
 	add_option(WPFB_OPT_NAME.'_ftags', array(), null, 'no'/*autoload*/); 
+	
 }
 static function AddTpls() {	
 	$tpls_file = array(
@@ -230,6 +235,7 @@ static function SetupDBTables()
   `file_rating_sum` bigint(20) unsigned NOT NULL default '0',
   `file_last_dl_ip` varchar(100) NOT NULL default '',
   `file_last_dl_time` datetime NOT NULL default '0000-00-00 00:00:00',
+  ". /*`file_meta` TEXT NULL DEFAULT NULL,*/ "
   PRIMARY KEY  (`file_id`),
   FULLTEXT KEY `FULLTEXT` (`file_description`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1";	
@@ -291,6 +297,9 @@ static function SetupDBTables()
 	
 	// 0.2.9.12
 	$queries[] = "@ALTER TABLE `$tbl_cats` ADD `cat_order` int(8) NOT NULL default '0'  AFTER `cat_exclude_browser`";
+
+	// since 0.2.9.20
+	//$queries[] = "@ALTER TABLE `$tbl_files` ADD `file_meta` TEXT NULL DEFAULT NULL";
 	
 	$queries[] = "OPTIMIZE TABLE `$tbl_cats`";
 	$queries[] = "OPTIMIZE TABLE `$tbl_files`";
@@ -465,6 +474,7 @@ static function ProtectUploadPath()
 }
 
 static function OnActivateOrVerChange() {
+	wpfb_loadclass('File','Category');
 	self::SetupDBTables();
 	$old_options = get_option(WPFB_OPT_NAME);
 	self::AddOptions();
@@ -472,10 +482,15 @@ static function OnActivateOrVerChange() {
 	WPFB_Admin::SettingsUpdated($old_options, get_option(WPFB_OPT_NAME));
 	self::ProtectUploadPath();
 	WPFB_Admin::FlushRewriteRules();
-	wpfb_loadclass('Sync');
-	WPFB_Sync::UpdateItemsPath();
-	if(WPFB_Category::GetNumCats() < 500) // avoid long activation time
+	
+	$ncats = WPFB_Category::GetNumCats();
+	$nfiles = WPFB_File::GetNumFiles();
+	
+	if($ncats < self::MANY_CATEGORIES && $nfiles < self::MANY_FILES) { // avoid long activation time
+		wpfb_loadclass('Sync');
 		WPFB_Sync::SyncCats();
+		WPFB_Sync::UpdateItemsPath();
+	}
 	
 	if (!wp_next_scheduled(WPFB.'_cron'))	
 		wp_schedule_event(time(), 'hourly', WPFB.'_cron');	

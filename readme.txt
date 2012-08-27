@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=wpfil
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, traffic, widget, filelist, list, thumb, thumbnail, attachment, attachments, category, categories, media, template, ftp, http, mp3, id3
 Requires at least: 3.1
 Tested up to: 3.4.1
-Stable tag: 0.2.9.18
+Stable tag: 0.2.9.19
 
 Adds a powerful download manager supporting file categories, downloads counter, widgets, sorted file lists and more to your WordPress blog.
 
@@ -101,6 +101,24 @@ Goto WP-Filebase Settings and disable Permalinks under "Download". Try to disabl
 4. The Editor Button to insert tags for filelists and download urls
 
 == Changelog ==
+
+= 0.2.9.19 =
+* Upload widget can be used by guests now!
+* New Option: `Frontend upload` controls the upload widget access
+* New Option File Browser option: `Files before Categories`
+* New Option: `Default Category`
+* Sync code re-written
+* Improved sync performance and stability by using external md5 program if available
+* Editor Plugin: Selected Text is used for file links
+* Memory usage on activation is limited now
+* Fixed file renaming when uploading an update with same name
+* Fixed escaping of apostrophes in file names
+* Fixed sync progress bar
+* Fixed multi inclusion of BMP thumbnail class that could break syncing
+* Fixed live preview of list templates
+* Fixed French translation by Marco Siviero
+* Made some string localizable
+* Removed deprecated category widget
 
 = 0.2.9.18 =
 * Added Category Sorting for file lists

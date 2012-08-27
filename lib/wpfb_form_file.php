@@ -32,7 +32,12 @@ $nonce_action = WPFB."-".$action;
 if($update) $nonce_action .= ($multi_edit ? $item_ids : $file->file_id);
 if($in_editor) $nonce_action .= "-editor";
 
-$file_category = ($update || empty($_REQUEST['file_category'])) ? $file->file_category : $_REQUEST['file_category'];
+if($update)
+	$file_category = $file->file_category;
+else
+	$file_category = reset(array_filter(array(@$_REQUEST['file_category'], $file->file_category, WPFB_Core::GetOpt('default_cat')))); 
+
+//$file_category = ($update || empty($_REQUEST['file_category'])) ? $file->file_category : $_REQUEST['file_category'];
 
 $adv_uploader = (version_compare(get_bloginfo('version'), '3.2.1') <= 0) ? 'SWFUpload' : 'PLUpload';
 
