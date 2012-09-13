@@ -240,7 +240,7 @@ static function GetThumbnails($sync_data)
 			$suffix = substr($sync_data->new_files[$i-1], $len);
 			
 			$matches = array();
-			if(preg_match(WPFB_File::$thumbnail_regex, $suffix, $matches) && ($is = getimagesize($sync_data->new_files[$i-1])))
+			if(preg_match(WPFB_File::THUMB_REGEX, $suffix, $matches) && ($is = getimagesize($sync_data->new_files[$i-1])))
 			{
 				if($is[0] == $matches[1] && $is[1] == $matches[2])
 				{

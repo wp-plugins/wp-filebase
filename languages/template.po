@@ -1173,3 +1173,17 @@ Please enter a template tag.
 'This will reset all File, Category and List Templates! Are your sure?'
 
 Secondary Categories
+
+Enable front end uploads
+
+Global option to allow file uploads from widgets and embedded file forms
+
+Frontend upload is disabled in security settings!
+
+Attachments in post lists
+
+Attach files to posts in archives, index and search result.
+
+The maximum side of the image is scaled to this value.
+
+File Date Format

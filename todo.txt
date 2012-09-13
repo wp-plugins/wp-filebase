@@ -1,13 +1,12 @@
-
-thumnails in safari broken?
-editor_plugin: if test is marked, wrap file links around!
-preview for file lists broken!
+wp-search: Notice: Undefined index: wpfb_s in C:\xampp\htdocs\wpt\wp-content\plugins\wp-filebase-pro\classes\Search.php on line 126
+dont re-scan pdf when editing file without upload!
+bmp thumnails in  otuner broken??!?
+drag & drop file widget
+file details without permalinks
+singe download page
 
 extended form in editor plugin
 simpel form by default!
-
-Download.php line 445 session destroy??? (only one download at a time??)
-toggle destroy session
 
 filebrowser subpage links to parent??!? fix?!
 
@@ -23,8 +22,7 @@ http://i.imgur.com/CAuSA.jpg
 And a similar example
 http://i.imgur.com/lljts.png
 
-late script loading
- 
+
  
  
  - disbale search widget if file browser not set (and add notices that search does not work!)
@@ -115,9 +113,7 @@ http://wordpress.org/support/topic/plugin-wp-filebase-download-manager-conflict-
  
  wpfilebase:
  - download page +2
--batch syncing! http://wordpress.org/support/topic/plugin-wp-filebase-download-manager-synchronizing-filebase-with-ftp-uploaded-files-not-complete?replies=2
 -multi uploadh
--quick edit
 -wigets
 -public upload (like inline upload)
 -multi categories
@@ -129,8 +125,6 @@ http://wordpress.org/support/topic/plugin-wp-filebase-download-manager-conflict-
 - remote ftp sync
 - Custom field for post edit screen http://wordpress.org/support/topic/plugin-wp-filebase-download-manager-custom-field-for-post-edit-screen?replies=1
 - drag & drop widget
-- better cronjobbing
--pdf thumbs!
 - auto redirect dl page
 1. superuser - can upload files to any user and see files for any user
 2. user - can upload and access only his/hers own files (including those uploaded by superuser)?

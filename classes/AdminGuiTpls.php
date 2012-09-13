@@ -3,7 +3,7 @@ class WPFB_AdminGuiTpls {
 	
 static $sample_file = null;
 static $sample_cat = null;
-static $protected_tags = array('default','single','excerpt');
+static $protected_tags = array('default','single','excerpt','filebrowser','filepage');
 
 static function InitClass() {
 	global $user_identity, $current_user;
@@ -333,18 +333,18 @@ static function TplForm($type, $tpl_tag=null)
 		<?php echo WPFB_Admin::TplFieldsSelect($code_id, false, $cat) ?>
 	</p>
 	<?php } ?>
-	
-	<div class="entry-content wpfilebase-tpl-preview">
-		<div id="<?php echo $code_id ?>_preview"><?php		
-		if($list) echo $tpl->Sample(self::$sample_cat, self::$sample_file);
-		else echo empty($tpl_code)?'<i>'.__('Preview').'</i>' : $item->GenTpl(WPFB_TplLib::Parse($tpl_code), 'sample');
-		?></div>
-		<div style="height: 50px; float: left;"></div>
-		<div class="clear"></div>
-	</div>
 			
 	<p class="submit"><input type="submit" name="submit" class="button-primary" value="<?php echo esc_attr__($new?'Add Template':'Submit Template Changes', WPFB) ?>" /></p>
 </form>
+
+<div class="entry-content wpfilebase-tpl-preview">
+	<div id="<?php echo $code_id ?>_preview"><?php		
+	if($list) echo $tpl->Sample(self::$sample_cat, self::$sample_file);
+	else echo empty($tpl_code)?'<i>'.__('Preview').'</i>' : $item->GenTpl(WPFB_TplLib::Parse($tpl_code), 'sample');
+	?></div>
+	<div style="height: 50px; float: left;"></div>
+	<div class="clear"></div>
+</div>
 <?php
 }
 

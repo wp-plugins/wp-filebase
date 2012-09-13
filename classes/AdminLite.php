@@ -88,8 +88,8 @@ private static function CheckChangedVer()
 {
 	$ver = wpfb_call('Core', 'GetOpt', 'version');
 	if($ver != WPFB_VERSION) {
-		wpfilebase_activate();
-		//echo '<!-- WPFilebase: version changed -->';
+		wpfb_loadclass('Setup');
+		WPFB_Setup::OnActivateOrVerChange($ver);
 	}
 }
 

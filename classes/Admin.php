@@ -102,11 +102,13 @@ static function SettingsSchema()
 	
 	'private_files'			=> array('default' => false, 'title' => __('Private Files', WPFB), 'type' => 'checkbox', 'desc' => __('Access to files is only permitted to owner and administrators.', WPFB)),
 	
-	'frontend_upload'  		=> array('default' => false, 'title' => __('Enabled front end uploads', WPFB), 'type' => 'checkbox', 'desc' => __('Global option to allow file uploads from widgets and embedded file forms', WPFB)), //  (Pro only)
+	'frontend_upload'  		=> array('default' => false, 'title' => __('Enable front end uploads', WPFB), 'type' => 'checkbox', 'desc' => __('Global option to allow file uploads from widgets and embedded file forms', WPFB)), //  (Pro only)
 	
 	
 	'accept_empty_referers'	=> array('default' => true, 'title' => __('Accept empty referers', WPFB), 'type' => 'checkbox', 'desc' => __('If enabled, direct-link-protected files can be downloaded when the referer is empty (i.e. user entered file url in address bar or browser does not send referers)', WPFB)),	
 	'allowed_referers' 		=> array('default' => '', 'title' => __('Allowed referers', WPFB), 'type' => 'textarea', 'desc' => __('Sites with matching URLs can link to files directly.', WPFB).'<br />'.$multiple_line_desc),
+	
+	'dl_destroy_session' 	=> array('default' => true, 'title' => __('Destroy session when downloading', WPFB), 'type' => 'checkbox', 'desc' => __('Should be enabled to allow users to download multiple files at the same time. This does not interfere WordPress user sessions, but can cause trouble with other plugins using the global $_SESSION.', WPFB)),	
 	
 	'decimal_size_format'	=> array('default' => false, 'title' => __('Decimal file size prefixes', WPFB), 'type' => 'checkbox', 'desc' => __('Enable this if you want decimal prefixes (1 MB = 1000 KB = 1 000 000 B) instead of binary (1 MiB = 1024 KiB = 1 048 576 B)', WPFB)),
 	
@@ -244,7 +246,7 @@ static function TplVarsDesc($for_cat=false)
 	'file_url'				=> __('Download URL', WPFB),
 	'file_url_encoded'		=> __('Download URL encoded for use in query strings', WPFB),
 	
-	'file_icon_url'			=> __('URL of the thumbnail or icon', WPFB),	
+	'file_icon_url'			=> __('URL of the thumbnail or icon', WPFB),
 	
 	'file_size'				=> __('Formatted file size', WPFB),
 	'file_date'				=> __('Formatted file date', WPFB),
@@ -600,8 +602,8 @@ static function InsertFile($data, $in_gui =false)
 	// handle date/time stuff
 	if(!empty($data->file_date)) {
 		$file->file_date = $data->file_date;
-	} elseif($add_existing || empty($file->file_date)) {
-		$file->file_date = gmdate('Y-m-d H:i:s', filemtime($file->GetLocalPath()));
+	} elseif($add_existing || empty($file->file_date)) {		
+		$file->file_date = gmdate('Y-m-d H:i:s', file_exists($file->GetLocalPath()) ? filemtime($file->GetLocalPath()) : time());
 	}
 	
 	// get file info
@@ -1080,7 +1082,7 @@ public function ProcessWidgetUpload(){
 		// success!!!!
 		$content = __('The File has been uploaded successfully.', WPFB);
 		$file = WPFB_File::GetFile($result['file_id']);
-		$content .= $file->GenTpl();
+		$content .= $file->GenTpl2();
 		$title = trim(__('File added.', WPFB),'.');
 	}
 	
@@ -1105,7 +1107,7 @@ public function ProcessWidgetAddCat() {
 		// success!!!!
 		$content = _e('New Category created.',WPFB);
 		$cat = WPFB_Category::GetCat($result['cat_id']);
-		$content .= $cat->GenTpl();
+		$content .= $cat->GenTpl2();
 		$title = trim(__('Category added.', WPFB),'.');
 	}
 	
@@ -1177,6 +1179,7 @@ static function RolesCheckList($field_name, $selected_roles=array()) {
 	global $wp_roles;
 	$all_roles = $wp_roles->roles;
 	if(empty($selected_roles)) $selected_roles = array();
+	elseif(!is_array($selected_roles)) $selected_roles = array($selected_roles);
 	?>
 <div id="<?php echo $field_name; ?>-wrap" class="tabs-panel"><input value="" type="hidden" name="<?php echo $field_name; ?>[]" />
 	<ul id="<?php echo $field_name; ?>-list" class="wpfilebase-roles-checklist">
