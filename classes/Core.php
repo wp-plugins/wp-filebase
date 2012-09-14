@@ -111,13 +111,17 @@ static function ParseQuery(&$query)
 	// check if current post is file browser
 	if( ($id=self::GetPostId($query)) == WPFB_Core::GetOpt('file_browser_post_id'))
 	{
-		$url = (is_ssl()?'https':'http').'://'.$_SERVER["HTTP_HOST"].$_SERVER['REQUEST_URI'];
-		if( ($qs=strpos($url,'?')) !== false ) $url = substr($url,0,$qs); // remove query string	
-		$path = trim(substr($url, strlen(WPFB_Core::GetPostUrl($id))), '/');
-		if(!empty($path)) {
-			wpfb_loadclass('File','Category');
-			self::$file_browser_item = WPFB_Item::GetByPath(urldecode($path));
-			if(is_null(self::$file_browser_item)) self::$file_browser_item = WPFB_Item::GetByPath($path);
+		wpfb_loadclass('File','Category');
+		if(!empty($_GET['wpfb_file'])) self::$file_browser_item = WPFB_File::GetFile($_GET['wpfb_file']);
+		elseif(!empty($_GET['wpfb_cat'])) self::$file_browser_item = WPFB_Category::GetCat($_GET['wpfb_cat']);
+		else {
+			$url = (is_ssl()?'https':'http').'://'.$_SERVER["HTTP_HOST"].$_SERVER['REQUEST_URI'];
+			if( ($qs=strpos($url,'?')) !== false ) $url = substr($url,0,$qs); // remove query string	
+			$path = trim(substr($url, strlen(WPFB_Core::GetPostUrl($id))), '/');
+			if(!empty($path)) {
+				self::$file_browser_item = WPFB_Item::GetByPath(urldecode($path));
+				if(is_null(self::$file_browser_item)) self::$file_browser_item = WPFB_Item::GetByPath($path);
+			}
 		}
 	}	
 }

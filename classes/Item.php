@@ -219,7 +219,7 @@ class WPFB_Item {
 		if($this->is_category || $to_file_page) {
 			$url = get_permalink(WPFB_Core::GetOpt('file_browser_post_id'));	
 			if(!empty($ps)) $url .= str_replace('#','%23',$this->GetLocalPathRel()).'/';
-			elseif($this->GetId() > 0) $url = add_query_arg(array("wpfb_file" => $this->GetId()), $url);
+			elseif($this->GetId() > 0) $url = add_query_arg(array(($this->is_file?"wpfb_file":"wpfb_cat") => $this->GetId()), $url);
 			if($this->is_category) $url .= "#wpfb-cat-$this->cat_id";	
 		} else {
 			if(!empty($ps)) $url = home_url(str_replace('#','%23',WPFB_Core::GetOpt('download_base').'/'.$this->GetLocalPathRel()));

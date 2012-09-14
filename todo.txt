@@ -1,11 +1,10 @@
 wp-search: Notice: Undefined index: wpfb_s in C:\xampp\htdocs\wpt\wp-content\plugins\wp-filebase-pro\classes\Search.php on line 126
+multiple instance file widget
 dont re-scan pdf when editing file without upload!
 bmp thumnails in  otuner broken??!?
 drag & drop file widget
 file details without permalinks
-singe download page
 
-extended form in editor plugin
 simpel form by default!
 
 filebrowser subpage links to parent??!? fix?!
