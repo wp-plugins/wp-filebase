@@ -1,0 +1,129 @@
+rsync: make sure cat is empty!
+dropbox: checkbox for toggle preview
+wp-search: Notice: Undefined index: wpfb_s in C:\xampp\htdocs\wpt\wp-content\plugins\wp-filebase-pro\classes\Search.php on line 126
+multiple instance file widget
+dont re-scan pdf when editing file without upload!
+bmp thumnails in  otuner broken??!?
+drag & drop file widget
+
+simpel form by default!
+
+
+ftp sideload link
+multi istance file widget
+upload widget: attach to current post
+
+file list category sorting
+
+ I was wondering if it was possible to add a class to an indented child of a parent in the Categories.
+So we can have them show like
+http://i.imgur.com/CAuSA.jpg
+And a similar example
+http://i.imgur.com/lljts.png
+
+
+ 
+ 
+ - disbale search widget if file browser not set (and add notices that search does not work!)
+ -disable id3 search by default
+ - fix search box above lists!
+ 
+ 
+ - file list: category link: no edit but filter!
+ 
+ todo: -self check: modify HTTP/1.x header works? for caching?
+ - check editor-plugin.php??
+ - check wpfb-ajax.php
+ 
+ SELF-CHECK:
+ -check proper css loading (check for slow loading)
+ - check jquery loading on filebrowser page
+ - check that filebrowser page is set
+ - test download file
+ 
+ 
+-check permissions system:
+private files
+editor plugin ajax tree (hide inaccessible)
+different user/user roles
+-upload widget: checbox: attach to current post
+-disable date sync
+- safe mode options
+- sync settings tab
+
+force download per file
+
+-move files/categories to another
+- multi wigets
+- filename in file upload widget
+-batch action on categories/files: delete thumbnail, rescan id3, set author, set permission, set redirecting set offline
+
+- bulk load
+- FAQ: wpfilebase_sync action
+
+_ widget: users which cannot upload files should not change widget!!
+- upload widget: fixed category
+- editor plugin: field box not collapsable, missing JS
+
+- batch actions
+- forms
+
+- default user roles options
+- search lists WP attachments without permissions (due to generated content!)
++ create post for files
+-ppollplll
+- better syncing many files!
+Comments
+-inline upload
+- update version on file sync cahnged
+- user upload paths
+-disable automatic sync by default
+
+-check sortings
+http://forum.wpml.org/topic.php?id=2894
+http://www.reddit.com/r/Wordpress/comments/f6c0f/question_for_anyone_using_the_plugin_wpfilebase/
+
+gettext update, add new textssss
+list templates doc, page nav uand stuff
+
+file list header foooter doc (serach form, page nav)
+
+
+- handle web search crawler
+- multiple widgets
+-ADD WPFB-FILE-ID TO TEMPLATE1
+.multiple posts per file 
+
+file updates
+file dependencies
+report error form
+
+
+
+inline upload for guests
+
+global hotlink protecting
+
+ batch actions for files: set properties, delete, create thumbnails, hotlink protection etc...
+
+conflicts:
+http://wordpress.org/support/topic/plugin-simple-facebook-connect-conflict-with-wp-filebase-plugin?replies=2
+http://wordpress.org/support/topic/plugin-wp-filebase-download-manager-conflict-with-debug-bar-console-plugin?replies=1
+ 
+ wpfilebase:
+ - download page +2
+-multi uploadh
+-wigets
+-public upload (like inline upload)
+-multi categories
+-cat syncing
+-id3 sorting!!
+-file ratings
+- file tags
+-single download pages
+- remote ftp sync
+- Custom field for post edit screen http://wordpress.org/support/topic/plugin-wp-filebase-download-manager-custom-field-for-post-edit-screen?replies=1
+- drag & drop widget
+- auto redirect dl page
+1. superuser - can upload files to any user and see files for any user
+2. user - can upload and access only his/hers own files (including those uploaded by superuser)?
