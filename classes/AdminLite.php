@@ -17,9 +17,7 @@ static function InitClass()
 	}
 	
 	
-	wp_register_widget_control(WPFB_PLUGIN_NAME, WPFB_PLUGIN_NAME .' '. __('File list'), array(__CLASS__, 'WidgetFileListControl'), array('description' => __('Lists the latest or most popular files', WPFB)));
-	
-	//wp_register_widget_control(WPFB_PLUGIN_NAME.'_cats', "[DEPRECATED]".WPFB_PLUGIN_NAME.' ' . __('Category list'), array(__CLASS__, 'WidgetCatListControl'), array('description' => __('Simple listing of file categories', WPFB)));
+	wp_register_widget_control(WPFB_PLUGIN_NAME, "[DEPRECATED]".WPFB_PLUGIN_NAME .' '. __('File list'), array(__CLASS__, 'WidgetFileListControl'), array('description' => __('DEPRECATED', WPFB)));
 	
 	add_action('admin_print_scripts', array('WPFB_AdminLite', 'PrintCKEditorPlugin'));
 	
@@ -75,13 +73,6 @@ static function WidgetFileListControl()
 	WPFB_Core::LoadLang();
 	wpfb_loadclass('Widget');
 	WPFB_Widget::FileListCntrl();
-}
-
-static function WidgetCatListControl()
-{
-	WPFB_Core::LoadLang();
-	wpfb_loadclass('Widget');
-	WPFB_Widget::CatListCntrl();
 }
 
 private static function CheckChangedVer()

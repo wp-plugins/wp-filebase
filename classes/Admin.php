@@ -124,6 +124,7 @@ static function SettingsSchema()
 	'use_path_tags' => array('default' => false, 'title' => __('Use path instead of ID in Shortcode', WPFB), 'type' => 'checkbox', 'desc' => __('Files and Categories are identified by paths and not by their IDs in the generated Shortcodes', WPFB)),
 	'no_name_formatting'  => array('default' => false, 'title' => __('Disable Name Formatting', WPFB), 'type' => 'checkbox', 'desc' => __('This will disable automatic formatting/uppercasing file names when they are used as title (e.g. when syncing)', WPFB)),
 	
+	
 	// file browser
 	'disable_footer_credits'  => array('default' => false, 'title' => __('Remove WP-Filebase Footer credits', WPFB), 'type' => 'checkbox', 'desc' => sprintf(__('This disables the footer credits only displayed on <a href="%s">File Browser Page</a>. Why should you keep the credits? Every backlink helps WP-Filebase to get more popular, popularity motivates the developer to continue work on the plugin. Win-Win!', WPFB), get_permalink(WPFB_Core::GetOpt('file_browser_post_id')).'#wpfb-credits')),
 	'footer_credits_style'  => array('default' => 'margin:0 auto 2px auto; text-align:center; font-size:11px;', 'title' => __('Footer credits Style', WPFB), 'type' => 'text', 'class' => 'code', 'desc' => __('Set custom CSS style for WP-Filebase footer credits',WPFB),'size'=>80),
@@ -247,6 +248,7 @@ static function TplVarsDesc($for_cat=false)
 	'file_url_encoded'		=> __('Download URL encoded for use in query strings', WPFB),
 	
 	'file_icon_url'			=> __('URL of the thumbnail or icon', WPFB),
+	
 	
 	'file_size'				=> __('Formatted file size', WPFB),
 	'file_date'				=> __('Formatted file date', WPFB),
@@ -542,7 +544,7 @@ static function InsertFile($data, $in_gui =false)
 
 	// check extension
 	if($upload || $add_existing) {
-		if(!self::_isAllowedFileExt($file_name)) {
+		if(!self::IsAllowedFileExt($file_name)) {
 			if(isset($file_src_path)) @unlink($file_src_path);
 			return array( 'error' => sprintf( __( 'The file extension of the file <b>%s</b> is forbidden!', WPFB), $file_name ) );
 		}
@@ -665,6 +667,7 @@ static function InsertFile($data, $in_gui =false)
 		if(isset($data->$vn)) $file->$vn = $data->$vn;
 	}
 	
+	
 	// custom fields!
 	$var_names = array_keys(WPFB_Core::GetCustomFields(true));
 	for($i = 0; $i < count($var_names); $i++)
@@ -784,40 +787,49 @@ private static function SideloadFile($url, $dest_file = null, $size_for_progress
 	return array('error'=>false,'file'=>$dest_file);
 }
 
-static function AddExistingFile($file_path, $thumb=null)
+static function CreateCatTree($file_path)
 {
-	$upload_dir = WPFB_Core::UploadDir();
-	$rel_path = trim(substr($file_path, strlen($upload_dir)),'/');
+	$rel_path = trim(substr($file_path, strlen(WPFB_Core::UploadDir())),'/');
 	$rel_dir = dirname($rel_path);
 	
-	$last_cat_id = 0;
+	if(empty($rel_dir) || $rel_dir == '.')
+		return 0;
 	
-	if(!empty($rel_dir) && $rel_dir != '.')
-	{
-		$dirs = explode('/', $rel_dir);
-		foreach($dirs as $dir) {
-			if(empty($dir) || $dir == '.')
-				continue;
-			$cat = WPFB_Item::GetByName($dir, $last_cat_id);
-			if($cat != null && $cat->is_category) {
-				$last_cat_id = $cat->cat_id;
-			} else {
-				$result = self::InsertCategory(array('add_existing' => true, 'cat_parent' => $last_cat_id, 'cat_folder' => $dir));
-				if(!empty($result['error']))
-					return $result;
-				elseif(empty($result['cat_id']))
-					wp_die('Could not create category!');
-				else
-					$last_cat_id = intval($result['cat_id']);
-			}
+	$last_cat_id = 0;
+	$dirs = explode('/', $rel_dir);
+	foreach($dirs as $dir) {
+		if(empty($dir) || $dir == '.')
+			continue;
+		$cat = WPFB_Item::GetByName($dir, $last_cat_id);
+		if($cat != null && $cat->is_category) {
+			$last_cat_id = $cat->cat_id;
+		} else {
+			$result = self::InsertCategory(array('add_existing' => true, 'cat_parent' => $last_cat_id, 'cat_folder' => $dir));
+			if(!empty($result['error']))
+				return $result;
+			elseif(empty($result['cat_id']))
+				wp_die('Could not create category!');
+			else
+				$last_cat_id = intval($result['cat_id']);
 		}
-	}
+	}	
+	return $last_cat_id;
+}
+
+static function AddExistingFile($file_path, $thumb=null)
+{
+	$cat_id = self::CreateCatTree($file_path);
 	
 	// check if file still exists (it could be renamed while creating the category if its used for category icon!)
 	if(!is_file($file_path))
 		return array();
 		
-	return self::InsertFile(array('add_existing' => true, 'file_category' => $last_cat_id, 'file_path' => $file_path, 'file_thumbnail' => $thumb));
+	return self::InsertFile(array(
+		'add_existing' => true,
+		'file_category' => $cat_id,
+		'file_path' => $file_path,
+		'file_thumbnail' => $thumb
+	));
 }
 
 static function WPCacheRejectUri($add_uri, $remove_uri='')
@@ -893,7 +905,7 @@ static function AdminTableSortLink($order)
 	return $uri;
 }
 
-private static function _isAllowedFileExt($ext)
+static function IsAllowedFileExt($ext)
 {
 	static $srv_script_exts = array('php', 'php3', 'php4', 'php5', 'phtml', 'cgi', 'pl', 'asp', 'py', 'aspx', 'jsp', 'jhtml', 'jhtm');	
 	
@@ -1171,6 +1183,7 @@ public function SettingsUpdated($old, $new) {
 		
 		if(count($n > 0)) $messages[] = sprintf(__('%d Thumbnails moved.',WPFB), $n);
 	}
+	
 	
 	return $messages;
 }

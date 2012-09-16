@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=wpfil
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, traffic, widget, filelist, list, thumb, thumbnail, attachment, attachments, category, categories, media, template, ftp, http, mp3, id3
 Requires at least: 3.1
 Tested up to: 3.4.2
-Stable tag: 0.2.9.21
+Stable tag: 0.2.9.22
 
 Adds a powerful download manager supporting file categories, downloads counter, widgets, sorted file lists and more to your WordPress blog.
 
@@ -103,6 +103,13 @@ Goto WP-Filebase Settings and disable Permalinks under "Download". Try to disabl
 
 
 == Changelog ==
+
+= 0.2.9.22 =
+* Multi instance File List Widget (old one is deprecated!)
+* DataTable List template is automatically added
+* New Template `Download-button`
+* Fixed missing argument warning for `TitleFilter`
+* Fixed Post Browser permission (now usable by Authors & Contributors)
 
 = 0.2.9.21 =
 * Improved template engine performance

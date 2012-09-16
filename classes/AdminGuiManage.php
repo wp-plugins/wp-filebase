@@ -259,6 +259,7 @@ static function Display()
 			if(!is_null($result))
 				WPFB_Sync::PrintResult($result);
 
+		
 			if(empty($_GET['hash_sync']))
 				echo '<p><a href="' . add_query_arg('hash_sync',1) . '" class="button">' . __('Complete file sync', WPFB) . '</a> ' . __('Checks files for changes, so more reliable but might take much longer. Do this if you uploaded/changed files with FTP.', WPFB) . '</p>';			
 			

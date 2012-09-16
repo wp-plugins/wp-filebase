@@ -273,7 +273,7 @@ class WPFB_Item {
 		{
 			$parsed_tpl = WPFB_Core::GetParsedTpl($this->is_file?'file':'cat', $tpl_tag);
 			if(empty($parsed_tpl)) return "Template $type :: $tpl_tag does not exist!";
-			$tpl_funcs[$type][$tpl_tag] = create_function('$f', "return ($parsed_tpl);");
+			$tpl_funcs[$type][$tpl_tag] = WPFB_Core::CreateTplFunc($parsed_tpl);
 		}
 		
 		self::$tpl_uid++;

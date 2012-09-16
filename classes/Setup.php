@@ -13,20 +13,8 @@ static function AddOptions()
 	foreach($default_opts as $opt_name => $opt_data)
 	{
 		$new_opts[$opt_name] = $opt_data['default'];
-	}		
-
-	$new_opts['widget'] = array(
-		'filelist_title' => 'Top Downloads',
-		'filelist_order_by' => 'file_hits',
-		'filelist_asc' => false,
-		'filelist_limit' => 10,
-		'filelist_template' => '<a href="%file_post_url%">%file_display_name%</a> (%file_hits%)',
-		'filelist_template_parsed' => '',
-		
-		'catlist_title' => __('File Categories', WPFB),
-		'catlist_hierarchical' => false
-	);
-
+	}
+	
 	$new_opts['version'] = WPFB_VERSION;
 	$new_opts['tag_ver'] = WPFB_TAG_VER;
 	
@@ -51,10 +39,18 @@ static function AddOptions()
 	
 	add_option(WPFB_OPT_NAME.'_ftags', array(), null, 'no'/*autoload*/); 
 	
+ 
 }
 static function AddTpls($old_ver) {	
 	$def_tpls_file = array(
 		'filebrowser' => '%file_small_icon% <a href="%file_url%" title="Download %file_display_name%">%file_display_name%</a> (%file_size%)',
+		'download-button' => '<style type="text/css" media="screen">
+	.wpfb-dlbtn div { width:250px; height:40px; margin:0; padding:0; background:transparent url(\'%wpfb_url%/images/dl_btn.png\') no-repeat top center;}
+	.wpfb-dlbtn div:hover { background-image: url(%wpfb_url%/images/dl_btn_hover.png); }
+</style>
+<div style="text-align:center; width:250px; margin: auto; font-size:smaller;"><a href="%file_url%" class="wpfb-dlbtn"><div></div></a>
+%file_display_name% (%file_size%, %file_hits% downloads)
+</div>',
 		'image_320' => '[caption id="file_%file_id%" align="alignnone" width="320" caption="<!-- IF %file_description% -->%file_description%<!-- ELSE -->%file_display_name%<!-- ENDIF -->"]<img class="size-full" title="%file_display_name%" src="%file_url%" alt="%file_display_name%" width="320" />[/caption]'."\n\n",
 		'thumbnail' => '<div class="wpfilebase-fileicon"><a href="%file_url%" title="Download %file_display_name%"><img align="middle" src="%file_icon_url%" /></a></div>'."\n",
 		'simple'	=> '<p><img src="%file_icon_url%" style="height:20px;vertical-align:middle;" /> <a href="%file_url%" title="Download %file_display_name%">%file_display_name%</a> (%file_size%)</p>',
@@ -173,8 +169,10 @@ static function AddTpls($old_ver) {
 	
 	// add new data table template
 	if(!empty($old_ver)) {
-		if(version_compare($old_ver, '0.2.9.20') < 0)
+		if(version_compare($old_ver, '0.2.9.22') < 0) {
 			$default_templates[] = 'data-table';
+			$default_templates[] = 'download-button';
+		}
 	}
 	
 	foreach($default_templates as $pt) {
@@ -185,7 +183,7 @@ static function AddTpls($old_ver) {
 	
 	update_option(WPFB_OPT_NAME.'_tpls_file', $tpls_file);
 	update_option(WPFB_OPT_NAME.'_tpls_cat', $tpls_cat);
-	update_option(WPFB_OPT_NAME.'_tpls_list', $tpls_list);
+	update_option(WPFB_OPT_NAME.'_list_tpls', $tpls_list);
 	
 	WPFB_Admin::ParseTpls();
 }
@@ -232,6 +230,7 @@ static function SetupDBTables()
 	$tbl_cats = $wpdb->prefix . 'wpfb_cats';
 	$tbl_files = $wpdb->prefix . 'wpfb_files';
 	$tbl_files_id3 = $wpdb->prefix . 'wpfb_files_id3';
+	
 	$queries[] = "CREATE TABLE IF NOT EXISTS `$tbl_cats` (
   `cat_id` int(8) unsigned NOT NULL auto_increment,
   `cat_name` varchar(255) NOT NULL default '',
@@ -296,7 +295,9 @@ static function SetupDBTables()
   `keywords` TEXT NOT NULL,
   PRIMARY KEY  (`file_id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8";
+
 	
+
 	// errors of queries starting with @ are supressed
 	
 	$queries[] = "@ALTER TABLE `$tbl_cats` DROP INDEX `FULLTEXT`";
@@ -350,6 +351,7 @@ static function SetupDBTables()
 	// since 0.2.9.20
 	//$queries[] = "@ALTER TABLE `$tbl_files` ADD `file_meta` TEXT NULL DEFAULT NULL";
 	
+
 	$queries[] = "OPTIMIZE TABLE `$tbl_cats`";
 	$queries[] = "OPTIMIZE TABLE `$tbl_files`";
 

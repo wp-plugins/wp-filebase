@@ -10,6 +10,7 @@ static function ProcessShortCode($args, $content = null, $tag = null)
 		$args ['id'] = $id = is_null($item = WPFB_Item::GetByPath($args['path'])) ? 0 : $item->GetId();
 	}
 	
+	
 	switch($args['tag']) {
 		case 'list': return do_shortcode(self::FileList($args));
 		

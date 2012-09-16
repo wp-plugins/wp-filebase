@@ -26,7 +26,6 @@ static function InitClass()
 	
 	// for attachments and file browser
 	add_filter('the_content',	array(__CLASS__, 'ContentFilter'), 10); // must be lower than 11 (before do_shortcode) and after wpautop (>9)
-	add_filter('the_title', array(__CLASS__, 'TitleFilter'), 10, 2);
 	add_filter('ext2type', array(__CLASS__, 'Ext2TypeFilter'));
 	add_filter('wp_get_attachment_url', array(__CLASS__, 'GetAttachmentUrlFilter'));
 	add_filter('get_attached_file', array(__CLASS__, 'GetAttachedFileFilter'));
@@ -48,9 +47,7 @@ static function InitClass()
 	wp_enqueue_style(WPFB, WPFB_PLUGIN_URI."wp-filebase_css.php?rp=$upload_path", array(), WPFB_VERSION, 'all');
 	
 	// widgets
-	wp_register_sidebar_widget(WPFB_PLUGIN_NAME, WPFB_PLUGIN_NAME .' '. __('File list', WPFB), array(__CLASS__, 'FileWidget'), array('description' => __('Lists the latest or most popular files', WPFB)));
-	//wp_register_sidebar_widget(WPFB_PLUGIN_NAME.'_cats', "[DEPRECATED]".WPFB_PLUGIN_NAME.' ' . __('Category list', WPFB), array(__CLASS__, 'CatWidget'), array('description' => __('Simple listing of file categories', WPFB)));
-	//wp_register_sidebar_widget(WPFB_PLUGIN_NAME.'_upload', WPFB_PLUGIN_NAME.' ' . __('File upload', WPFB), array(__CLASS__, 'UploadWidget'), array('description' => __('Supplies a form for uploading files', WPFB)));
+	wp_register_sidebar_widget(WPFB_PLUGIN_NAME, "[DEPRECATED]".WPFB_PLUGIN_NAME .' '. __('File list', WPFB), array(__CLASS__, 'FileWidget'), array('description' => __('Deprecated, use other widget instead!', WPFB)));
 	
 	if((is_admin() && !empty($_GET['page']) && strpos($_GET['page'], 'wpfilebase_') !== false) || defined('WPFB_EDITOR_PLUGIN'))
 		wpfb_loadclass('Admin');
@@ -150,8 +147,6 @@ static function GetOpt($name = null) {
 }
 
 static function FileWidget($args) { return wpfb_call('Widget', 'FileList', $args); }
-//static function CatWidget($args) { return wpfb_call('Widget', 'CatList', $args); } // DEPRECATED
-//static function UploadWidget($args) { return wpfb_call('Widget', 'Upload', $args); } // uses new class-style widgets
 
 static function DownloadRedirect()
 {
@@ -278,11 +273,6 @@ function ContentFilter($content)
 	}
 
     return $content;
-}
-
-function TitleFilter($title, $id)
-{
-	return $title;
 }
 
 
@@ -647,5 +637,9 @@ static function GetCustomCssPath($path=null) {
 	}
 	$path .= "/_wp-filebase.css";
 	return $path; 
+}
+
+static function CreateTplFunc($parsed_tpl) {
+	return create_function('$f', "return ($parsed_tpl);");
 }
 }

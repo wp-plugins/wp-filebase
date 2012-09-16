@@ -356,10 +356,7 @@ class WPFB_File extends WPFB_Item {
 		
 		$wpdb->query("DELETE FROM $wpdb->wpfilebase_files_id3 WHERE file_id = " . (int)$this->file_id);
 		
-		// delete WP attachment entry
-		$wpa_id = (int)$this->file_wpattach_id;
-		if($wpa_id > 0 && $wpdb->get_var( $wpdb->prepare("SELECT ID FROM $wpdb->posts WHERE ID = %d AND post_type = 'attachment' AND post_status IN ('private', 'publish')", $wpa_id)))
-			wp_delete_attachment($wpa_id, true);
+		
 			
 		if(!$bulk)
 			self::UpdateTags();			
@@ -599,11 +596,14 @@ class WPFB_File extends WPFB_Item {
 		update_option(WPFB_OPT_NAME.'_ftags', $tags);
 	}
 	
+	
+	
 	function GetWPAttachmentID() {
 		return $this->file_wpattach_id;
 		//global $wpdb;
 		//return $wpdb->get_var( $wpdb->prepare("SELECT ID FROM $wpdb->posts WHERE guid = %s", $this->GetUrl()) );
 	}
+	
 	
 	function IsRemote() { return !empty($this->file_remote_uri); }	
 	function IsLocal() { return empty($this->file_remote_uri); }
