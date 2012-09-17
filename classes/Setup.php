@@ -15,6 +15,8 @@ static function AddOptions()
 		$new_opts[$opt_name] = $opt_data['default'];
 	}
 	
+	$new_opts['widget'] = array(); // placeholder to keep old widget settings!
+	
 	$new_opts['version'] = WPFB_VERSION;
 	$new_opts['tag_ver'] = WPFB_TAG_VER;
 	

@@ -21,7 +21,7 @@ static function Display()
 	if(!empty($_GET['wpfb-hide-how-start']))
 		update_user_option($user_ID, WPFB_OPT_NAME . '_hide_how_start', 1);		
 	$show_how_start = !(bool)get_user_option(WPFB_OPT_NAME . '_hide_how_start');	
-	
+
 	WPFB_Admin::PrintFlattrHead();
 	?>
 	<script type="text/javascript">	
@@ -45,7 +45,6 @@ static function Display()
 	
 	<?php
 
-		
 		
 	if($show_how_start)
 		wpfb_call('AdminHowToStart', 'Display');
@@ -102,10 +101,10 @@ static function Display()
 </div>
 </div>
 <?php }
+
 ?>
 
 <div id="col-container">
-
 	<div id="col-right">
 		<div class="col-wrap">
 			<h3><?php _e('Traffic', WPFB); ?></h3>

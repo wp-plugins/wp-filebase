@@ -1,3 +1,11 @@
+rescan files to build thumbnails in batch action
+-secondary category: tpl var?
+- pdf searching: which option need to be enabled?
+ghostscript test file
+- auto redirect file page!
+- hotlinking: redirect to files page!
+-batch action on categories!
+- sync: rsyncs!
 rsync: make sure cat is empty!
 dropbox: checkbox for toggle preview
 wp-search: Notice: Undefined index: wpfb_s in C:\xampp\htdocs\wpt\wp-content\plugins\wp-filebase-pro\classes\Search.php on line 126
@@ -111,7 +119,7 @@ http://wordpress.org/support/topic/plugin-simple-facebook-connect-conflict-with-
 http://wordpress.org/support/topic/plugin-wp-filebase-download-manager-conflict-with-debug-bar-console-plugin?replies=1
  
  wpfilebase:
- - download page +2
+- sortable id3 tags
 -multi uploadh
 -wigets
 -public upload (like inline upload)

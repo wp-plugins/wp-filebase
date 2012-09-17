@@ -22,6 +22,7 @@ static function InitClass()
 	add_action('admin_print_scripts', array('WPFB_AdminLite', 'PrintCKEditorPlugin'));
 	
 	self::CheckChangedVer();
+	
 }
 
 static function SetupMenu()

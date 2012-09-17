@@ -16,6 +16,11 @@ function FileList($args)
 	extract($args);
 	
 	$options = &WPFB_Core::GetOpt('widget');
+	if(!isset($options['filelist_order_by'])){
+		if(current_user_can('edit_posts'))
+			echo $before_widget.$before_title . "WP-Filebase Widget" . $after_title."This File List widget is deprecated! Please remove this widget and add the new one.".$after_widget;
+		return;
+	}
 	
 	if(empty($options['filelist_title'])) $options['filelist_title'] = __('Files', WPFB);
 
