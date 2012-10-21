@@ -1,0 +1,109 @@
+file ratings
+-secondary category: tpl var?
+
+documentation:
+- pdf searching: which option need to be enabled?
+
+ghostscript test file
+rsync: make sure cat is empty!
+wp-search: Notice: Undefined index: wpfb_s in C:\xampp\htdocs\wpt\wp-content\plugins\wp-filebase-pro\classes\Search.php on line 126
+drag & drop file widget
+
+
+batch actions, edit action: (also on categories)
+rename, set owner, rebuild thumbnails
+
+
+ftp sideload link
+
+file list category sorting
+
+ I was wondering if it was possible to add a class to an indented child of a parent in the Categories.
+So we can have them show like
+http://i.imgur.com/CAuSA.jpg
+And a similar example
+http://i.imgur.com/lljts.png
+
+
+ 
+ 
+ - disbale search widget if file browser not set (and add notices that search does not work!)
+ -disable id3 search by default
+ - fix search box above lists!
+ 
+ 
+ - file list: category link: no edit but filter!
+ 
+ todo: -self check: modify HTTP/1.x header works? for caching?
+ - check editor-plugin.php??
+ - check wpfb-ajax.php
+ 
+ SELF-CHECK:
+ -check proper css loading (check for slow loading)
+ - check jquery loading on filebrowser page
+ - check that filebrowser page is set
+ - test download file
+ 
+
+force download per file
+
+-move files/categories to another
+- multi wigets
+- filename in file upload widget
+-batch action on categories/files: delete thumbnail, rescan id3, set author, set permission, set redirecting set offline
+
+- bulk load
+- FAQ: wpfilebase_sync action
+
+_ widget: users which cannot upload files should not change widget!!
+- upload widget: fixed category
+- forms
+
+- default user roles options
+- search lists WP attachments without permissions (due to generated content!)
+-ppollplll
+Comments
+- update version on file sync cahnged
+- user upload paths
+
+-check sortings
+http://forum.wpml.org/topic.php?id=2894
+http://www.reddit.com/r/Wordpress/comments/f6c0f/question_for_anyone_using_the_plugin_wpfilebase/
+
+gettext update, add new textssss
+list templates doc, page nav uand stuff
+
+file list header foooter doc (serach form, page nav)
+
+
+- handle web search crawler
+- multiple widgets
+-ADD WPFB-FILE-ID TO TEMPLATE1
+.multiple posts per file 
+
+file updates
+file dependencies
+report error form
+
+
+
+inline upload for guests
+
+global hotlink protecting
+
+conflicts:
+http://wordpress.org/support/topic/plugin-simple-facebook-connect-conflict-with-wp-filebase-plugin?replies=2
+http://wordpress.org/support/topic/plugin-wp-filebase-download-manager-conflict-with-debug-bar-console-plugin?replies=1
+ 
+ wpfilebase:
+- sortable id3 tags
+-multi uploadh
+-wigets
+-cat syncing
+-id3 sorting!!
+-file ratings
+- file tags
+-single download pages
+- remote ftp sync
+- Custom field for post edit screen http://wordpress.org/support/topic/plugin-wp-filebase-download-manager-custom-field-for-post-edit-screen?replies=1
+- drag & drop widget
