@@ -20,7 +20,7 @@ $action = ($update ? 'updatefile' : 'addfile');
 $title = $update ? __('Edit File', WPFB) : __('Add File', WPFB);
 
 $default_roles = WPFB_Core::GetOpt('default_roles');
-$user_roles = ($update || empty($default_roles)) ? $file->GetUserRoles() : $default_roles;
+$user_roles = ($update || empty($default_roles)) ? $file->GetReadPermissions() : $default_roles;
 $file_members_only = !empty($user_roles);
 
 $form_url = $in_editor ? remove_query_arg(array('file_id', 'page', 'action')) : add_query_arg('page', 'wpfilebase_files', admin_url('admin.php'));
@@ -191,7 +191,9 @@ function WPFB_addTag(tag)
 					?>
 				</div>
 			 	<div id="flash-upload-ui"><?php wpfb_call($adv_uploader,'Display',$form_url); ?></div> <!--  flash-upload-ui -->
-				<?php if($update) { echo '<div><b><a href="'.$file->GetUrl().'">' . $file->file_name . '</a></b> (' . $file->GetFormattedSize() . ', '.wpfb_call('Download', 'GetFileType', $file->file_name).', MD5: <code>'.$file->file_hash.'</code>)</div>'; } ?>
+				<?php if($update) { echo '<div>'.__('Rename').': '; ?>
+				<input name="file_rename" id="file_rename" type="text" value="<?php echo esc_attr($file->file_name); ?>" style="width:280px;" /><br />
+				<?php echo ' (' . $file->GetFormattedSize() . ', '.wpfb_call('Download', 'GetFileType', $file->file_name).', MD5: <code>'.$file->file_hash.'</code>)</div>'; } ?>
 			</div>
 			<div id="file-remote-wrap" <?php echo ($file->IsRemote() ? '' : 'class="hidden"'); ?>>
 				<label for="file_remote_uri"><?php _e('File URL') ?></label>
@@ -283,6 +285,8 @@ function WPFB_addTag(tag)
 			<fieldset><legend class="hidden"><?php _e('Direct linking') ?></legend>
 				<label title="<?php _e('Yes') ?>"><input type="radio" name="file_direct_linking" value="1" <?php checked('1', $file->file_direct_linking); ?>/> <?php _e('Allow direct linking', WPFB) ?></label><br />
 				<label title="<?php _e('No') ?>"><input type="radio" name="file_direct_linking" value="0" <?php checked('0', $file->file_direct_linking); ?>/> <?php _e('Redirect to post', WPFB) ?></label>
+<?php
+?>
 			</fieldset>
 		</td>
 		<?php } ?>

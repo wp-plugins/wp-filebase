@@ -54,6 +54,12 @@ static function Display()
 						
 					case 'roles':
 						$post[$opt_tag] = array_values(array_filter($post[$opt_tag]));
+						// the following must not be removed! if the roles array is empty, permissions are assumed to be set for everyone!
+						// so make sure that the admin is explicitly set!
+						if(!empty($opt_data['not_everyone']) && !in_array('administrator', $post[$opt_tag])) {
+							if(!is_array($post[$opt_tag])) $post[$opt_tag] = array();
+							array_unshift($post[$opt_tag],'administrator');
+						}
 						break;
 					
 					case 'cat':
@@ -182,6 +188,7 @@ jQuery(document).ready( function() {
 </script>
 
 <div class="wrap">
+<div id="icon-options-general" class="icon32"><br /></div>
 <h2><?php echo WPFB_PLUGIN_NAME; echo ' '; _e("Settings"/*def*/); ?></h2>
 
 <form method="post" action="<?php echo $action_uri; ?>" name="wpfilebase-options">
@@ -198,12 +205,14 @@ jQuery(document).ready( function() {
 	$option_categories = array(
 		__('Common', WPFB)					=> array('upload_path','search_integration' /*'cat_drop_down'*/),
 		__('Display', WPFB)					=> array('file_date_format','thumbnail_size','auto_attach_files', 'attach_loop','attach_pos', 'filelist_sorting', 'filelist_sorting_dir', 'filelist_num', /* TODO: remove? 'parse_tags_rss',*/ 'decimal_size_format'),
-		__('File Browser',WPFB)				=> array('file_browser_post_id','file_browser_cat_sort_by','file_browser_cat_sort_dir','file_browser_file_sort_by','file_browser_file_sort_dir','file_browser_fbc', 'late_script_loading','disable_footer_credits','footer_credits_style'),
+		__('File Browser',WPFB)				=> array('file_browser_post_id','file_browser_cat_sort_by','file_browser_cat_sort_dir','file_browser_file_sort_by','file_browser_file_sort_dir','file_browser_fbc', 'late_script_loading',
+		'disable_footer_credits','footer_credits_style',
+		),
 		__('Download', WPFB)				=> array(
 												'disable_permalinks', 'download_base', 'force_download', 'range_download', 'http_nocache', 'ignore_admin_dls', 'accept_empty_referers','allowed_referers','dl_destroy_session'),
 		__('Form Presets', WPFB)			=> array('default_author','default_roles', 'default_cat', 'languages', 'platforms', 'licenses', 'requirements', 'custom_fields'),
 		__('Limits', WPFB)					=> array('bitrate_unregistered', 'bitrate_registered', 'traffic_day', 'traffic_month', 'traffic_exceeded_msg', 'file_offline_msg', 'daily_user_limits', 'daily_limit_subscriber', 'daily_limit_contributor', 'daily_limit_author', 'daily_limit_editor', 'daily_limit_exceeded_msg'),
-		__('Security', WPFB)				=> array('allow_srv_script_upload', 'frontend_upload', 'hide_inaccessible', 'inaccessible_msg', 'inaccessible_redirect', 'login_redirect_src', 'protect_upload_path', 'private_files'),
+		__('Security', WPFB)				=> array('allow_srv_script_upload', 'frontend_upload', 'hide_inaccessible', 'inaccessible_msg', 'inaccessible_redirect', 'cat_inaccessible_msg', 'login_redirect_src', 'protect_upload_path', 'private_files'),
 		__('Templates and Scripts', WPFB)	=> array('template_file', 'template_cat', 'dlclick_js'),
 		__('Misc')							=> $misc_tags,
 	);
@@ -273,7 +282,7 @@ jQuery(document).ready( function() {
 					break;
 					
 				case 'roles':
-					WPFB_Admin::RolesCheckList($opt_tag, $opt_val);
+					WPFB_Admin::RolesCheckList($opt_tag, $opt_val, empty($field_data['not_everyone']));
 					break;
 					
 				case 'cat':

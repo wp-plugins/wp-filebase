@@ -59,6 +59,7 @@ static function SearchWhereSql($search_id3=false, $s=null) {
 	$search_terms = self::getSearchTerms($s);
 	$where = "(1";
 	
+	// TODO: search fields with match...
 	foreach($search_terms as $term) {
 		$where .= " AND (";
 		$or = '';
@@ -67,7 +68,7 @@ static function SearchWhereSql($search_id3=false, $s=null) {
 			$where .= " {$or}({$col} LIKE '{$p}{$term}{$p}')";
 			if(empty($or)) $or = 'OR ';
 		}
-		if($search_id3) $where .= " OR ({$wpdb->wpfilebase_files_id3}.keywords LIKE '{$p}{$term}{$p}')";
+		if($search_id3) $where .= " OR ({$wpdb->wpfilebase_files_id3}.keywords LIKE '{$p}{$term}{$p}')"; // TODO: MATCH func here
 		$where .= ") ";
 	}
 	$where .= ")";

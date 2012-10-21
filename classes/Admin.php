@@ -26,7 +26,10 @@ static function SettingsSchema()
 	$upload_path_base = str_replace(ABSPATH, '', get_option('upload_path'));
 	if($upload_path_base == '' || $upload_path_base == '/')
 		$upload_path_base = 'wp-content/uploads';
-	
+		
+	$last_sync_time	= intval(get_option(WPFB_OPT_NAME.'_cron_sync_time'));
+	$last_sync_time = ($last_sync_time > 0) ? (" (".sprintf( __('Last cron sync on %1$s at %2$s.',WPFB), date_i18n( get_option( 'date_format', $last_sync_time ) ), date_i18n( get_option( 'time_format', $last_sync_time ) ) ).")") : '';
+		
 	return array (
 	
 	// common
@@ -91,6 +94,7 @@ static function SettingsSchema()
 	'hide_inaccessible'		=> array('default' => true, 'title' => __('Hide inaccessible files and categories', WPFB), 'type' => 'checkbox', 'desc' => __('If enabled files tagged <i>For members only</i> will not be listed for guests or users whith insufficient rights.', WPFB)),
 	'inaccessible_msg'		=> array('default' => __('You are not allowed to access this file!', WPFB), 'title' => __('Inaccessible file message', WPFB), 'type' => 'text', 'size' => 65, 'desc' => (__('This message will be displayed if users try to download a file they cannot access', WPFB).'. '.__('You can enter a URL to redirect users.', WPFB))),
 	'inaccessible_redirect'	=> array('default' => false, 'title' => __('Redirect to login', WPFB), 'type' => 'checkbox', 'desc' => __('Guests trying to download inaccessible files are redirected to the login page if this option is enabled.', WPFB)),
+	'cat_inaccessible_msg'	=> array('default' => __('Access to category denied!', WPFB), 'title' => __('Inaccessible category message', WPFB), 'type' => 'text', 'size' => 65, 'desc' => (__('This message will be displayed if users try to access a category without permission.', WPFB))),
 	'login_redirect_src'	=> array('default' => false, 'title' => __('Redirect to referring page after login', WPFB), 'type' => 'checkbox', 'desc' => __('Users are redirected to the page where they clicked on the download link after logging in.', WPFB)),
 	
 	'http_nocache'			=> array('default' => false, 'title' => __('Disable HTTP Caching', WPFB), 'type' => 'checkbox', 'desc' => __('Enable this if you have problems with downloads while using Wordpress with a cache plugin.', WPFB)),
@@ -115,7 +119,8 @@ static function SettingsSchema()
 	'admin_bar'	=> array('default' => true, 'title' => __('Add WP-Filebase to admin menu bar', WPFB), 'type' => 'checkbox', 'desc' => __('Display some quick actions for file management in the admin menu bar.', WPFB)),
 	//'file_context_menu'	=> array('default' => true, 'title' => '', 'type' => 'checkbox', 'desc' => ''),
 	
-	'cron_sync'	=> array('default' => false, 'title' => __('Automatic Sync', WPFB), 'type' => 'checkbox', 'desc' => __('Schedules a cronjob to hourly synchronize the filesystem and the database.', WPFB)),
+	'cron_sync'	=> array('default' => false, 'title' => __('Automatic Sync', WPFB), 'type' => 'checkbox', 'desc' => __('Schedules a cronjob to hourly synchronize the filesystem and the database.', WPFB).$last_sync_time),
+	
 	
 	'search_integration' =>  array('default' => true, 'title' => __('Search Integration', WPFB), 'type' => 'checkbox', 'desc' => __('Searches in attached files and lists the associated posts and pages when searching the site.', WPFB)),
 
@@ -126,7 +131,7 @@ static function SettingsSchema()
 	
 	
 	// file browser
-	'disable_footer_credits'  => array('default' => false, 'title' => __('Remove WP-Filebase Footer credits', WPFB), 'type' => 'checkbox', 'desc' => sprintf(__('This disables the footer credits only displayed on <a href="%s">File Browser Page</a>. Why should you keep the credits? Every backlink helps WP-Filebase to get more popular, popularity motivates the developer to continue work on the plugin. Win-Win!', WPFB), get_permalink(WPFB_Core::GetOpt('file_browser_post_id')).'#wpfb-credits')),
+	'disable_footer_credits'  => array('default' => false, 'title' => __('Remove WP-Filebase Footer credits', WPFB), 'type' => 'checkbox', 'desc' => sprintf(__('This disables the footer credits only displayed on <a href="%s">File Browser Page</a>. Why should you keep the credits? Every backlink helps WP-Filebase to get more popular, popularity motivates the developer to continue work on the plugin.', WPFB), get_permalink(WPFB_Core::GetOpt('file_browser_post_id')).'#wpfb-credits')),
 	'footer_credits_style'  => array('default' => 'margin:0 auto 2px auto; text-align:center; font-size:11px;', 'title' => __('Footer credits Style', WPFB), 'type' => 'text', 'class' => 'code', 'desc' => __('Set custom CSS style for WP-Filebase footer credits',WPFB),'size'=>80),
 	'late_script_loading'	=> array('default' => false, 'title' => __('Late script loading', WPFB), 'type' => 'checkbox', 'desc' => __('Scripts will be included in content, not in header. Enable if your AJAX tree view does not work properly.', WPFB)),
 	
@@ -143,12 +148,14 @@ static function SettingsSchema()
 "PDF Reader|pdfread|http://www.foxitsoftware.com/pdf/reader/addons.php
 Java|java|http://www.java.com/download/
 Flash|flash|http://get.adobe.com/flashplayer/
-Open Office|ooffice|http://download.openoffice.org/
+Open Office|ooffice|http://www.openoffice.org/download/index.html
 .NET Framework 3.5|.net35|http://www.microsoft.com/downloads/details.aspx?FamilyID=333325fd-ae52-4e35-b531-508d977d32a6",
 	'title' => __('Requirements', WPFB), 'type' => 'textarea', 'desc' => $multiple_entries_desc . ' ' . __('You can optionally add |<i>URL</i> to each line to link to the required software/file.', WPFB), 'nowrap' => true),
 	
 	'custom_fields'			=> array('default' => "Custom Field 1|cf1\nCustom Field 2|cf2", 'title' => __('Custom Fields'), 'type' => 'textarea', 'desc' => 
 	__('With custom fields you can add even more file properties.',WPFB).' '.$multiple_entries_desc),
+	
+	
 	
 	
 	
@@ -236,6 +243,7 @@ static function TplVarsDesc($for_cat=false)
 	'cat_num_files_total'			=> __('Number of files in the category and all child categories', WPFB),
 	
 	//'cat_required_level'	=> __('The minimum user level to view this category (-1 = guest, 0 = Subscriber ...)', WPFB),
+	'cat_user_can_access'	=> sprintf(__('Variable to check if the %s is accessible (boolean 0/1)', WPFB),__('Category')),
 	
 	'cat_id'				=> __('The category ID', WPFB),
 	'uid'					=> __('A unique ID number to identify elements within a template', WPFB),
@@ -270,6 +278,8 @@ static function TplVarsDesc($for_cat=false)
 
 	
 	//'file_required_level'	=> __('The minimum user level to download this file (-1 = guest, 0 = Subscriber ...)', WPFB),
+	'file_user_can_access'	=> sprintf(__('Variable to check if the %s is accessible (boolean 0/1)', WPFB),__('File',WPFB)),
+	
 	'file_offline'			=> __('1 if file is offline, otherwise 0', WPFB),
 	'file_direct_linking'	=> __('1 if direct linking is allowed, otherwise 0', WPFB),
 	
@@ -435,17 +445,17 @@ static function InsertCategory($catarr)
 
 	// explicitly set permissions:
 	if(!empty($data->cat_perm_explicit) && isset($data->cat_user_roles))
-		$cat->SetUserRoles((empty($data->cat_user_roles) || count(array_filter($data->cat_user_roles)) == 0) ? array() : $data->cat_user_roles);	
+		$cat->SetReadPermissions((empty($data->cat_user_roles) || count(array_filter($data->cat_user_roles)) == 0) ? array() : $data->cat_user_roles);	
 	
 	// apply permissions to children
 	if($update && !empty($cat_child_apply_perm))
 	{
-		$cur = $cat->GetUserRoles();
+		$cur = $cat->GetReadPermissions();
 		$childs = $cat->GetChildFiles(true);
-		foreach($childs as $child) $child->SetUserRoles($cur);
+		foreach($childs as $child) $child->SetReadPermissions($cur);
 		
 		$childs = $cat->GetChildCats(true);
-		foreach($childs as $child) $child->SetUserRoles($cur);
+		foreach($childs as $child) $child->SetReadPermissions($cur);
 	}
 		
 	// icon
@@ -571,12 +581,12 @@ static function InsertFile($data, $in_gui =false)
 	if ($file_category > 0 && ($new_cat=WPFB_Category::GetCat($file_category)) == null) $file_category = 0;
 	
 	// this sets permissions as well:
-	$result = $file->ChangeCategoryOrName($file_category, $file_name, $add_existing, !empty($data->overwrite));
+	$result = $file->ChangeCategoryOrName($file_category, empty($data->file_rename) ? $file_name : $data->file_rename, $add_existing, !empty($data->overwrite));
 	if(!empty($result['error'])) return $result;
 	
 	// explicitly set permissions:
 	if(!empty($data->file_perm_explicit) && isset($data->file_user_roles))
-		$file->SetUserRoles((empty($data->file_user_roles) || count(array_filter($data->file_user_roles)) == 0) ? array() : $data->file_user_roles);	
+		$file->SetReadPermissions((empty($data->file_user_roles) || count(array_filter($data->file_user_roles)) == 0) ? array() : $data->file_user_roles);	
 
 	// if there is an uploaded file 
 	if($upload) {
@@ -613,24 +623,29 @@ static function InsertFile($data, $in_gui =false)
 	{
 		$file->file_size = filesize($file->GetLocalPath());
 		$file->file_mtime = filemtime($file->GetLocalPath());
+		$old_hash = $file->file_hash;
 		$file->file_hash = WPFB_Admin::GetFileHash($file->GetLocalPath());
 		
-		wpfb_loadclass('GetID3');
-		$file_info = WPFB_GetID3::AnalyzeFile($file);
-				
-		if(!empty($file_info['comments']['picture'][0]['data']))
-			$cover_img =& $file_info['comments']['picture'][0]['data'];
-		elseif(!empty($file_info['id3v2']['APIC'][0]['data']))
-			$cover_img =& $file_info['id3v2']['APIC'][0]['data'];
-		else $cover_img = null;
-		
-		if(!$upload_thumb && empty($data->file_thumbnail) && !empty($cover_img))
+		// only analyze files if changed!
+		if($upload || !$update || $file->file_hash != $old_hash)
 		{
-			$cover = $file->GetLocalPath();
-			$cover = substr($cover,0,strrpos($cover,'.')).'.jpg';
-			file_put_contents($cover, $cover_img);
-			$file->CreateThumbnail($cover, true);
-			@unlink($cover);
+			wpfb_loadclass('GetID3');
+			$file_info = WPFB_GetID3::AnalyzeFile($file);
+				
+			if(!empty($file_info['comments']['picture'][0]['data']))
+				$cover_img =& $file_info['comments']['picture'][0]['data'];
+			elseif(!empty($file_info['id3v2']['APIC'][0]['data']))
+				$cover_img =& $file_info['id3v2']['APIC'][0]['data'];
+			else $cover_img = null;
+			
+			if(!$upload_thumb && empty($data->file_thumbnail) && !empty($cover_img))
+			{
+				$cover = $file->GetLocalPath();
+				$cover = substr($cover,0,strrpos($cover,'.')).'.jpg';
+				file_put_contents($cover, $cover_img);
+				$file->CreateThumbnail($cover, true);
+				@unlink($cover);
+			}
 		}
 	}
 	
@@ -653,7 +668,7 @@ static function InsertFile($data, $in_gui =false)
 	
 	if(!isset($data->file_direct_linking))
 		$data->file_direct_linking = 1; // allow direct linking by default
-	$file->file_direct_linking = (int)!empty($data->file_direct_linking);
+	$file->file_direct_linking = intval($data->file_direct_linking);
 
 	if(isset($data->file_post_id))
 		$file->SetPostId(intval($data->file_post_id));
@@ -980,11 +995,6 @@ static function ParseTpls() {
 	// parse default
 	WPFB_Core::UpdateOption('template_file_parsed', WPFB_TplLib::Parse(WPFB_Core::GetOpt('template_file')));
 	WPFB_Core::UpdateOption('template_cat_parsed', WPFB_TplLib::Parse(WPFB_Core::GetOpt('template_cat')));
-	
-	// parse widget
-	$widget = WPFB_Core::GetOpt('widget');	
-	$widget['filelist_template_parsed'] = WPFB_TplLib::Parse($widget['filelist_template']);	
-	WPFB_Core::UpdateOption('widget', $widget);
 		
 	// parse custom
 	update_option(WPFB_OPT_NAME.'_ptpls_file', WPFB_TplLib::Parse(WPFB_Core::GetFileTpls())); 
@@ -1070,19 +1080,21 @@ static function PrintFlattrButton() {
 <?php
 }
 
+
 // this is used for post filter
 public function ProcessWidgetUpload(){	
 	$content = '';
 	$title = '';
-	
+
 	if(!WPFB_Core::GetOpt('frontend_upload') && !current_user_can('upload_files'))
 		wp_die(__('Cheatin&#8217; uh?'). " (disabled)");
 
-		$nonce_action = $_POST['prefix']."=&cat=".((int)$_POST['cat'])."&overwrite=".((int)$_POST['overwrite']);
-
-	// nonce/referer check (security)
-	if(!wp_verify_nonce($_POST['wpfb-file-nonce'],$nonce_action) || !check_admin_referer($nonce_action,'wpfb-file-nonce'))
-		wp_die(__('Cheatin&#8217; uh?') . ' (nonce)');
+	{
+		$nonce_action = $_POST['prefix']."=&cat=".((int)$_POST['cat'])."&overwrite=".((int)$_POST['overwrite'])."&file_post_id=".((int)$_POST['file_post_id']);
+		// nonce/referer check (security)
+		if(!wp_verify_nonce($_POST['wpfb-file-nonce'],$nonce_action) || !check_admin_referer($nonce_action,'wpfb-file-nonce'))
+			wp_die(__('Cheatin&#8217; uh?') . ' (nonce)');
+	}
 		
 	// if category is set in widget options, force to use this. security done with nonce checking ($_POST['cat'] is reliable)
 	if($_POST['cat'] >= 0) $_POST['file_category'] = $_POST['cat']; 
@@ -1188,7 +1200,7 @@ public function SettingsUpdated($old, $new) {
 	return $messages;
 }
 
-static function RolesCheckList($field_name, $selected_roles=array()) {
+static function RolesCheckList($field_name, $selected_roles=array(), $display_everyone=true) {
 	global $wp_roles;
 	$all_roles = $wp_roles->roles;
 	if(empty($selected_roles)) $selected_roles = array();
@@ -1197,12 +1209,12 @@ static function RolesCheckList($field_name, $selected_roles=array()) {
 <div id="<?php echo $field_name; ?>-wrap" class="tabs-panel"><input value="" type="hidden" name="<?php echo $field_name; ?>[]" />
 	<ul id="<?php echo $field_name; ?>-list" class="wpfilebase-roles-checklist">
 <?php
-	echo "<li id='{$field_name}_none'><label class='selectit'><input value='' type='checkbox' name='{$field_name}[]' id='in-{$field_name}_none' ".(empty($selected_roles)?"checked='checked'":"")." onchange=\"jQuery('[id^=in-$field_name-]').prop('disabled', this.checked).prop('checked', false);\" /> <i>".__('Everyone',WPFB)."</i></label></li>";
+	if($display_everyone) echo "<li id='{$field_name}_none'><label class='selectit'><input value='' type='checkbox' name='{$field_name}[]' id='in-{$field_name}_none' ".(empty($selected_roles)?"checked='checked'":"")." onchange=\"jQuery('[id^=in-$field_name-]').prop('disabled', this.checked).prop('checked', false);\" /> <i>".__('Everyone',WPFB)."</i></label></li>";
 	foreach ( $all_roles as $role => $details ) {
 		$name = translate_user_role($details['name']);
-		echo "<li id='$field_name-$role'><label class='selectit'><input value='$role' type='checkbox' name='{$field_name}[]' id='in-$field_name-$role' ".(in_array($role, $selected_roles)?"checked='checked'":"")." ".(empty($selected_roles)?"disabled='disabled'":"")." /> $name</label></li>";
+		echo "<li id='$field_name-$role'><label class='selectit'><input value='$role' type='checkbox' name='{$field_name}[]' id='in-$field_name-$role' ".(in_array($role, $selected_roles)?"checked='checked'":"")." ".((empty($selected_roles)&&$display_everyone)?"disabled='disabled'":"")." /> $name</label></li>";
 	}
-	?>
+?>
 	</ul>
 </div>
 <?php
@@ -1218,6 +1230,12 @@ static function GetTmpFile($name='') {
 	$dir = WPFB_Core::UploadDir().'/.tmp/';
 	self::Mkdir($dir);
 	return wp_tempnam($name, $dir);
+}
+
+static function GetTmpPath($name) {
+	$dir = WPFB_Core::UploadDir().'/.tmp/'.uniqid($name);
+	self::Mkdir($dir);
+	return $dir;
 }
 
 static function LockUploadDir($lock=true)
@@ -1236,7 +1254,7 @@ static function GetFileHash($filename)
 {
 	static $use_php_func = false;
 	if($use_php_func) return md5_file($filename);
-	$hash = substr(@exec("md5sum \"$filename\""), 0, 32);
+	$hash = substr(trim(substr(@exec("md5sum \"$filename\""), 0, 33),"\\ \t"), 0, 32); // on windows, hash starts with \ if not in same dir!
 	if(empty($hash) && file_exists($filename)) {
 		$use_php_func = true;
 		return md5_file($filename);
@@ -1244,4 +1262,13 @@ static function GetFileHash($filename)
 	return $hash;
 }
 
+static function CurUserCanUpload()
+{
+	return (current_user_can('upload_files'));
+}
+
+static function CurUserCanCreateCat()
+{
+	return  current_user_can('manage_categories');
+}
 }

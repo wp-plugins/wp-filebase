@@ -9,6 +9,8 @@ class WPFB_Item {
 	
 	var $locked = 0;
 	
+	private $_read_permissions = null;
+	
 	static $tpl_uid = 0;
 	static $id_var;
 	
@@ -42,6 +44,12 @@ class WPFB_Item {
 			$this->last_parent_id = $pid;
 		}
 		return $this->last_parent;
+	}
+	function GetParents()
+	{
+		$parents = array();
+		while(!is_null($p = $this->GetParent())) $parents[] = $p;
+		return $parents;
 	}
 	function Lock($lock=true) {
 		if($lock) $this->locked++;
@@ -188,12 +196,10 @@ class WPFB_Item {
 		
 		if( ($for_tpl && !WPFB_Core::GetOpt('hide_inaccessible')) || in_array('administrator',$current_user->roles) || ($this->is_file && $this->CurUserIsOwner()) )
 			return true;
-		
 		if($this->is_file && WPFB_Core::GetOpt('private_files') && $this->file_added_by != 0 && !$this->CurUserIsOwner()) // check private files
 			return false;
-			
-		$frs = $this->GetUserRoles();
-		if(empty($frs[0])) return true; // item is for everyone!		
+		$frs = $this->GetReadPermissions();
+		if(empty($frs)) return true; // item is for everyone!		
 		foreach($current_user->roles as $ur) { // check user roles against item roles
 			if(in_array($ur, $frs))
 				return true;
@@ -203,14 +209,8 @@ class WPFB_Item {
 	
 	function CurUserCanEdit()
 	{
-		global $current_user;
-		if($current_user->ID > 0 && empty($current_user->roles[0]))
-			$current_user = new WP_User($current_user->ID);// load the roles!
-		
-		if(in_array('administrator',$current_user->roles) || ($this->is_file && $this->CurUserIsOwner())) return true;
-		if(!current_user_can('upload_files')) return false;
-		
-		return $this->is_file ? (current_user_can('edit_others_posts') && !WPFB_Core::GetOpt('private_files')) : current_user_can('manage_categories');
+		// current_user_can('edit_files') checks if user is admin!
+		return $this->CurUserIsOwner() || current_user_can('edit_files') || (!WPFB_Core::GetOpt('private_files') && current_user_can($this->is_file ? 'edit_others_posts' : 'manage_categories'));
 	}
 	
 	function GetUrl($rel=false, $to_file_page=false)
@@ -359,15 +359,16 @@ class WPFB_Item {
 		return $files;
 	}
 	
-	function GetUserRoles() {
-		if(isset($this->roles_array)) return $this->roles_array; //caching
+	function GetReadPermissions() {
+		if(!is_null($this->_read_permissions)) return $this->_read_permissions; //caching
 		$rs = $this->is_file?$this->file_user_roles:$this->cat_user_roles;
-		return ($this->roles_array = empty($rs) ? array() : (is_string($rs) ? explode('|', $rs) : (array)$rs));
+		return ($this->_read_permissions = empty($rs) ? array() : array_filter((is_string($rs) ? explode('|', $rs) : (array)$rs)));
 	}
 	
-	function SetUserRoles($roles) {
+	function SetReadPermissions($roles)
+	{
 		if(!is_array($roles)) $roles = explode('|',$roles);
-		$this->roles_array = $roles =  array_filter(array_filter(array_map('trim',$roles),'strlen')); // remove empty
+		$this->_read_permissions = $roles =  array_filter(array_filter(array_map('trim',$roles),'strlen')); // remove empty
 		$roles = implode('|', $roles);
 		if($this->is_file) $this->file_user_roles = $roles;
 		else $this->cat_user_roles = $roles;
@@ -408,8 +409,8 @@ class WPFB_Item {
 		}
 		
 		// inherit user roles
-		if(count($this->GetUserRoles()) == 0) 
-			$this->SetUserRoles(($new_cat_id != 0) ? $new_cat->GetUserRoles() : WPFB_Core::GetOpt('default_roles'));
+		if(count($this->GetReadPermissions()) == 0) 
+			$this->SetReadPermissions(($new_cat_id != 0) ? $new_cat->GetReadPermissions() : WPFB_Core::GetOpt('default_roles'));
 		
 		// flush cache
 		$this->last_parent_id = -1; 

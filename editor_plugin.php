@@ -269,7 +269,8 @@ if($action != 'editfile' && (!empty($post_attachments) || $manage_attachments)) 
 	</form>
 	<?php
 }
-WPFB_Admin::PrintForm('file', $file, array('exform'=>!empty($_GET['exform']), 'in_editor'=>true, 'post_id'=>$post_id));
+//if( (WPFB_Admin::CurUserCanUpload()&&empty($file))) TODO
+	WPFB_Admin::PrintForm('file', $file, array('exform'=>!empty($_GET['exform']), 'in_editor'=>true, 'post_id'=>$post_id));
 ?>
 <h3 class="media-title"><?php _e('Attach existing file', WPFB) ?></h3>
 <ul id="attachbrowser" class="filetree"></ul>

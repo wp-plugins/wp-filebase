@@ -29,6 +29,7 @@ static function InitClass()
 	add_filter('ext2type', array(__CLASS__, 'Ext2TypeFilter'));
 	add_filter('wp_get_attachment_url', array(__CLASS__, 'GetAttachmentUrlFilter'));
 	add_filter('get_attached_file', array(__CLASS__, 'GetAttachedFileFilter'));
+
 	
 	// register treeview stuff
 	//wp_register_script('jquery-cookie', WPFB_PLUGIN_URI.'extras/jquery/jquery.cookie.js', array('jquery'));
@@ -288,7 +289,7 @@ static function ShortCode($atts, $content=null, $tag=null) {
 		'sortcats' => null,
 		'num' => 0,
 		'pagenav' => 1,
-		'linktext' => null,
+		'linktext' => null
 	), $atts), $content, $tag);
 }
 
@@ -537,8 +538,9 @@ static function GetParsedTpl($type, $tag) {
 }
 
 static function AdminDashboardSetup() {
-	if(current_user_can('upload_files')) {
-		wpfb_loadclass('Admin');
+	
+	if(wpfb_call('Admin','CurUserCanUpload'))
+	{
 		wp_add_dashboard_widget('wpfb-add-file-widget', WPFB_PLUGIN_NAME.': '.__('Add File', WPFB), array('WPFB_Admin', 'AddFileWidget'));
 	}	
 }
@@ -567,8 +569,10 @@ static function AdminBar() {
 static function Sync() { wpfb_call('Sync', 'Sync'); }
 
 static function Cron() {
-	if(self::GetOpt('cron_sync'))
+	if(self::GetOpt('cron_sync')) {
 		wpfb_call('Sync', 'Sync');
+		update_option(WPFB_OPT_NAME.'_cron_sync_time', time());
+	}
 }
 
 static function GetMaxUlSize() {
@@ -642,4 +646,5 @@ static function GetCustomCssPath($path=null) {
 static function CreateTplFunc($parsed_tpl) {
 	return create_function('$f', "return ($parsed_tpl);");
 }
+
 }

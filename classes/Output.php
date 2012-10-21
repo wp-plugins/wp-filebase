@@ -9,8 +9,7 @@ static function ProcessShortCode($args, $content = null, $tag = null)
 		wpfb_loadclass('File','Category');
 		$args ['id'] = $id = is_null($item = WPFB_Item::GetByPath($args['path'])) ? 0 : $item->GetId();
 	}
-	
-	
+		
 	switch($args['tag']) {
 		case 'list': return do_shortcode(self::FileList($args));
 		
@@ -146,6 +145,11 @@ static function FileBrowser(&$content, $root_cat_id=0, $cur_cat_id=0)
 
 static function FileBrowserList(&$content, &$parents, $root_cat=null)
 {
+	if(!is_null($root_cat) && !$root_cat->CurUserCanAccess()) {
+		$content .= '<li>'.WPFB_Core::GetOpt('cat_inaccessible_msg').'</li>';
+		return;
+	}
+		
 	$cats = WPFB_Category::GetFileBrowserCats(is_null($root_cat) ? 0 : $root_cat->cat_id);
 	$open_cat = array_pop($parents);
 	$files_before_cats = WPFB_Core::GetOpt('file_browser_fbc');
@@ -157,7 +161,7 @@ static function FileBrowserList(&$content, &$parents, $root_cat=null)
 	}	
 	
 	foreach($cats as $cat) {
-		if(!$cat->CurUserCanAccess()) continue;
+		if(!$cat->CurUserCanAccess(true)) continue;
 		
 		$liclass = '';
 		if($has_children = ($cat->cat_num_files_total > 0)) $liclass .= 'hasChildren';
@@ -400,7 +404,9 @@ static function RoleNames($roles, $fmt_string=false) {
 	$names = array();
 	if(!empty($roles)) {
 		foreach($roles as $role)
-			$names[$role] = translate_user_role($wp_roles->roles[$role]['name']);
+		{
+				$names[$role] = translate_user_role($wp_roles->roles[$role]['name']);
+		}
 	}
 	return $fmt_string ? (empty($names) ? ("<i>".__('Everyone',WPFB)."</i>") : join(', ',$names)) : $names;
 }

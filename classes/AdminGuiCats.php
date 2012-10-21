@@ -5,7 +5,7 @@ static function CatRow($cat, $sub_level=0)
 {
 	$cat_id = $cat->cat_id;
 	$parent_cat = $cat->GetParent();
-	$user_roles = $cat->GetUserRoles();
+	$user_roles = $cat->GetReadPermissions();
 	$title = esc_attr($cat->cat_name);
 	if($sub_level > 0) $title = str_repeat('-', $sub_level) . " $title";
 	
@@ -30,6 +30,9 @@ static function Display()
 {
 	global $wpdb, $user_ID;
 	
+	if ( !WPFB_Admin::CurUserCanCreateCat() )
+		wp_die(__('Cheatin&#8217; uh?'));
+	
 	wpfb_loadclass('Category', 'File', 'Admin', 'Output');
 	
 	$_POST = stripslashes_deep($_POST);
@@ -52,10 +55,7 @@ static function Display()
 	
 	switch($action)
 	{
-		case 'editcat':
-			if ( !current_user_can('manage_categories') )
-				wp_die(__('Cheatin&#8217; uh?'));
-				
+		case 'editcat':				
 			$cat_id = (int)$_GET['cat_id'];
 			$file_category = &WPFB_Category::GetCat($cat_id);
 			WPFB_Admin::PrintForm('cat', $file_category);
@@ -67,8 +67,6 @@ static function Display()
 			
 		case 'addcat':
 			$update = !empty($update);
-			if ( !current_user_can('manage_categories') )
-				wp_die(__('Cheatin&#8217; uh?'/*def*/));
 			
 			$result = WPFB_Admin::InsertCategory(array_merge(stripslashes_deep($_POST), $_FILES));
 			if(isset($result['error']) && $result['error']) {
@@ -79,14 +77,11 @@ static function Display()
 			
 			//wp_redirect($clean_uri . '&action=manage_cats&message=' . urlencode($message));
 		
-		default:
-			if(!current_user_can('manage_categories'))
-				wp_die(__('Cheatin&#8217; uh?'/*def*/));
-				
+		default:				
 			if(!empty($_POST['deleteit']))
 			{
 				foreach ( (array) $_POST['delete'] as $cat_id ) {
-					if(is_object($cat = WPFB_Category::GetCat($cat_id)))
+					if(is_object($cat = WPFB_Category::GetCat($cat_id)) && $cat->CurUserCanEdit())
 						$cat->Delete();
 				}
 			}

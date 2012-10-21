@@ -41,6 +41,7 @@ static function Display()
 	}
 	</script>	
 	<div class="wrap">
+	<div id="icon-wpfilebase" class="icon32"><br /></div>
 	<h2><?php echo WPFB_PLUGIN_NAME; ?></h2>
 	
 	<?php
@@ -71,10 +72,17 @@ static function Display()
 				}
 				
 				if(!empty($error_msg)) echo '<div class="error default-password-nag"><p>'.$error_msg.'</p></div>';				
+				
 					if(WPFB_Core::GetOpt('tag_conv_req')) {
 					echo '<div class="updated"><p><a href="'.add_query_arg('action', 'convert-tags').'">';
 					_e('WP-Filebase content tags must be converted',WPFB);
 					echo '</a></p></div><div style="clear:both;"></div>';
+				}
+				
+				if(!get_post(WPFB_Core::GetOpt('file_browser_post_id'))) {
+					echo '<div class="updated"><p>';
+					printf(__('File Browser post or page not set! Some features like search will not work. <a href="%s">Click here to set the File Browser Post ID.</a>',WPFB), esc_attr(admin_url('admin.php?page=wpfilebase_sets#'.sanitize_title(__('File Browser',WPFB)))));
+					echo '</p></div><div style="clear:both;"></div>';
 				}
 				
 				/*
@@ -167,11 +175,13 @@ static function Display()
 <p><a href="<?php echo add_query_arg(
 				array('action' => 'sync',
 				)); ?>" class="button"><?php _e('Sync Filebase',WPFB)?></a> &nbsp; <?php _e('Synchronises the database with the file system. Use this to add FTP-uploaded files.',WPFB) ?></p>
-<p><a href="<?php echo add_query_arg('action', 'convert-tags') ?>" class="button"><?php _e('Convert old Tags',WPFB)?></a> &nbsp; <?php printf(__('Convert tags from versions earlier than %s.',WPFB), '0.2.0') ?></p>
+<?php if(WPFB_Core::GetOpt('tag_conv_req')) { ?><p><a href="<?php echo add_query_arg('action', 'convert-tags') ?>" class="button"><?php _e('Convert old Tags',WPFB)?></a> &nbsp; <?php printf(__('Convert tags from versions earlier than %s.',WPFB), '0.2.0') ?></p> <?php } ?>
 <!--  <p><a href="<?php echo add_query_arg('action', 'add-urls') ?>" class="button"><?php _e('Add multiple URLs',WPFB)?></a> &nbsp; <?php _e('Add multiple remote files at once.', WPFB); ?></p>
 -->
 
-			<?php WPFB_Admin::PrintForm('file', null, array('exform' => $exform)) ?>
+<?php
+	if(WPFB_admin::CurUserCanUpload()) WPFB_Admin::PrintForm('file', null, array('exform' => $exform));
+?>
 			
 		<?php
 			if(!$show_how_start) // display how start here if its hidden

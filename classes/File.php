@@ -78,9 +78,10 @@ class WPFB_File extends WPFB_Item {
 				$permission_sql = "file_added_by = 0 OR file_added_by = " . (int)$current_user->ID;
 			} else {
 				$permission_sql = "file_user_roles = ''";
-				foreach($current_user->roles as $ur) {
+				$roles = $current_user->roles;
+				foreach($roles as $ur) {
 					$ur = $wpdb->escape($ur);
-					$permission_sql .= " OR (file_user_roles = '{$ur}') OR (file_user_roles LIKE '{$ur}|%') OR (file_user_roles LIKE '%|{$ur}|%') OR (file_user_roles LIKE '%|{$ur}')";
+					$permission_sql .= " OR MATCH(file_user_roles) AGAINST ('{$ur}' IN BOOLEAN MODE)";
 				}
 				if($current_user->ID > 0)
 					$permission_sql .= " OR (file_added_by = " . (int)$current_user->ID . ")";
@@ -198,7 +199,7 @@ class WPFB_File extends WPFB_Item {
 		$ints = array('file_size','file_category','file_post_id','file_attach_order','file_wpattach_id','file_added_by','file_update_of','file_hits','file_ratings','file_rating_sum');
 		foreach($ints as $i) $this->$i = intval($this->$i);
 		$this->file_offline = (int)!empty($this->file_offline);
-		$this->file_direct_linking = (int)!empty($this->file_direct_linking);
+		$this->file_direct_linking = (int)$this->file_direct_linking;
 		$this->file_force_download = (int)!empty($this->file_force_download);
 		if(empty($this->file_last_dl_time)) $this->file_last_dl_time = '0000-00-00 00:00:00';
 		$r = parent::DBSave();
@@ -413,12 +414,15 @@ class WPFB_File extends WPFB_Item {
 			case 'cat_icon_url':		return is_null($cat = $this->GetParent()) ? '' : htmlspecialchars($cat->GetIconUrl());
 			case 'cat_url':				return is_null($cat = $this->GetParent()) ? '' : htmlspecialchars($cat->GetUrl());
 			
+			case 'file_cat_folder': 	return htmlspecialchars(is_object($cat = $this->GetParent()) ? $cat->cat_folder : '');
+			
 			case 'file_languages':		return wpfb_call('Output','ParseSelOpts', array('languages', $this->file_language),true);
 			case 'file_platforms':		return wpfb_call('Output','ParseSelOpts', array('platforms', $this->file_platform),true);
 			case 'file_requirements':	return wpfb_call('Output','ParseSelOpts', array('requirements', $this->file_requirement, true),true);
 			case 'file_license':		return wpfb_call('Output','ParseSelOpts', array('licenses', $this->file_license, true), true);
 			
 			//case 'file_required_level':	return ($this->file_required_level - 1);
+			case 'file_user_can_access': return $this->CurUserCanAccess();
 			
 			case 'file_description':	return nl2br($this->file_description);
 			case 'file_tags':			return str_replace(',',', ',trim($this->file_tags,','));
@@ -485,7 +489,7 @@ class WPFB_File extends WPFB_Item {
 			wp_die(WPFB_Core::GetOpt('file_offline_msg'));
 		
 		// check referrer
-		if(!$this->file_direct_linking) {			
+		if($this->file_direct_linking != 1) {			
 			// if referer check failed, redirect to the file post
 			if(!WPFB_Download::RefererCheck()) {
 				$url = WPFB_Core::GetPostUrl($this->file_post_id);

@@ -42,6 +42,13 @@ switch ( $action = $_REQUEST['action'] ) {
 			$root = $_REQUEST['root'];
 			$parent_id = is_numeric($root) ? intval($root) : intval(substr(strrchr($root,'-'),1));
 		}
+		
+		if($parent_id > 0) {
+			if(is_null($cat=WPFB_Category::GetCat($parent_id)) || !$cat->CurUserCanAccess()) {
+				wpfb_print_json(array(array('id' => 0, 'text' => WPFB_Core::GetOpt('cat_inaccessible_msg'))));
+				exit;
+			}
+		}
 			
 		$browser = ($type=='browser');
 		$filesel = (!$browser && $type=='fileselect');
@@ -55,7 +62,7 @@ switch ( $action = $_REQUEST['action'] ) {
 		$cats = $browser ? WPFB_Category::GetFileBrowserCats($parent_id) : WPFB_Category::GetCats("WHERE cat_parent = $parent_id ORDER BY cat_name ASC");	
 		if($parent_id == 0 && $catsel && count($cats) == 0) {
 			wpfb_print_json(array(array(
-				'id' => sprintf($cat_id_format, $c->cat_id),
+				'id' => sprintf($cat_id_format, 0),
 				'text' => sprintf(__('You did not create a category. <a href="%s" target="_parent">Click here to create one.</a>', WPFB), admin_url('admin.php?page=wpfilebase_cats#addcat')),
 				'hasChildren'=>false
 			)));
@@ -66,7 +73,7 @@ switch ( $action = $_REQUEST['action'] ) {
 		$i = 0;
 		foreach($cats as $c)
 		{
-			if($c->CurUserCanAccess())
+			if($c->CurUserCanAccess(true))
 				$cat_items[$i++] = array('id'=>sprintf($cat_id_format, $c->cat_id),
 					'text'=> $catsel ?
 									('<a href="javascript:'.sprintf($onselect,$c->cat_id,str_replace('\'','\\\'', htmlspecialchars(stripslashes($c->cat_name)))).'">'.esc_html($c->GetTitle(24)).'</a>')
@@ -192,8 +199,8 @@ switch ( $action = $_REQUEST['action'] ) {
 						'id' => $cat->GetId(),
 						'url' => $cat->GetUrl(),
 						'path' => $cat->GetLocalPathRel(),
-						'roles' => $cat->GetUserRoles(),
-						'roles_str' => WPFB_Output::RoleNames($cat->GetUserRoles(), true)
+						'roles' => $cat->GetReadPermissions(),
+						'roles_str' => WPFB_Output::RoleNames($cat->GetReadPermissions(), true)
 				));
 			} else {
 				echo '-1';
@@ -201,7 +208,7 @@ switch ( $action = $_REQUEST['action'] ) {
 			exit;
 		
 	case 'postbrowser':
-		if(!current_user_can('read_private_posts')) {
+		if(!current_user_can('edit_posts')) {
 			wpfb_print_json(array(array('id'=>'0','text'=>__('Cheatin&#8217; uh?'), 'classes' => '','hasChildren'=>false)));
 			exit;
 		}

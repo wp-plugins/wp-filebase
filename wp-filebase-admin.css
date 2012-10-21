@@ -1,3 +1,7 @@
+#icon-wpfilebase {
+	background-image: url('images/wpfb-icon.png');	
+}
+
 .wpfilebase-progress {
 	margin: 4px;
 	border: 1px solid #dfdfdf;	
@@ -52,17 +56,22 @@
 	border-bottom:none;
 	margin:0 0 3px; 
 	padding:3px 1em 0;
+	overflow: auto;
 }
 .wpfb-tab-menu li {height:25px;display:inline;line-height:200%;list-style:none;text-align:center;white-space:nowrap; margin-right: 15px;}
 .wpfb-tab-menu li a{color:#21759b;font-size:12px;text-decoration:none;padding:.3em .4em .4em;}
 .wpfb-tab-menu li a:hover{color:#D54E21;}
-.wpfb-tab-menu li.ui-tabs-selected{font-weight:700;background:#f9f9f9;color:#1C6280;padding:0.3em 0 0.4em;}
+.wpfb-tab-menu li.ui-tabs-selected{background:#f9f9f9;color:#1C6280;padding:0.3em 0 0.4em;}
 .wpfb-tab-menu li.ui-tabs-selected a{color:#464646;}
 .wpfb-tab-menu li.ui-tabs-selected a:hover{background:#D54E21;color:#fff;}
 .wpfb-tab-menu .tabs-hide{display:none;}
 
 .wpfilebase-opttab {
 	margin: 15px;
+}
+
+.wpfilebase-opttab table tr {
+	border-top: 1px solid #e3e3e3;
 }
 
 .wpfilebase-roles-checklist {

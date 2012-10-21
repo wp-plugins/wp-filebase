@@ -247,7 +247,7 @@ static function TplsTable($type) {
 	<tr id="tpl-<?php echo "$type-$tpl_tag" ?>" class="iedit" valign="top">
 		<th scope="row" class="check-column"><input type="checkbox" name="tpl[]" value="<?php echo esc_attr($tpl_tag) ?>" /></th>
 		<td class="column-title">
-			<strong><a class="row-title" href="<?php echo $edit_link ?>" title="<?php printf(__('Edit &#8220;%s&#8221;'), $tpl_tag) ?>"><?php echo __(__(esc_html(WPFB_Output::Filename2Title($tpl_tag))), WPFB) ?></a></strong>
+			<strong><a class="row-title" href="<?php echo $edit_link ?>" title="<?php printf(__('Edit &#8220;%s&#8221;'), $tpl_tag) ?>"><?php echo self::TplTitle($tpl_tag); ?></a></strong>
 			<div class="row-actions"><span class='edit'><a href="<?php echo $edit_link ?>" title="<?php _e('Edit this item') ?>"><?php _e('Edit') ?></a></span>
 			<?php if(!in_array($tpl_tag, self::$protected_tags)){ ?><span class='trash'>| <a class='submitdelete' title='<?php _e('Delete this item permanently') ?>' href='<?php echo add_query_arg(array('action'=>'del','type'=>$type,'tpl'=>$tpl_tag)).'#'.$type ?>'><?php _e('Delete') ?></a></span><?php } ?>
 			</div>
@@ -289,7 +289,8 @@ static function TplForm($type, $tpl_tag=null)
 		$tpl = $new ? new WPFB_ListTpl() : WPFB_ListTpl::Get($tpl_tag);
 	}
 ?>
-<h2><?php _e($new?'Add Template' : 'Edit Template', WPFB) ?></h2>
+<h2><?php _e($new?'Add Template' : 'Edit Template', WPFB);
+		if(!empty($tpl_tag)) echo ' '.self::TplTitle($tpl_tag);  ?></h2>
 <form action="<?php echo remove_query_arg(array('action','type','tpl')).'#'.$type ?>" method="post">
 	<input type="hidden" name="action" value="<?php echo $new?'add':'update'; ?>" />	
 	<input type="hidden" name="type" value="<?php echo $type; ?>" />	
@@ -356,5 +357,9 @@ static function TplDropDown($type, $selected=null) {
 	}
 	return $content;
 }
+
+static function TplTitle($tpl_tag)
+{
+ 	return __(__(esc_html(WPFB_Output::Filename2Title($tpl_tag))), WPFB);
 }
-?>
+}

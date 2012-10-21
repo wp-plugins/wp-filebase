@@ -25,9 +25,9 @@ static function Display()
 	// switch simple/extended form
 	if(isset($_GET['exform'])) {
 		$exform = (!empty($_GET['exform']) && $_GET['exform'] == 1);
-		update_user_option($user_ID, WPFB_OPT_NAME . '_exform', $exform); 
+		update_user_option($user_ID, WPFB_OPT_NAME . '_exform', $exform?1:0); 
 	} else {
-		$exform = (bool)get_user_option(WPFB_OPT_NAME . '_exform');
+		$exform = (get_user_option(WPFB_OPT_NAME . '_exform') === 1);
 	}
 	
 	if(!empty($_REQUEST['redirect']) && !empty($_REQUEST['redirect_to'])) WPFB_AdminLite::JsRedirect($_REQUEST['redirect_to']);
@@ -61,6 +61,7 @@ static function Display()
 			break;
 
 		case 'updatefile':
+			if(!current_user_can('upload_files')) wp_die(__('Cheatin&#8217; uh?'));
 			$file_id = (int)$_POST['file_id'];
 			$update = true;
 			$file = WPFB_File::GetFile($file_id);
@@ -68,17 +69,9 @@ static function Display()
 				wp_die(__('Cheatin&#8217; uh?'));			
 		case 'addfile':
 			$update = !empty($update);
-			
+		
 			if ( !current_user_can('upload_files') )
 				wp_die(__('Cheatin&#8217; uh?'));
-				
-			/* // this was causing some trouble...
-			foreach ( array('aa', 'mm', 'jj', 'hh', 'mn') as $timeunit ) {
-				if ( !empty($_POST['hidden_' . $timeunit] ) && $_POST['hidden_' . $timeunit] != $_POST[$timeunit] ) {
-					$edit_date = true;
-					break;
-				}
-			}*/
 			
 			extract($_POST);
 			if(isset($jj) && isset($ss))
@@ -97,7 +90,7 @@ static function Display()
 				$message = $update?__('File updated.', WPFB):__('File added.', WPFB);
 			}
 
-		default:		
+		default:
 			if(!current_user_can('upload_files'))
 				wp_die(__('Cheatin&#8217; uh?'));
 				
@@ -115,7 +108,7 @@ static function Display()
 		printf( '<span class="subtitle">' . __('Search results for &#8220;%s&#8221;'/*def*/) . '</span>', esc_html(stripslashes($_GET['s'])));
 	?></h2>
 	<?php if ( !empty($message) ) : ?><div id="message" class="updated fade"><p><?php echo $message; ?></p></div><?php endif; 
-	if($action == 'addfile' || $action == 'updatefile')
+	if(WPFB_Admin::CurUserCanUpload() && ($action == 'addfile' || $action == 'updatefile'))
 	{
 		unset($file);
 		WPFB_Admin::PrintForm('file', null, array('exform' => $exform, 'item' => new WPFB_File((isset($result['error']) && $result['error']) ? $_POST : null)));
@@ -199,12 +192,13 @@ static function Display()
 						$rating = '-';
 						
 					$cat = $file->GetParent();
-					$user_roles = $file->GetUserRoles();
+					$user_roles = $file->GetReadPermissions();
 				?>
 				<tr id='file-<?php echo $file_id ?>'<?php if($file->file_offline) { echo " class='offline'"; } ?>>
 						    <th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $file_id ?>' /></th>
 						    <td class="num"><?php echo $file_id ?></td>
-							<td class="wpfilebase-admin-list-row-title"><a class='row-title' href='<?php echo esc_attr($file->GetEditUrl()) ?>' title='&quot;<?php echo esc_attr($file->file_display_name); ?>&quot; bearbeiten'>
+							<td class="wpfilebase-admin-list-row-title">
+							<a class='row-title' href='<?php echo esc_attr($file->GetEditUrl()) ?>' title='&quot;<?php echo esc_attr($file->file_display_name); ?>&quot; bearbeiten'>
 							<?php if(!empty($file->file_thumbnail)) { ?><img src="<?php echo esc_attr($file->GetIconUrl()); ?>" height="32" /><?php } ?>
 							<span><?php if($file->IsRemote()){echo '*';} echo esc_html($file->file_display_name); ?></span>
 							</a></td>
@@ -232,7 +226,7 @@ static function Display()
 
 <?php
 
-	if($action != 'addfile' && $action != 'updatefile')
+	if($action != 'addfile' && $action != 'updatefile' && WPFB_Admin::CurUserCanUpload())
 	{
 		unset($file);
 		WPFB_Admin::PrintForm('file', null, array('exform' => $exform));

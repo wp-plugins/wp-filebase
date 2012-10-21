@@ -458,6 +458,10 @@ function SendFile($file_path, $args=array())
 	// convert kib/s => bytes/ms
 	$bandwidth *= 1024;
 	$bandwidth /= 1000;
+	
+	global $wpdb;
+	if(!empty($wpdb->dbh))
+		@mysql_close($wpdb->dbh);
 
 	$cur = $begin;
 	fseek($fh,$begin,0);

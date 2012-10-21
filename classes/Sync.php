@@ -18,6 +18,7 @@ static function DEcho($str) {
 
 private static function PreSync($sync_data)
 {
+	self::PrintDebugTrace();
 	@ini_set('max_execution_time', '0');
 	@set_time_limit(0);	
 	
@@ -28,6 +29,8 @@ private static function PreSync($sync_data)
 
 private static function SyncPase1($sync_data, $output)
 {
+	self::PrintDebugTrace();
+	
 	if($output) self::DEcho('<p>'. __('Checking for file changes...',WPFB).' ');
 	self::CheckChangedFiles($sync_data);
 	if($output) self::DEcho('done!</p>');	
@@ -42,6 +45,8 @@ private static function SyncPase1($sync_data, $output)
 	}
 	
 	if($output) self::DEcho('<p>'. __('Searching for new files...',WPFB).' ');
+	
+	self::PrintDebugTrace("new_files");
 	
 	// search for not added files
 	$upload_dir = self::cleanPath(WPFB_Core::UploadDir());	
@@ -66,6 +71,8 @@ private static function SyncPase1($sync_data, $output)
 		$sync_data->new_files[$num_new_files] = $fn;
 		$num_new_files++;
 	}
+	
+	self::PrintDebugTrace("new_files_end");
 
 	$sync_data->num_files_to_add = $num_new_files;
 	
@@ -74,7 +81,10 @@ private static function SyncPase1($sync_data, $output)
 }
 
 static function Sync($hash_sync=false, $output=false)
-{	
+{
+	self::PrintDebugTrace();
+	
+	wpfb_loadclass('File', 'Category');
 	$sync_data = new WPFB_SyncData(true);
 	$sync_data->hash_sync = $hash_sync;
 	
@@ -102,6 +112,8 @@ static function Sync($hash_sync=false, $output=false)
 
 private function PostSync($sync_data, $output)
 {
+	self::PrintDebugTrace();
+	
 	// chmod
 	if($output) self::DEcho('<p>Setting permissions...');
 	$sync_data->log['warnings'] += self::Chmod($sync_data->known_filenames);
@@ -183,6 +195,7 @@ static function CheckChangedFiles($sync_data)
 
 static function AddNewFiles($sync_data, $progress_bar=null, $max_batch_size=0)
 {
+	self::PrintDebugTrace();
 	$keys = array_keys($sync_data->new_files);
 	$upload_dir = self::cleanPath(WPFB_Core::UploadDir());
 	$upload_dir_len = strlen($upload_dir);
@@ -399,6 +412,15 @@ static function PrintResult(&$result)
 			} elseif(!empty($result['missing_folders'])) {
 				echo '<p>' . sprintf(__('%d Category Folders could not be found.', WPFB), count($result['missing_folders'])) . ' <a href="'.$clean_uri.'&amp;action=del&amp;cats='.join(',',array_keys($result['missing_folders'])).'" class="button">'.__('Remove entries from database').'</a></p>';
 			}
+}
+
+static function PrintDebugTrace($tag="") {
+	if(!empty($_GET['debug']))
+	{
+		echo "<!-- [$tag] BACKTRACE:\n";
+		echo esc_html(print_r(wp_debug_backtrace_summary(), true));
+		echo "\nEND -->";
+	}
 }
 }
 

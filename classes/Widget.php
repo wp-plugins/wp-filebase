@@ -127,6 +127,21 @@ function FileListCntrl()
 	</div>
 	<?php
 }
+
+function CatTree(&$root_cat)
+{
+	echo '<li><a href="'.$root_cat->GetUrl().'">'.esc_html($root_cat->cat_name).'</a>';
+	
+	$childs =& $root_cat->GetChildCats();
+	if(count($childs) > 0)
+	{
+		echo '<ul>';
+		foreach(array_keys($childs) as $i) self::CatTree($childs[$i]);
+		echo '</ul>';
+	}
+	
+	echo '</li>';
+}
 }
 
 class WPFB_UploadWidget extends WP_Widget {
@@ -135,10 +150,9 @@ class WPFB_UploadWidget extends WP_Widget {
 		parent::WP_Widget( false, WPFB_PLUGIN_NAME .' '.__('File Upload'), array('description' => __('Allows users to upload files from the front end.',WPFB)) );
 	}
 
-	function widget( $args, $instance ) {			
+	function widget( $args, $instance ) {
 		if(!WPFB_Core::GetOpt('frontend_upload'))
 			return;
-
 		wpfb_loadclass('File', 'Category', 'Output');
 		
 		$instance['category'] = empty($instance['category']) ? 0 : (int)$instance['category'];
@@ -150,7 +164,9 @@ class WPFB_UploadWidget extends WP_Widget {
 		
 		$prefix = "wpfb-upload-widget-".$this->id_base;
 		$form_url = add_query_arg('wpfb_upload_file', 1);
-		WPFB_Output::FileForm($prefix, $form_url, array('cat' => $instance['category'], 'overwrite' => (int)$instance['overwrite']));
+		$form_args = array('cat' => $instance['category'], 'overwrite' => (int)$instance['overwrite']);
+		$form_args['file_post_id'] = $instance['attach'] ? WPFB_Core::GetPostId() : 0; // attach file to current post
+		WPFB_Output::FileForm($prefix, $form_url, $form_args);
 		
 		echo $after_widget;
 	}
@@ -161,6 +177,7 @@ class WPFB_UploadWidget extends WP_Widget {
 		$instance['title'] = strip_tags($new_instance['title']);
 		$instance['category'] = ($new_instance['category'] > 0) ? (is_null($cat=WPFB_Category::GetCat($new_instance['category'])) ? 0 : $cat->GetId()) : (int)$new_instance['category'];
 		$instance['overwrite'] = !empty($new_instance['overwrite']);
+		$instance['attach'] = !empty($new_instance['attach']);
         return $instance;
 	}
 	
@@ -180,6 +197,7 @@ class WPFB_UploadWidget extends WP_Widget {
 				</select>
 			</label></p>
 			<p><input type="checkbox" id="<?php echo $this->get_field_id('overwrite'); ?>" name="<?php echo $this->get_field_name('overwrite'); ?>" value="1" <?php checked(!empty($instance['overwrite'])) ?> /> <label for="<?php echo $this->get_field_id('overwrite'); ?>"><?php _e('Overwrite existing files', WPFB) ?></label></p>
+			<p><input type="checkbox" id="<?php echo $this->get_field_id('attach'); ?>" name="<?php echo $this->get_field_name('attach'); ?>" value="1" <?php checked(!empty($instance['attach'])) ?> /> <label for="<?php echo $this->get_field_id('attach'); ?>"><?php _e('Attach file to current post/page', WPFB) ?></label></p>
 		</div><?php
 	}
 }

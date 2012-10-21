@@ -224,7 +224,7 @@ static function ResetTpls()
 }
 
 
-static function SetupDBTables()
+static function SetupDBTables($old_ver=null)
 {
 	global $wpdb;
 
@@ -246,7 +246,8 @@ static function SetupDBTables()
   `cat_icon` varchar(255) default NULL,
   `cat_exclude_browser` enum('0','1') NOT NULL default '0',
   `cat_order` int(8) NOT NULL default '0',
-  PRIMARY KEY  (`cat_id`)
+  PRIMARY KEY  (`cat_id`),
+  FULLTEXT KEY `USER_ROLES` (`cat_user_roles`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1";
 				
 	
@@ -271,7 +272,7 @@ static function SetupDBTables()
   `file_license` varchar(255) NOT NULL default '',
   `file_user_roles` varchar(255) NOT NULL default '',
   `file_offline` enum('0','1') NOT NULL default '0',
-  `file_direct_linking` enum('0','1') NOT NULL default '0',
+  `file_direct_linking` enum('0','1','3') NOT NULL default '0',
   `file_force_download` enum('0','1') NOT NULL default '0',
   `file_category` int(8) unsigned NOT NULL default '0',
   `file_category_name` varchar(127) NOT NULL default '',
@@ -287,7 +288,8 @@ static function SetupDBTables()
   `file_last_dl_time` datetime NOT NULL default '0000-00-00 00:00:00',
   ". /*`file_meta` TEXT NULL DEFAULT NULL,*/ "
   PRIMARY KEY  (`file_id`),
-  FULLTEXT KEY `FULLTEXT` (`file_description`)
+  FULLTEXT KEY `DESCRIPTION` (`file_description`),
+  FULLTEXT KEY `USER_ROLES` (`file_user_roles`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1";	
 	
 	$queries[] = "CREATE TABLE IF NOT EXISTS `$tbl_files_id3` (
@@ -295,7 +297,8 @@ static function SetupDBTables()
   `analyzetime` INT(11) NOT NULL DEFAULT '0',
   `value` LONGTEXT NOT NULL,
   `keywords` TEXT NOT NULL,
-  PRIMARY KEY  (`file_id`)
+  PRIMARY KEY  (`file_id`),
+  FULLTEXT KEY `KEYWORDS` (`keywords`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8";
 
 	
@@ -353,6 +356,16 @@ static function SetupDBTables()
 	// since 0.2.9.20
 	//$queries[] = "@ALTER TABLE `$tbl_files` ADD `file_meta` TEXT NULL DEFAULT NULL";
 	
+	// add fulltext indices
+	if(!empty($old_ver) && version_compare($old_ver, '0.2.9.24') < 0) { 	// TODO: search fields fulltext index!
+		$queries[] = "@ALTER TABLE `$tbl_files` ADD FULLTEXT `USER_ROLES` (`file_user_roles`)";
+		$queries[] = "@ALTER TABLE `$tbl_cats` ADD FULLTEXT `USER_ROLES` (`cat_user_roles`)";		
+		$queries[] = "@ALTER TABLE `$tbl_files_id3` ADD FULLTEXT `KEYWORDS` (`keywords`)";
+	}
+	
+	// 2 is for file pages
+	if(!empty($old_ver) && version_compare($old_ver, '0.2.9.24') < 0)
+		$queries[] = "ALTER TABLE  `$tbl_files` CHANGE  `file_direct_linking`  `file_direct_linking` ENUM(  '0',  '1',  '2' ) NOT NULL DEFAULT '0'";
 
 	$queries[] = "OPTIMIZE TABLE `$tbl_cats`";
 	$queries[] = "OPTIMIZE TABLE `$tbl_files`";
@@ -386,7 +399,7 @@ static function SetupDBTables()
 	if(!!$wpdb->get_var("SHOW COLUMNS FROM `$tbl_files` LIKE 'file_required_level'")) {		
 		$files = $wpdb->get_results("SELECT file_id,file_required_level FROM $tbl_files WHERE file_required_level <> 0");
 		foreach ( (array) $files as $file ) {
-			$wpdb->query("UPDATE `$tbl_files` SET `file_user_roles` = '".WPFB_Core::UserLevel2Role($file->file_required_level - 1)."' WHERE `file_id` = $file->file_id");
+			$wpdb->query("UPDATE `$tbl_files` SET `file_user_roles` = '|".WPFB_Core::UserLevel2Role($file->file_required_level - 1)."' WHERE `file_id` = $file->file_id");
 		}
 		$wpdb->query("ALTER TABLE `$tbl_files` DROP `file_required_level`");
 	}
@@ -394,10 +407,18 @@ static function SetupDBTables()
 	if(!!$wpdb->get_var("SHOW COLUMNS FROM `$tbl_cats` LIKE 'cat_required_level'")) {		
 		$cats = $wpdb->get_results("SELECT cat_id,cat_required_level FROM $tbl_cats WHERE cat_required_level <> 0");
 		foreach ( (array) $cats as $cat ) {
-			$wpdb->query("UPDATE `$tbl_cats` SET `cat_user_roles` = '".WPFB_Core::UserLevel2Role($cat->cat_required_level - 1)."' WHERE `cat_id` = $cat->cat_id");
+			$wpdb->query("UPDATE `$tbl_cats` SET `cat_user_roles` = '|".WPFB_Core::UserLevel2Role($cat->cat_required_level - 1)."' WHERE `cat_id` = $cat->cat_id");
 		}
 		$wpdb->query("ALTER TABLE `$tbl_cats` DROP `cat_required_level`");
 	}
+	
+	/* NOT neeeded since using fulltext index!
+	// add leading | to user_roles
+	if(!empty($old_ver) && version_compare($old_ver, '0.2.9.24') < 0) {
+		$wpdb->query("UPDATE `$tbl_files` SET `file_user_roles` = CONCAT('|', `file_user_roles`) WHERE LEFT(`file_user_roles`, 1) <> '|'");
+		$wpdb->query("UPDATE `$tbl_cats` SET `cat_user_roles` = CONCAT('|', `cat_user_roles`) WHERE LEFT(`cat_user_roles`, 1) <> '|'");
+	}
+	*/
 }
 
 static function DropDBTables()
@@ -501,7 +522,7 @@ static function ProtectUploadPath()
 
 static function OnActivateOrVerChange($old_ver=null) {
 	wpfb_loadclass('Admin','File','Category');
-	self::SetupDBTables();
+	self::SetupDBTables($old_ver);
 	$old_options = get_option(WPFB_OPT_NAME);
 	self::AddOptions();
 	self::AddTpls($old_ver);

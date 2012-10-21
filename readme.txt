@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=wpfil
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, traffic, widget, filelist, list, thumb, thumbnail, attachment, attachments, category, categories, media, template, ftp, http, mp3, id3
 Requires at least: 3.1
 Tested up to: 3.4.2
-Stable tag: 0.2.9.23
+Stable tag: 0.2.9.24
 
 Adds a powerful download manager supporting file categories, downloads counter, widgets, sorted file lists and more to your WordPress blog.
 
@@ -103,6 +103,22 @@ Goto WP-Filebase Settings and disable Permalinks under "Download". Try to disabl
 
 
 == Changelog ==
+
+= 0.2.9.24 =
+* Added field to rename files in file upload form
+* Configuration of old File Widget will be retained on update. Please change to the new multi-instance widget after updating!
+* New Option `Inaccessible category message`
+* Improved access permission handling for AJAX tree
+* Fixed OpenOffice download link
+* New template variable `%cat_user_can_access%` and `%file_user_can_access%`
+* Files are only re-scanned if changed
+* Fixed external MD5 hashing on Windows
+* MySQL connection are closed during download
+* New Template varialbe `%file_cat_folder%`
+* Added sync debug info when query variable `debug` is set to 1 (add &debug=1 to the sync page URL and see the HTML source for backtrace) 
+* Inaccessible categories are displayed in lists, but their content cannot be viewed
+* Fixed resources URL when using SSL
+* Removed HTML align property for category icons according to HTML5 standard 
 
 = 0.2.9.23 =
 * Configuration of old File Widget will be retained on update. Please change to the new multi-instance widget after updating!
