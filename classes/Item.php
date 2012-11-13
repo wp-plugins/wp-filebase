@@ -51,6 +51,12 @@ class WPFB_Item {
 		while(!is_null($p = $this->GetParent())) $parents[] = $p;
 		return $parents;
 	}
+	
+	function GetOwnerId()
+	{
+		return (int)($this->is_file ? $this->file_added_by : $this->cat_owner);
+	}
+	
 	function Lock($lock=true) {
 		if($lock) $this->locked++;
 		else $this->locked = max(0, $this->locked-1);
@@ -196,7 +202,7 @@ class WPFB_Item {
 		
 		if( ($for_tpl && !WPFB_Core::GetOpt('hide_inaccessible')) || in_array('administrator',$current_user->roles) || ($this->is_file && $this->CurUserIsOwner()) )
 			return true;
-		if($this->is_file && WPFB_Core::GetOpt('private_files') && $this->file_added_by != 0 && !$this->CurUserIsOwner()) // check private files
+		if(WPFB_Core::GetOpt('private_files') && $this->GetOwnerId() != 0 && !$this->CurUserIsOwner()) // check private files
 			return false;
 		$frs = $this->GetReadPermissions();
 		if(empty($frs)) return true; // item is for everyone!		
@@ -375,6 +381,13 @@ class WPFB_Item {
 		if(!$this->locked) $this->DBSave();
 	}
 	
+		
+	function CurUserIsOwner() {
+		global $current_user;
+		$owner = $this->GetOwnerId();
+		return (!empty($current_user->ID) && $owner > 0 && $owner == $current_user->ID);
+	}
+	
 	function ChangeCategoryOrName($new_cat_id, $new_name=null, $add_existing=false, $overwrite=false)
 	{
 		// 1. apply new values (inherit permissions if nothing (Everyone) set!)
@@ -507,6 +520,30 @@ class WPFB_Item {
 			@chmod($new_file_path, octdec(WPFB_PERM_FILE));
 		}
 		 */
+	}
+	
+	protected static function GetPermissionWhere($owner_field, $permissions_field) {
+		global $wpdb, $current_user;
+		static $permission_sql = '';
+		if(empty($permission_sql)) { // only generate once per request
+			if($current_user->ID > 0 && empty($current_user->roles[0]))
+				$current_user = new WP_User($current_user->ID);// load the roles
+
+			if(in_array('administrator',$current_user->roles)) $permission_sql = '1=1'; // administrator can access everything!
+			elseif(WPFB_Core::GetOpt('private_files')) {
+				$permission_sql = "$owner_field = 0 OR $owner_field = " . (int)$current_user->ID;
+			} else {
+				$permission_sql = "$permissions_field = ''";
+				$roles = $current_user->roles;
+				foreach($roles as $ur) {
+					$ur = $wpdb->escape($ur);
+					$permission_sql .= " OR MATCH($permissions_field) AGAINST ('{$ur}' IN BOOLEAN MODE)";
+				}
+				if($current_user->ID > 0)
+					$permission_sql .= " OR ($owner_field = " . (int)$current_user->ID . ")";
+			}
+		}
+		return $permission_sql;
 	}
 }
 

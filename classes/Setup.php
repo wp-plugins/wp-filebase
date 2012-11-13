@@ -1,8 +1,8 @@
 <?php
 
 class WPFB_Setup {
-const MANY_FILES = 500;
-const MANY_CATEGORIES = 500;
+const MANY_FILES = 50;
+const MANY_CATEGORIES = 200;
 
 static function AddOptions()
 {
@@ -237,12 +237,13 @@ static function SetupDBTables($old_ver=null)
   `cat_id` int(8) unsigned NOT NULL auto_increment,
   `cat_name` varchar(255) NOT NULL default '',
   `cat_description` text,
-  `cat_folder` varchar(63) NOT NULL,
-  `cat_path` varchar(255) NOT NULL,
+  `cat_folder` varchar(300) NOT NULL,
+  `cat_path` varchar(2000) NOT NULL,
   `cat_parent` int(8) unsigned NOT NULL default '0',
   `cat_num_files` int(8) unsigned NOT NULL default '0',
   `cat_num_files_total` int(8) unsigned NOT NULL default '0',
-  `cat_user_roles` varchar(255) NOT NULL default '',
+  `cat_user_roles` varchar(2000) NOT NULL default '',
+  `cat_owner` bigint(20) unsigned default NULL,
   `cat_icon` varchar(255) default NULL,
   `cat_exclude_browser` enum('0','1') NOT NULL default '0',
   `cat_order` int(8) NOT NULL default '0',
@@ -253,8 +254,8 @@ static function SetupDBTables($old_ver=null)
 	
 	$queries[] = "CREATE TABLE IF NOT EXISTS `$tbl_files` (
   `file_id` bigint(20) unsigned NOT NULL auto_increment,
-  `file_name` varchar(127) NOT NULL default '',
-  `file_path` varchar(255) NOT NULL default '',
+  `file_name` varchar(300) NOT NULL default '',
+  `file_path` varchar(2000) NOT NULL default '',
   `file_size` bigint(20) unsigned NOT NULL default '0',
   `file_date` datetime NOT NULL default '0000-00-00 00:00:00',
   `file_mtime` bigint(20) unsigned NOT NULL default '0',
@@ -270,7 +271,7 @@ static function SetupDBTables($old_ver=null)
   `file_language` varchar(255) default NULL,
   `file_platform` varchar(255) default NULL,
   `file_license` varchar(255) NOT NULL default '',
-  `file_user_roles` varchar(255) NOT NULL default '',
+  `file_user_roles` varchar(2000) NOT NULL default '',
   `file_offline` enum('0','1') NOT NULL default '0',
   `file_direct_linking` enum('0','1','3') NOT NULL default '0',
   `file_force_download` enum('0','1') NOT NULL default '0',
@@ -309,7 +310,6 @@ static function SetupDBTables($old_ver=null)
 	$queries[] = "@ALTER TABLE `$tbl_cats` DROP INDEX `CAT_NAME`";
 	$queries[] = "@ALTER TABLE `$tbl_cats` DROP INDEX `CAT_FOLDER`";
 	
-	// TODO: these should be remove since we have the new unique path index
 	$queries[] = "@ALTER TABLE `$tbl_cats` ADD UNIQUE `UNIQUE_FOLDER` ( `cat_folder` , `cat_parent` ) ";	
 	$queries[] = "@ALTER TABLE `$tbl_files` ADD UNIQUE `UNIQUE_FILE` ( `file_name` , `file_category` )";
 	
@@ -323,8 +323,9 @@ static function SetupDBTables($old_ver=null)
 	$queries[] = "@ALTER TABLE `$tbl_cats` ADD `cat_exclude_browser` enum('0','1') NOT NULL default '0'";
 	$queries[] = "@ALTER TABLE `$tbl_cats` ADD `cat_path` varchar(255) NOT NULL default '' AFTER `cat_folder`";
 	
-	$queries[] = "@ALTER TABLE `$tbl_cats` ADD UNIQUE `UNIQUE_PATH` ( `cat_path` ) ";	
-	$queries[] = "@ALTER TABLE `$tbl_files` ADD UNIQUE `UNIQUE_PATH` ( `file_path` )";
+	// removed since 0.2.9.25
+	//$queries[] = "@ALTER TABLE `$tbl_cats` ADD UNIQUE `UNIQUE_PATH` ( `cat_path` ) ";	
+	//$queries[] = "@ALTER TABLE `$tbl_files` ADD UNIQUE `UNIQUE_PATH` ( `file_path` )";
 	
 	// the new cat file counters
 	$queries[] = "@ALTER TABLE `$tbl_cats` ADD `cat_num_files` int(8) unsigned NOT NULL default '0' AFTER `cat_parent`";
@@ -336,8 +337,8 @@ static function SetupDBTables($old_ver=null)
 	
 	
 	// since 0.2.9.1
-	$queries[] = "@ALTER TABLE `$tbl_files` ADD `file_user_roles` varchar(255) NOT NULL default '' AFTER `file_license`";
-	$queries[] = "@ALTER TABLE `$tbl_cats` ADD `cat_user_roles` varchar(255) NOT NULL default '' AFTER `cat_num_files_total`";
+	$queries[] = "@ALTER TABLE `$tbl_files` ADD `file_user_roles` varchar(2000) NOT NULL default '' AFTER `file_license`";
+	$queries[] = "@ALTER TABLE `$tbl_cats` ADD `cat_user_roles` varchar(2000) NOT NULL default '' AFTER `cat_num_files_total`";
 	
 	$queries[] = "@ALTER TABLE `$tbl_files` ADD `file_attach_order` int(8) NOT NULL default '0'  AFTER `file_post_id`";
 	
@@ -353,9 +354,19 @@ static function SetupDBTables($old_ver=null)
 	// 0.2.9.12
 	$queries[] = "@ALTER TABLE `$tbl_cats` ADD `cat_order` int(8) NOT NULL default '0'  AFTER `cat_exclude_browser`";
 
-	// since 0.2.9.20
-	//$queries[] = "@ALTER TABLE `$tbl_files` ADD `file_meta` TEXT NULL DEFAULT NULL";
+	// since 0.2.9.25
+	$queries[] = "@ALTER TABLE  `$tbl_cats` DROP INDEX  `UNIQUE_PATH`";
+	$queries[] = "@ALTER TABLE  `$tbl_files` DROP INDEX  `UNIQUE_PATH`";
+	$queries[] = "ALTER TABLE  `$tbl_cats` CHANGE  `cat_path`  `cat_path` VARCHAR( 2000 ) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT  ''";
+	$queries[] = "ALTER TABLE  `$tbl_files` CHANGE  `file_path`  `file_path` VARCHAR( 2000 ) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT  ''";
+	$queries[] = "ALTER TABLE  `$tbl_cats` CHANGE  `cat_folder`  `cat_folder` VARCHAR( 300 ) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT  ''";
+	$queries[] = "ALTER TABLE  `$tbl_files` CHANGE  `file_name`  `file_name` VARCHAR( 300 ) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT  ''";
+
+	// since 0.2.9.25
+	$queries[] = "ALTER TABLE  `$tbl_files` CHANGE  `file_user_roles`  `file_user_roles` VARCHAR( 2000 ) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT  ''";
+	$queries[] = "ALTER TABLE  `$tbl_cats` CHANGE  `cat_user_roles`  `cat_user_roles` VARCHAR( 2000 ) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT  ''";
 	
+	$queries[] = "@ALTER TABLE `$tbl_cats` ADD `cat_owner` bigint(20) unsigned NOT NULL default 0 AFTER `cat_user_roles`";
 	// add fulltext indices
 	if(!empty($old_ver) && version_compare($old_ver, '0.2.9.24') < 0) { 	// TODO: search fields fulltext index!
 		$queries[] = "@ALTER TABLE `$tbl_files` ADD FULLTEXT `USER_ROLES` (`file_user_roles`)";
@@ -367,6 +378,9 @@ static function SetupDBTables($old_ver=null)
 	if(!empty($old_ver) && version_compare($old_ver, '0.2.9.24') < 0)
 		$queries[] = "ALTER TABLE  `$tbl_files` CHANGE  `file_direct_linking`  `file_direct_linking` ENUM(  '0',  '1',  '2' ) NOT NULL DEFAULT '0'";
 
+
+	// since 0.2.9.25
+	
 	$queries[] = "OPTIMIZE TABLE `$tbl_cats`";
 	$queries[] = "OPTIMIZE TABLE `$tbl_files`";
 

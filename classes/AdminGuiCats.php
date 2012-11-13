@@ -21,6 +21,9 @@ static function CatRow($cat, $sub_level=0)
 				<td><?php echo $parent_cat?('<a href="'.$parent_cat->GetEditUrl().'">'.esc_html($parent_cat->cat_name).'</a>'):'-' ?></td>
 				<td><code><?php echo esc_html($cat->cat_path) ?></code></td>
 				<td><?php echo WPFB_Output::RoleNames($user_roles,true) ?></td>
+<?php
+?>
+				<td><?php echo ($cat->GetOwnerId() <= 0 || !($usr = get_userdata($cat->GetOwnerId()))) ? '-' : esc_html($usr->user_login) ?></td>
 				<td class="num"><?php echo $cat->cat_order ?></td>
 			</tr>
 	<?php
@@ -57,13 +60,18 @@ static function Display()
 	{
 		case 'editcat':				
 			$cat_id = (int)$_GET['cat_id'];
-			$file_category = &WPFB_Category::GetCat($cat_id);
+			$file_category = WPFB_Category::GetCat($cat_id);
+			if(is_null($file_category) ||  !$file_category->CurUserCanEdit())
+				wp_die(__('Cheatin&#8217; uh?'));
 			WPFB_Admin::PrintForm('cat', $file_category);
 			break;
 			
 		case 'updatecat':
 			$cat_id = (int)$_POST['cat_id'];
 			$update = true;
+			$file_category = WPFB_Category::GetCat($cat_id);
+			if(is_null($file_category) || !$file_category->CurUserCanEdit())
+				wp_die(__('Cheatin&#8217; uh?'));
 			
 		case 'addcat':
 			$update = !empty($update);
@@ -150,6 +158,9 @@ static function Display()
 				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('cat_parent') ?>"><?php _e('Parent Category'/*def*/) ?></a></th>
 				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('cat_path') ?>"><?php _e('Path'/*def*/) ?></a></th>
 				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('cat_user_roles') ?>"><?php _e('Access Permission',WPFB) ?></a></th>
+<?php
+?>
+				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('cat_owner') ?>"><?php _e('Owner',WPFB) ?></a></th>
 				<th scope="col"><a href="<?php echo WPFB_Admin::AdminTableSortLink('cat_order') ?>"><?php _e('Custom Sort Order',WPFB) ?></a></th>
 			</tr>
 			</thead>
@@ -158,7 +169,8 @@ static function Display()
 			<?php
 			foreach($cats as $cat_id => &$cat)
 			{
-				self::CatRow($cat);			
+				if($cat->CurUserCanEdit())
+					self::CatRow($cat);			
 			}
 			
 			?>
@@ -169,7 +181,7 @@ static function Display()
 	</form>
 	<br class="clear" />
 	
-	<?php if ( current_user_can('manage_categories') ) : ?>
+	<?php if ( WPFB_Admin::CurUserCanCreateCat() ) : ?>
 		<p><?php _e('<strong>Note:</strong><br />Deleting a category does not delete the files in that category. Instead, files that were assigned to the deleted category are set to the parent category.', WPFB) ?></p><?php
 		WPFB_Admin::PrintForm('cat');
 		endif;

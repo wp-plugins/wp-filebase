@@ -304,7 +304,7 @@ static function Footer() {
 	
 	if(!empty($wpfb_fb) && !WPFB_Core::GetOpt('disable_footer_credits')) {
 		echo '<div id="wpfb-credits" name="wpfb-credits" style="'.esc_attr(WPFB_Core::GetOpt('footer_credits_style')).'">';
-		printf(__('<a href="%s" title="Wordpress Download Manager Plugin" style="color:inherit;font-size:inherit;">Downloads served by WP-Filebase</a>',WPFB),'http://fabi.me/wordpress-plugins/wp-filebase-file-download-manager/');
+		printf(__('<a href="%s" title="Wordpress Download Manager Plugin" style="color:inherit;font-size:inherit;">Downloads served by WP-Filebase</a>',WPFB),'http://wpfilebase.fabi.me/');
 		echo '</div>';
 	}
 }
@@ -547,6 +547,8 @@ static function AdminDashboardSetup() {
 
 static function AdminBar() {
 	global $wp_admin_bar;
+	
+	self::$load_js = true;
 	
 	$wp_admin_bar->add_menu(array('id' => WPFB, 'title' => WPFB_PLUGIN_NAME, 'href' => admin_url('admin.php?page=wpfilebase_manage')));
 	

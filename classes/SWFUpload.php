@@ -2,16 +2,27 @@
 
 class WPFB_SWFUpload
 {
-	function GetAjaxAuthData()
+	var $id;
+	
+	static function GetAjaxAuthData($json=false)
 	{
-		return trim(json_encode(array(
+		$dat = array(
 			"auth_cookie" => (is_ssl() ? $_COOKIE[SECURE_AUTH_COOKIE] : $_COOKIE[AUTH_COOKIE]),
 			"logged_in_cookie" => $_COOKIE[LOGGED_IN_COOKIE],
 			"_wpnonce" => wp_create_nonce(WPFB.'-async-upload')
-		)), '{}');
+		);
+		return $json ? trim(json_encode($dat),'{}') : $dat;
 	}
+	
+	function __construct()
+	{
+		$this->id = uniqid();
+	}
+	
 	function Scripts()
 	{
+		$id = $this->id;
+		
 		wp_print_scripts('swfupload-all');
 		wp_print_scripts('swfupload-handlers');
 		
@@ -35,7 +46,7 @@ function fileQueued(fileObj) {
 	 // delete already uploaded temp file	
 	if(jQuery('#file_flash_upload').val() != '0') {
 		jQuery.ajax({type: 'POST', async: true, url:"<?php echo esc_attr( WPFB_PLUGIN_URI.'wpfb-async-upload.php' ); ?>",
-		data: {<?php echo self::GetAjaxAuthData() ?> , delupload:jQuery('#file_flash_upload').val()},
+		data: {<?php echo self::GetAjaxAuthData(true) ?> , delupload:jQuery('#file_flash_upload').val()},
 		success: (function(data){})
 		});
 		jQuery('#file_flash_upload').val(0);
@@ -111,7 +122,9 @@ SWFUpload.onload = function() {
 			file_post_name: "async-upload",
 			file_types: "<?php echo apply_filters('upload_file_glob', '*.*'); ?>",
 			post_params : { <?php echo self::GetAjaxAuthData(); ?> },
-			file_size_limit : "<?php echo wp_max_upload_size(); ?>b",
+			file_size_limit : "<?php
+			require_once(ABSPATH . 'wp-admin/includes/template.php');
+			echo wp_max_upload_size(); ?>b",
 			file_queue_limit: 1,
 			
 			file_dialog_start_handler : (function(){}),

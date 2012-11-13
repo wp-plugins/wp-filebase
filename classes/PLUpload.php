@@ -2,7 +2,9 @@
 
 class WPFB_PLUpload
 {
-	function GetAjaxAuthData($json=false)
+	var $id;
+	
+	static function GetAjaxAuthData($json=false)
 	{
 		$dat = array(
 			"auth_cookie" => (is_ssl() ? $_COOKIE[SECURE_AUTH_COOKIE] : $_COOKIE[AUTH_COOKIE]),
@@ -12,20 +14,27 @@ class WPFB_PLUpload
 		return $json ? trim(json_encode($dat),'{}') : $dat;
 	}
 	
+	function __construct()
+	{
+		$this->id = uniqid();
+	}
+	
 	function Scripts()
-	{		
+	{
+		$id = $this->id;
+		
 		wp_print_scripts('plupload-handlers');
 		?>
 <script type="text/javascript">
 //<![CDATA[
 		
 function fileQueued(fileObj) {
-	jQuery('#file-upload-progress').show().html('<div class="progress"><div class="percent">0%</div><div class="bar" style="width: 30px"></div></div><div class="filename original"> ' + fileObj.name + '</div>');
+	jQuery('#file-upload-progress<?php echo $id; ?>').show().html('<div class="progress"><div class="percent">0%</div><div class="bar" style="width: 30px"></div></div><div class="filename original"> ' + fileObj.name + '</div>');
 
-	jQuery('.progress', '#file-upload-progress').show();
-	jQuery('.filename', '#file-upload-progress').show();
+	jQuery('.progress', '#file-upload-progress<?php echo $id; ?>').show();
+	jQuery('.filename', '#file-upload-progress<?php echo $id; ?>').show();
 
-	jQuery("#media-upload-error").empty();
+	jQuery("#media-upload-error<?php echo $id; ?>").empty();
 	jQuery('.upload-flash-bypass').hide();
 	
 	jQuery('#file-submit').prop('disabled', true);
@@ -42,7 +51,7 @@ function fileQueued(fileObj) {
 }
 
 function uploadProgress(up, file) {
-	var item = jQuery('#file-upload-progress');
+	var item = jQuery('#file-upload-progress<?php echo $id; ?>');
 	jQuery('.bar', item).width( (200 * file.loaded) / file.size );
 	jQuery('.percent', item).html( file.percent + '%' );
 
@@ -52,9 +61,9 @@ function uploadProgress(up, file) {
 }
 
 function wpFileError(fileObj, message) {
-	jQuery('#media-upload-error').show().html(message);
+	jQuery('#media-upload-error<?php echo $id; ?>').show().html(message);
 	jQuery('.upload-flash-bypass').show();
-	jQuery("#file-upload-progress").hide().empty();
+	jQuery("#file-upload-progress<?php echo $id; ?>").hide().empty();
 	jQuery('#cancel-upload').hide().prop('disabled', true);
 }
 
@@ -65,7 +74,7 @@ function uploadError(fileObj, errorCode, message, uploader) {
 
 function uploadSuccess(fileObj, serverData) {
 	// if async-upload returned an error message, place it in the media item div and return
-	if ( serverData.match('media-upload-error') ) {
+	if ( serverData.match('media-upload-error<?php echo $id; ?>') ) {
 		wpFileError(fileObj, serverData);
 		return;
 	}
@@ -85,7 +94,10 @@ function uploadComplete(fileObj) {
 function Display($form_url) {
 
 global $is_IE, $is_opera;
-	
+
+$id = $this->id;
+
+require_once(ABSPATH . 'wp-admin/includes/template.php'); // wp_max_upload_size
 $upload_size_unit = $max_upload_size = wp_max_upload_size();
 $sizes = array( 'KB', 'MB', 'GB' );
 
@@ -104,8 +116,8 @@ do_action('pre-upload-ui');
 
 $plupload_init = array(
 	'runtimes' => 'html5,silverlight,flash,html4',
-	'browse_button' => 'plupload-browse-button',
-	'container' => 'plupload-upload-ui',
+	'browse_button' => 'plupload-browse-button'.$id,
+	'container' => 'plupload-upload-ui'.$id,
 	'drop_element' => 'drag-drop-area',
 	'file_data_name' => 'async-upload',
 	'multiple_queues' => false,
@@ -130,11 +142,11 @@ wpUploaderInit = <?php echo json_encode($plupload_init); ?>;
 
 <input type="hidden" id="file_flash_upload" name="file_flash_upload" value="0" />
 
-<div id="plupload-upload-ui" class="hide-if-no-js">
+<div id="plupload-upload-ui<?php echo $id; ?>" class="hide-if-no-js">
 <?php do_action('pre-plupload-upload-ui'); // hook change, old name: 'pre-flash-upload-ui' ?>
 <div id="drag-drop-area">
 	<div class="drag-drop-inside">
-	<p class="drag-drop-info"><?php _e('Drop files here'); ?> - <?php _ex('or', 'Uploader: Drop files here - or - Select Files'); ?> - <span class="drag-drop-buttons"><input id="plupload-browse-button" type="button" value="<?php esc_attr_e('Select Files'); ?>" class="button" /></span></p>
+	<p class="drag-drop-info"><?php _e('Drop files here'); ?> - <?php _ex('or', 'Uploader: Drop files here - or - Select Files'); ?> - <span class="drag-drop-buttons"><input id="plupload-browse-button<?php echo $id; ?>" type="button" value="<?php esc_attr_e('Select Files'); ?>" class="button" /></span></p>
 	</div>
 </div>
 <?php do_action('post-plupload-upload-ui'); // hook change, old name: 'post-flash-upload-ui' ?>
@@ -145,8 +157,8 @@ if ( ($is_IE || $is_opera) && $max_upload_size > 100 * 1024 * 1024 ) { ?>
 	<span class="big-file-warning"><?php _e('Your browser has some limitations uploading large files with the multi-file uploader. Please use the browser uploader for files over 100MB.'); ?></span>
 <?php }
 ?>
-	<div id="media-upload-error"></div>
-	<div id="file-upload-progress" class="media-item" style="width: auto;"></div>
+	<div id="media-upload-error<?php echo $id; ?>"></div>
+	<div id="file-upload-progress<?php echo $id; ?>" class="media-item" style="width: auto;"></div>
 <?php
 //do_action('post-upload-ui');
 }

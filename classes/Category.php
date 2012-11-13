@@ -9,10 +9,10 @@ class WPFB_Category extends WPFB_Item {
 	var $cat_folder;
 	var $cat_path;
 	var $cat_parent = 0;
-	//var $cat_files;
 	var $cat_num_files = 0;
 	var $cat_num_files_total = 0;
 	var $cat_user_roles;
+	var $cat_owner = 0;
 	var $cat_icon;
 	var $cat_exclude_browser = 0;
 	var $cat_order;
@@ -187,10 +187,6 @@ class WPFB_Category extends WPFB_Item {
 		return $esc?esc_html($v):$v;
 	}
 	
-	function CurUserIsOwner()
-	{
-		return false; // TODO: cats dont have owners
-	}
 }
 
 ?>

@@ -39,11 +39,12 @@ else
 
 //$file_category = ($update || empty($_REQUEST['file_category'])) ? $file->file_category : $_REQUEST['file_category'];
 
-$adv_uploader = (version_compare(get_bloginfo('version'), '3.2.1') <= 0) ? 'SWFUpload' : 'PLUpload';
+wpfb_loadclass('AdvUploader');
+$adv_uploader = new WPFB_AdvUploader($form_url);
 
 ?>
 
-<?php wpfb_call($adv_uploader,'Scripts'); ?>
+<?php $adv_uploader->PrintScripts(); ?>
 			
 <form enctype="multipart/form-data" name="<?php echo $action ?>" id="<?php echo $action ?>" method="post" action="<?php echo $form_url ?>" class="validate">
 
@@ -190,7 +191,7 @@ function WPFB_addTag(tag)
 					printf( __('Try the <a href="%s">Flash uploader</a> instead.'), esc_url(add_query_arg('flash', 1)) );
 					?>
 				</div>
-			 	<div id="flash-upload-ui"><?php wpfb_call($adv_uploader,'Display',$form_url); ?></div> <!--  flash-upload-ui -->
+			 	<div id="flash-upload-ui"><?php $adv_uploader->Display(); ?></div> <!--  flash-upload-ui -->
 				<?php if($update) { echo '<div>'.__('Rename').': '; ?>
 				<input name="file_rename" id="file_rename" type="text" value="<?php echo esc_attr($file->file_name); ?>" style="width:280px;" /><br />
 				<?php echo ' (' . $file->GetFormattedSize() . ', '.wpfb_call('Download', 'GetFileType', $file->file_name).', MD5: <code>'.$file->file_hash.'</code>)</div>'; } ?>
@@ -244,7 +245,8 @@ function WPFB_addTag(tag)
 	<tr class="form-field">
 		<?php } ?>
 		<th scope="row" valign="top"><label for="file_category"><?php _e('Category') ?></label></th>
-		<td><select name="file_category" id="file_category" class="postform" onchange="WPFB_formCategoryChanged();"><?php echo WPFB_Output::CatSelTree(array('selected'=>$file_category)) ?></select></td>
+		<td><select name="file_category" id="file_category" class="postform" onchange="WPFB_formCategoryChanged();"><?php echo WPFB_Output::CatSelTree(array('selected'=>$file_category
+)) ?></select></td>
 		<?php if($exform) { ?>
 		<th scope="row" valign="top"><label for="file_license"><?php _e('License', WPFB) ?></label></th>
 		<td><select name="file_license" id="file_license" class="postform"><?php echo  WPFB_Admin::MakeFormOptsList('licenses', $file ? $file->file_license : null, true) ?></select></td>

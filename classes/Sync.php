@@ -208,8 +208,10 @@ static function AddNewFiles($sync_data, $progress_bar=null, $max_batch_size=0)
 		if(empty($fn)) continue;
 		
 		$fbn = basename($fn);
-					
+
+		self::PrintDebugTrace("add_existing_file");
 		$res = WPFB_Admin::AddExistingFile($fn, empty($sync_data->thumbnails[$fn]) ? null : $sync_data->thumbnails[$fn]);
+		self::PrintDebugTrace("added_existing_file");
 		if(empty($res['error'])) {
 			$sync_data->log['added'][] = empty($res['file']) ? substr($fn, $upload_dir_len) : $res['file'];
 			

@@ -87,7 +87,7 @@ static function PostsSearch($sql)
 	$no_matches = false;	
 	$where = self::SearchWhereSql($search_id3);	
 	wpfb_loadclass('File');
-	$where = "($where AND (".WPFB_File::GetPermissionWhere()."))";
+	$where = "($where AND (".WPFB_File::GetReadPermsWhere()."))";
 	
 	// check if there are matching files, if there are, include the filebrowser page/post in the resulst!
 	$file_browser_id = intval(WPFB_Core::GetOpt('file_browser_post_id'));

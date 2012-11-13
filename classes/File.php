@@ -66,28 +66,9 @@ class WPFB_File extends WPFB_Item {
 		return $files;
 	}
 	
-	static function GetPermissionWhere() {
-		global $wpdb, $current_user;
-		static $permission_sql = '';
-		if(empty($permission_sql)) { // only generate once per request
-			if($current_user->ID > 0 && empty($current_user->roles[0]))
-				$current_user = new WP_User($current_user->ID);// load the roles
-
-			if(in_array('administrator',$current_user->roles)) $permission_sql = '1=1'; // administrator can access everything!
-			elseif(WPFB_Core::GetOpt('private_files')) {
-				$permission_sql = "file_added_by = 0 OR file_added_by = " . (int)$current_user->ID;
-			} else {
-				$permission_sql = "file_user_roles = ''";
-				$roles = $current_user->roles;
-				foreach($roles as $ur) {
-					$ur = $wpdb->escape($ur);
-					$permission_sql .= " OR MATCH(file_user_roles) AGAINST ('{$ur}' IN BOOLEAN MODE)";
-				}
-				if($current_user->ID > 0)
-					$permission_sql .= " OR (file_added_by = " . (int)$current_user->ID . ")";
-			}
-		}
-		return $permission_sql;
+	public static function GetReadPermsWhere()
+	{
+		return self::GetPermissionWhere('file_added_by', 'file_user_roles');
 	}
 	
 	static function GetSqlCatWhereStr($cat_id)
@@ -116,7 +97,7 @@ class WPFB_File extends WPFB_Item {
 				$edit_cond = (current_user_can('edit_others_posts') && !WPFB_Core::GetOpt('private_files')) ? "1=1" : ("file_added_by = ".((int)$current_user->ID));
 				$where_str = "($where_str) AND ($edit_cond)";
 			} else
-				$where_str = "($where_str) AND (".self::GetPermissionWhere().") AND file_offline = '0'";
+				$where_str = "($where_str) AND (".self::GetReadPermsWhere().") AND file_offline = '0'";
 		}
 			
 		
@@ -438,6 +419,7 @@ class WPFB_File extends WPFB_Item {
 			case 'file_added_by':		return (empty($this->file_added_by) || !($usr = get_userdata($this->file_added_by))) ? '' : esc_html($usr->display_name);
 			
 			case 'uid':					return self::$tpl_uid;
+			
 		}
 		
     	if(strpos($name, 'file_info/') === 0)
@@ -611,11 +593,6 @@ class WPFB_File extends WPFB_Item {
 	
 	function IsRemote() { return !empty($this->file_remote_uri); }	
 	function IsLocal() { return empty($this->file_remote_uri); }
-		
-	function CurUserIsOwner() {
-		global $current_user;
-		return (!empty($current_user->ID) && $this->file_added_by > 0 && $this->file_added_by == $current_user->ID);
-	}
 }
 
 ?>

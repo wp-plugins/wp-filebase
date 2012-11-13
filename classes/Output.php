@@ -279,7 +279,8 @@ static function CatSelTree($args=null, $root_cat_id = 0, $depth = 0)
 		$out .= '<option value="0"'.((0==$s_sel)?' selected="selected"':'').' style="font-style:italic;">' .(empty($s_nol) ? __('None'/*def*/) : $s_nol) . ($s_count?' ('.WPFB_File::GetNumFiles(0).')':'').'</option>';
 		$cats = &WPFB_Category::GetCats();
 		foreach($cats as $c) {
-			if($c->cat_parent <= 0 && $c->cat_id != $s_ex && $c->CurUserCanAccess())
+			if($c->cat_parent <= 0 && $c->cat_id != $s_ex && $c->CurUserCanAccess()
+			)
 				$out .= self::CatSelTree(null, $c->cat_id, 0);	
 		}
 	} else {
@@ -288,7 +289,8 @@ static function CatSelTree($args=null, $root_cat_id = 0, $depth = 0)
 
 		if(isset($cat->cat_childs)) {
 			foreach($cat->cat_childs as $c) {
-				if($c->cat_id != $s_ex && $c->CurUserCanAccess())
+				if($c->cat_id != $s_ex && $c->CurUserCanAccess()
+				)
 					$out .= self::CatSelTree(null, $c->cat_id, $depth + 1);
 			}
 		}
@@ -414,7 +416,15 @@ static function RoleNames($roles, $fmt_string=false) {
 static function FileForm($prefix, $form_url, $vars, $secret_key=null) {
 	$category = $vars['cat'];
 	$nonce_action = "$prefix=";
-	if(!empty($secret_key)) $nonce_action .= $secret_key
+	if(!empty($secret_key)) $nonce_action .= $secret_key;
+	
+	
+	if(!empty($vars['adv_uploader'])) {
+		wpfb_loadclass('AdvUploader');
+		$adv_uploader = new WPFB_AdvUploader($form_url);
+		$adv_uploader->PrintScripts();
+	}
+	unset($vars['adv_uploader']); // dont use adv_uploader arg for noncing! TODO
 	?>
 		<form enctype="multipart/form-data" name="<?php echo $prefix; ?>form" method="post" action="<?php echo $form_url; ?>">
 		<?php 
@@ -425,18 +435,24 @@ static function FileForm($prefix, $form_url, $vars, $secret_key=null) {
 		
 		wp_nonce_field($nonce_action, 'wpfb-file-nonce'); ?>
 			<input type="hidden" name="prefix" value="<?php echo $prefix ?>" />
-			<p>
-				<label for="<?php echo $prefix ?>file_upload"><?php _e('Choose File', WPFB) ?></label>
-				<input type="file" name="file_upload" id="<?php echo $prefix ?>file_upload" /><br /> <!--   style="width: 160px" size="10" -->
+			<div>
+				<?php if(empty($adv_uploader)) { ?>
+					<label for="<?php echo $prefix ?>file_upload"><?php _e('Choose File', WPFB) ?></label>
+					<input type="file" name="file_upload" id="<?php echo $prefix ?>file_upload" /><br /> <!--   style="width: 160px" size="10" -->
+				<?php  } else {
+					$adv_uploader->Display();
+				} ?>
 				<small><?php printf(str_replace('%d%s','%s',__('Maximum upload file size: %d%s'/*def*/)), WPFB_Output::FormatFilesize(WPFB_Core::GetMaxUlSize())) ?></small>
+				
+				<div style="float: right; text-align:right;"><input type="submit" class="button-primary" name="submit-btn" value="<?php _ex('Add New', 'file'); ?>" /></div>
+				
 				<?php if($category == -1) { ?><br />
 				<label for="<?php echo $prefix ?>file_category"><?php _e('Category') ?></label>
 				<select name="file_category" id="<?php echo $prefix; ?>file_category"><?php wpfb_loadclass('Category'); echo WPFB_Output::CatSelTree(); ?></select>
 				<?php } else { ?>
 				<input type="hidden" name="file_category" value="<?php echo $category; ?>" />
 				<?php } ?>
-			</p>	
-			<p style="text-align:right;"><input type="submit" class="button-primary" name="submit-btn" value="<?php _ex('Add New', 'file'); ?>" /></p>
+			</div>	
 		</form>	
 	<?php
 }

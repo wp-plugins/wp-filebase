@@ -233,7 +233,7 @@ static function Display()
 		
 		
 		case 'del':
-				if(!empty($_REQUEST['files'])) {
+				if(!empty($_REQUEST['files']) && WPFB_Admin::CurUserCanUpload()) {
 				$ids = explode(',', $_REQUEST['files']);
 				$nd = 0;
 				foreach($ids as $id) {
@@ -247,13 +247,13 @@ static function Display()
 				
 				echo '<div id="message" class="updated fade"><p>'.sprintf(__('%d Files removed'), $nd).'</p></div>';
 			}
-			if(!empty($_REQUEST['cats'])) {
+			if(!empty($_REQUEST['cats']) && WPFB_Admin::CurUserCanCreateCat()) {
 				$ids = explode(',', $_REQUEST['cats']);
 				$nd = 0;
 				foreach($ids as $id) {
 					$id = intval($id);					
 					if(($cat=WPFB_Category::GetCat($id))!=null) {
-						$cat->delete();
+						$cat->Delete();
 						$nd++;
 					}
 				}		

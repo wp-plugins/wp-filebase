@@ -446,6 +446,10 @@ static function InsertCategory($catarr)
 	// explicitly set permissions:
 	if(!empty($data->cat_perm_explicit) && isset($data->cat_user_roles))
 		$cat->SetReadPermissions((empty($data->cat_user_roles) || count(array_filter($data->cat_user_roles)) == 0) ? array() : $data->cat_user_roles);	
+		
+	$current_user = wp_get_current_user();
+	if(!$update && !empty($current_user)) $cat->cat_owner = $current_user->ID;
+	if(empty($cat->cat_owner)) $cat->cat_owner = 0;	
 	
 	// apply permissions to children
 	if($update && !empty($cat_child_apply_perm))
@@ -579,6 +583,7 @@ static function InsertFile($data, $in_gui =false)
 	$file_category = intval($data->file_category);
 	$new_cat = null;
 	if ($file_category > 0 && ($new_cat=WPFB_Category::GetCat($file_category)) == null) $file_category = 0;
+	
 	
 	// this sets permissions as well:
 	$result = $file->ChangeCategoryOrName($file_category, empty($data->file_rename) ? $file_name : $data->file_rename, $add_existing, !empty($data->overwrite));
@@ -1204,12 +1209,12 @@ static function RolesCheckList($field_name, $selected_roles=array(), $display_ev
 	global $wp_roles;
 	$all_roles = $wp_roles->roles;
 	if(empty($selected_roles)) $selected_roles = array();
-	elseif(!is_array($selected_roles)) $selected_roles = array($selected_roles);
+	elseif(!is_array($selected_roles)) $selected_roles = explode('|', $selected_roles);
 	?>
 <div id="<?php echo $field_name; ?>-wrap" class="tabs-panel"><input value="" type="hidden" name="<?php echo $field_name; ?>[]" />
 	<ul id="<?php echo $field_name; ?>-list" class="wpfilebase-roles-checklist">
 <?php
-	if($display_everyone) echo "<li id='{$field_name}_none'><label class='selectit'><input value='' type='checkbox' name='{$field_name}[]' id='in-{$field_name}_none' ".(empty($selected_roles)?"checked='checked'":"")." onchange=\"jQuery('[id^=in-$field_name-]').prop('disabled', this.checked).prop('checked', false);\" /> <i>".__('Everyone',WPFB)."</i></label></li>";
+	if($display_everyone) echo "<li id='{$field_name}_none'><label class='selectit'><input value='' type='checkbox' name='{$field_name}[]' id='in-{$field_name}_none' ".(empty($selected_roles)?"checked='checked'":"")." onchange=\"jQuery('[id^=in-$field_name-]').prop('disabled', this.checked).prop('checked', false);\" /> <i>".(is_string($display_everyone)?$display_everyone:__('Everyone',WPFB))."</i></label></li>";
 	foreach ( $all_roles as $role => $details ) {
 		$name = translate_user_role($details['name']);
 		echo "<li id='$field_name-$role'><label class='selectit'><input value='$role' type='checkbox' name='{$field_name}[]' id='in-$field_name-$role' ".(in_array($role, $selected_roles)?"checked='checked'":"")." ".((empty($selected_roles)&&$display_everyone)?"disabled='disabled'":"")." /> $name</label></li>";

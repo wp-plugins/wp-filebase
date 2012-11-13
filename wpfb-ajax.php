@@ -1,8 +1,11 @@
 <?php
+
 define('DOING_AJAX', true);
 error_reporting(0);
 
+@ob_start();
 require_once(dirname(__FILE__).'/../../../wp-load.php');
+@ob_end_clean();
 
 function wpfb_print_json($obj) {
 	if(!WP_DEBUG)
