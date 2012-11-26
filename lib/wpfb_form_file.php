@@ -51,8 +51,7 @@ $adv_uploader = new WPFB_AdvUploader($form_url);
 <?php
 if(!$in_widget) {
 	if($in_editor) {
-		?><div style="float: right;"><a style="font-style:normal;" href="<?php echo add_query_arg('exform', ($exform ? '0' : '1')); ?>"><?php _e($exform ? 'Simple Form' : 'Extended Form', WPFB) ?></a></div><?php		
-		?><h3 class="media-title"><?php echo $title ?></h3><?php
+		?><div style="float: right;"><a style="font-style:normal;" href="<?php echo add_query_arg('exform', ($exform ? '0' : '1')); ?>"><?php _e($exform ? 'Simple Form' : 'Extended Form', WPFB) ?></a></div><h3 class="media-title"><?php echo $title ?></h3><?php
 	} else {
 		echo "<h2>".$title;
 		?><a style="font-style:normal;" href="<?php echo add_query_arg('exform', ($exform ? '0' : '1')).'#'.$action; ?>" class="add-new-h2"><?php _e($exform ? 'Simple Form' : 'Extended Form', WPFB) ?></a><?php
@@ -287,8 +286,7 @@ function WPFB_addTag(tag)
 			<fieldset><legend class="hidden"><?php _e('Direct linking') ?></legend>
 				<label title="<?php _e('Yes') ?>"><input type="radio" name="file_direct_linking" value="1" <?php checked('1', $file->file_direct_linking); ?>/> <?php _e('Allow direct linking', WPFB) ?></label><br />
 				<label title="<?php _e('No') ?>"><input type="radio" name="file_direct_linking" value="0" <?php checked('0', $file->file_direct_linking); ?>/> <?php _e('Redirect to post', WPFB) ?></label>
-<?php
-?>
+
 			</fieldset>
 		</td>
 		<?php } ?>
@@ -321,9 +319,7 @@ function WPFB_addTag(tag)
 		<td><input type="checkbox" name="file_offline" id="file_offline" value="1" <?php checked('1', $file->file_offline); ?>/> <label for="file_offline"><?php _e('Offline', WPFB) ?></label></td>
 		
 	</tr>
-	<?php } ?>
-	
-	<?php 
+	<?php }
 	$custom_fields = WPFB_Core::GetCustomFields();
 	foreach($custom_fields as $ct => $cn) {
 		$hid = 'file_custom_'.esc_attr($ct);

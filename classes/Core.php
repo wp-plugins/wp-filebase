@@ -460,6 +460,10 @@ static function EnqueueScripts()
 }
 
 static function PrintJS() {
+	static $printed = false;
+	if($printed) return;
+	$printed = true;
+	
 	wp_print_scripts(WPFB);
 	
 	$context_menu = current_user_can('upload_files') && self::GetOpt('file_context_menu') && !defined('WPFB_EDITOR_PLUGIN');
@@ -548,7 +552,7 @@ static function AdminDashboardSetup() {
 static function AdminBar() {
 	global $wp_admin_bar;
 	
-	self::$load_js = true;
+	self::PrintJS();
 	
 	$wp_admin_bar->add_menu(array('id' => WPFB, 'title' => WPFB_PLUGIN_NAME, 'href' => admin_url('admin.php?page=wpfilebase_manage')));
 	
@@ -578,25 +582,28 @@ static function Cron() {
 }
 
 static function GetMaxUlSize() {
-	$val = ini_get('upload_max_filesize');
+	return self::ParseIniFileSize(ini_get('upload_max_filesize'));
+}
+
+static function ParseIniFileSize($val) {
     if (is_numeric($val))
         return $val;
 
 	$val_len = strlen($val);
-	$max_bytes = substr($val, 0, $val_len - 1);
+	$bytes = substr($val, 0, $val_len - 1);
 	$unit = strtolower(substr($val, $val_len - 1));
 	switch($unit) {
 		case 'k':
-			$max_bytes *= 1024;
+			$bytes *= 1024;
 			break;
 		case 'm':
-			$max_bytes *= 1048576;
+			$bytes *= 1048576;
 			break;
 		case 'g':
-			$max_bytes *= 1073741824;
+			$bytes *= 1073741824;
 			break;
 	}
-	return $max_bytes;
+	return $bytes;
 }
 
 public static function GetCustomFields($full_field_names=false) {

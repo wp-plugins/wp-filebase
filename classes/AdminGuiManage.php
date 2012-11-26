@@ -175,6 +175,21 @@ static function Display()
 <p><a href="<?php echo add_query_arg(
 				array('action' => 'sync',
 				)); ?>" class="button"><?php _e('Sync Filebase',WPFB)?></a> &nbsp; <?php _e('Synchronises the database with the file system. Use this to add FTP-uploaded files.',WPFB) ?></p>
+	
+<p>
+<?php		
+if(WPFB_Core::GetOpt('cron_sync')) {
+	_e('Automatic sync is enabled. Cronjob scheduled hourly.');
+	$last_sync_time	= intval(get_option(WPFB_OPT_NAME.'_cron_sync_time'));
+	echo ($last_sync_time > 0) ? (" (".sprintf( __('Last cron sync on %1$s at %2$s.',WPFB), date_i18n( get_option( 'date_format'), $last_sync_time ), date_i18n( get_option( 'time_format'), $last_sync_time ) ).")") : '';
+} else {
+	_e('Cron sync is disabled.');
+}
+?>
+</p>
+
+			
+				
 <?php if(WPFB_Core::GetOpt('tag_conv_req')) { ?><p><a href="<?php echo add_query_arg('action', 'convert-tags') ?>" class="button"><?php _e('Convert old Tags',WPFB)?></a> &nbsp; <?php printf(__('Convert tags from versions earlier than %s.',WPFB), '0.2.0') ?></p> <?php } ?>
 <!--  <p><a href="<?php echo add_query_arg('action', 'add-urls') ?>" class="button"><?php _e('Add multiple URLs',WPFB)?></a> &nbsp; <?php _e('Add multiple remote files at once.', WPFB); ?></p>
 -->
@@ -273,6 +288,9 @@ static function Display()
 				echo '<p><a href="' . add_query_arg('hash_sync',1) . '" class="button">' . __('Complete file sync', WPFB) . '</a> ' . __('Checks files for changes, so more reliable but might take much longer. Do this if you uploaded/changed files with FTP.', WPFB) . '</p>';			
 			
 		break; // sync
+		
+		
+		
 	} // switch	
 	?>
 </div> <!-- wrap -->

@@ -12,6 +12,8 @@ static function InitClass()
 	wp_enqueue_script(WPFB.'-admin', WPFB_PLUGIN_URI.'js/admin.js', array(), WPFB_VERSION);	
 
 	wp_enqueue_style('widgets');
+	
+	require_once(ABSPATH . 'wp-admin/includes/file.php');
 }
 
 static function SettingsSchema()
@@ -28,7 +30,7 @@ static function SettingsSchema()
 		$upload_path_base = 'wp-content/uploads';
 		
 	$last_sync_time	= intval(get_option(WPFB_OPT_NAME.'_cron_sync_time'));
-	$last_sync_time = ($last_sync_time > 0) ? (" (".sprintf( __('Last cron sync on %1$s at %2$s.',WPFB), date_i18n( get_option( 'date_format', $last_sync_time ) ), date_i18n( get_option( 'time_format', $last_sync_time ) ) ).")") : '';
+	$last_sync_time = ($last_sync_time > 0) ? (" (".sprintf( __('Last cron sync on %1$s at %2$s.',WPFB), date_i18n( get_option( 'date_format'), $last_sync_time ), date_i18n( get_option( 'time_format'), $last_sync_time ) ).")") : '';
 		
 	return array (
 	
@@ -120,6 +122,8 @@ static function SettingsSchema()
 	//'file_context_menu'	=> array('default' => true, 'title' => '', 'type' => 'checkbox', 'desc' => ''),
 	
 	'cron_sync'	=> array('default' => false, 'title' => __('Automatic Sync', WPFB), 'type' => 'checkbox', 'desc' => __('Schedules a cronjob to hourly synchronize the filesystem and the database.', WPFB).$last_sync_time),
+	
+	'remove_missing_files'	=> array('default' => false, 'title' => __('Remove Missing Files', WPFB), 'type' => 'checkbox', 'desc' => __('Missing files are removed from the database during sync', WPFB)),
 	
 	
 	'search_integration' =>  array('default' => true, 'title' => __('Search Integration', WPFB), 'type' => 'checkbox', 'desc' => __('Searches in attached files and lists the associated posts and pages when searching the site.', WPFB)),
@@ -552,7 +556,7 @@ static function InsertFile($data, $in_gui =false)
 	
 	// VALIDATION
 	$current_user = wp_get_current_user();
-	if(!$add_existing && empty($current_user->ID)) return array( 'error' => __('Could not get user id!', WPFB) );	
+	if(empty($data->frontend_upload) && !$add_existing && empty($current_user->ID)) return array( 'error' => __('Could not get user id!', WPFB) );	
 	
 	if(!$update && !$add_existing && !$upload && !$remote_upload) return array( 'error' => __('No file was uploaded.', WPFB) );
 
@@ -680,7 +684,8 @@ static function InsertFile($data, $in_gui =false)
 		
 	$file->file_author = isset($data->file_author) ? $data->file_author : WPFB_Core::GetOpt('default_author');
 	
-	$var_names = array('remote_uri', 'description', 'hits', 'license');
+	$var_names = array('remote_uri', 'description', 'hits', 'license'
+	);
 	for($i = 0; $i < count($var_names); $i++)
 	{
 		$vn = 'file_' . $var_names[$i];
@@ -1102,8 +1107,8 @@ public function ProcessWidgetUpload(){
 	}
 		
 	// if category is set in widget options, force to use this. security done with nonce checking ($_POST['cat'] is reliable)
-	if($_POST['cat'] >= 0) $_POST['file_category'] = $_POST['cat']; 
-	$result = WPFB_Admin::InsertFile(array_merge(stripslashes_deep($_POST), $_FILES));
+	if($_POST['cat'] >= 0) $_POST['file_category'] = $_POST['cat'];
+	$result = WPFB_Admin::InsertFile(array_merge(stripslashes_deep($_POST), $_FILES, array('frontend_upload' => true)));
 	if(isset($result['error']) && $result['error']) {
 		$content .= '<div id="message" class="updated fade"><p>'.$result['error'].'</p></div>';
 		$title .= __('Error ');
@@ -1116,7 +1121,7 @@ public function ProcessWidgetUpload(){
 	}
 	
 	wpfb_loadclass('Output');
-	WPFB_Output::GeneratePage($title, $content);
+	WPFB_Output::GeneratePage($title, $content, !empty($_POST['form_tag'])); // prepend to content if embedded form!
 }
 
 public function ProcessWidgetAddCat() {
@@ -1171,7 +1176,7 @@ public function SyncCustomFields($remove=false) {
 	return $messages;
 }
 
-public function SettingsUpdated($old, $new) {
+public function SettingsUpdated($old, &$new) {
 	$messages = array();
 	wpfb_call('Setup','ProtectUploadPath');
 			

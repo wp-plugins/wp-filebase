@@ -164,7 +164,7 @@ static function FileBrowserList(&$content, &$parents, $root_cat=null)
 		if(!$cat->CurUserCanAccess(true)) continue;
 		
 		$liclass = '';
-		if($has_children = ($cat->cat_num_files_total > 0)) $liclass .= 'hasChildren';
+		if($has_children = $cat->HasChildren()) $liclass .= 'hasChildren';
 		if($open = $cat->Equals($open_cat)) $liclass .= ' open';
 		
 		$content .= '<li id="wpfb-cat-'.$cat->cat_id.'" class="'.$liclass.'">';
@@ -336,11 +336,23 @@ static function JSCatUrlsTable() {
 }
 */
 
-static function GeneratePage($title, $content) {
+static function GeneratePage($title, $content, $prepend_to_current=false) {
 	self::$page_content = $content;
 	self::$page_title = $title;
-	add_filter('the_posts',array(__CLASS__,'GeneratePagePostFilter'),9,2);
-	add_filter('edit_post_link', array('WPFB_Core', 'Nothing')); // hide edit link	
+	if($prepend_to_current) {
+		add_filter('the_content', array(__CLASS__,'GeneratePageContentFilter'), 10);
+	} else {
+		add_filter('the_posts',array(__CLASS__,'GeneratePagePostFilter'),9,2);
+		add_filter('edit_post_link', array('WPFB_Core', 'Nothing')); // hide edit link
+	}
+}
+
+static function GeneratePageContentFilter($content)
+{
+	if(empty(self::$page_content)) return $content;
+	$content = self::$page_content . $content;
+	self::$page_content = '';
+	return $content;
 }
 
 static function GeneratePagePostFilter() {
@@ -419,39 +431,35 @@ static function FileForm($prefix, $form_url, $vars, $secret_key=null) {
 	if(!empty($secret_key)) $nonce_action .= $secret_key;
 	
 	
-	if(!empty($vars['adv_uploader'])) {
-		wpfb_loadclass('AdvUploader');
-		$adv_uploader = new WPFB_AdvUploader($form_url);
-		$adv_uploader->PrintScripts();
-	}
 	unset($vars['adv_uploader']); // dont use adv_uploader arg for noncing! TODO
 	?>
-		<form enctype="multipart/form-data" name="<?php echo $prefix; ?>form" method="post" action="<?php echo $form_url; ?>">
+		<form enctype="multipart/form-data" name="<?php echo $prefix; ?>form" id="<?php echo $prefix; ?>form" method="post" action="<?php echo $form_url; ?>">
 		<?php 
 		foreach($vars as $n => $v) {
-			echo '<input type="hidden" name="'.esc_attr($n).'" value="'.esc_attr($v).'" />';
+			echo '<input type="hidden" name="'.esc_attr($n).'" value="'.esc_attr($v).'" id="'.$prefix.esc_attr($n).'" />';
 			$nonce_action .= "&$n=$v";
 		}
 		
 		wp_nonce_field($nonce_action, 'wpfb-file-nonce'); ?>
 			<input type="hidden" name="prefix" value="<?php echo $prefix ?>" />
 			<div>
-				<?php if(empty($adv_uploader)) { ?>
-					<label for="<?php echo $prefix ?>file_upload"><?php _e('Choose File', WPFB) ?></label>
-					<input type="file" name="file_upload" id="<?php echo $prefix ?>file_upload" /><br /> <!--   style="width: 160px" size="10" -->
-				<?php  } else {
-					$adv_uploader->Display();
-				} ?>
-				<small><?php printf(str_replace('%d%s','%s',__('Maximum upload file size: %d%s'/*def*/)), WPFB_Output::FormatFilesize(WPFB_Core::GetMaxUlSize())) ?></small>
-				
-				<div style="float: right; text-align:right;"><input type="submit" class="button-primary" name="submit-btn" value="<?php _ex('Add New', 'file'); ?>" /></div>
-				
 				<?php if($category == -1) { ?><br />
 				<label for="<?php echo $prefix ?>file_category"><?php _e('Category') ?></label>
 				<select name="file_category" id="<?php echo $prefix; ?>file_category"><?php wpfb_loadclass('Category'); echo WPFB_Output::CatSelTree(); ?></select>
 				<?php } else { ?>
-				<input type="hidden" name="file_category" value="<?php echo $category; ?>" />
+				<input type="hidden" name="file_category" value="<?php echo $category; ?>" id="<?php echo $prefix ?>file_category" />
 				<?php } ?>
+				
+				
+				<?php if(empty($adv_uploader)) { ?>
+					<label for="<?php echo $prefix ?>file_upload"><?php _e('Choose File', WPFB) ?></label>
+					<input type="file" name="file_upload" id="<?php echo $prefix ?>file_upload" /><br /> <!--   style="width: 160px" size="10" -->
+				<?php  } else {
+					$adv_uploader->Display($prefix);
+				} ?>
+				<small><?php printf(str_replace('%d%s','%s',__('Maximum upload file size: %d%s'/*def*/)), WPFB_Output::FormatFilesize(WPFB_Core::GetMaxUlSize())) ?></small>
+				
+				<div style="float: right; text-align:right;"><input type="submit" class="button-primary" name="submit-btn" value="<?php _ex('Add New', 'file'); ?>" /></div>
 			</div>	
 		</form>	
 	<?php

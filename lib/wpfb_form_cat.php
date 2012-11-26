@@ -72,8 +72,7 @@ $form_action = add_query_arg('page', 'wpfilebase_cats', remove_query_arg(array('
 			</td>
 		</tr>
 		
-<?php
-?>		
+		
 		<?php if($update) { ?>
 		<tr>
 			<th scope="row" valign="top"><label for="cat_child_apply_perm"><?php _e('Apply permission to all child files', WPFB) ?></label></th>

@@ -198,7 +198,7 @@ jQuery(document).ready( function() {
 	</p>
 	<?php
 	
-	$misc_tags = array('hide_links','base_auto_thumb','cron_sync','fext_blacklist','disable_id3','search_id3','thumbnail_path','use_path_tags','no_name_formatting');
+	$misc_tags = array('disable_id3','search_id3','thumbnail_path','use_path_tags','no_name_formatting');
 	if(function_exists('wp_admin_bar_render'))
 		$misc_tags[] = 'admin_bar';
 	
@@ -209,11 +209,12 @@ jQuery(document).ready( function() {
 		'disable_footer_credits','footer_credits_style',
 		),
 		__('Download', WPFB)				=> array(
-												'disable_permalinks', 'download_base', 'force_download', 'range_download', 'http_nocache', 'ignore_admin_dls', 'accept_empty_referers','allowed_referers','dl_destroy_session'),
+												'hide_links', 'disable_permalinks', 'download_base', 'force_download', 'range_download', 'http_nocache', 'ignore_admin_dls', 'accept_empty_referers','allowed_referers','dl_destroy_session'),
 		__('Form Presets', WPFB)			=> array('default_author','default_roles', 'default_cat', 'languages', 'platforms', 'licenses', 'requirements', 'custom_fields'),
 		__('Limits', WPFB)					=> array('bitrate_unregistered', 'bitrate_registered', 'traffic_day', 'traffic_month', 'traffic_exceeded_msg', 'file_offline_msg', 'daily_user_limits', 'daily_limit_subscriber', 'daily_limit_contributor', 'daily_limit_author', 'daily_limit_editor', 'daily_limit_exceeded_msg'),
-		__('Security', WPFB)				=> array('allow_srv_script_upload', 'frontend_upload', 'hide_inaccessible', 'inaccessible_msg', 'inaccessible_redirect', 'cat_inaccessible_msg', 'login_redirect_src', 'protect_upload_path', 'private_files'),
+		__('Security', WPFB)				=> array('allow_srv_script_upload', 'fext_blacklist', 'frontend_upload', 'hide_inaccessible', 'inaccessible_msg', 'inaccessible_redirect', 'cat_inaccessible_msg', 'login_redirect_src', 'protect_upload_path', 'private_files'),
 		__('Templates and Scripts', WPFB)	=> array('template_file', 'template_cat', 'dlclick_js'),
+		__('Sync',WPFB)						=> array('cron_sync', 'base_auto_thumb', 'remove_missing_files'),
 		__('Misc')							=> $misc_tags,
 	);
 	?>
@@ -228,7 +229,7 @@ jQuery(document).ready( function() {
 	$n = 0;
 	foreach($option_categories as $opt_cat => $opt_cat_fields) {
 		//echo "\n".'<h3>'.$opt_cat.'</h3>';	
-		echo "\n\n".'<div id="'. sanitize_title($opt_cat) .'" class="wpfilebase-opttab"><table class="form-table">';
+		echo "\n\n".'<div id="'. sanitize_title($opt_cat) .'" class="wpfilebase-opttab"><h3>'.$opt_cat.'</h3><table class="form-table">';
 		foreach($opt_cat_fields as $opt_tag)
 		{
 			

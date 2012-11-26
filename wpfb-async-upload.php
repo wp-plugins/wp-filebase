@@ -6,8 +6,10 @@
 
 define('TMP_FILE_MAX_AGE', 3600*3);
 
+$frontend_upload = !empty($_REQUEST['frontend_upload']);
+
 ob_start();
-define('WP_ADMIN', true);
+define('WP_ADMIN', !$frontend_upload);
 
 if ( defined('ABSPATH') )
 	require_once(ABSPATH . 'wp-load.php');
@@ -23,7 +25,8 @@ if ( empty($_COOKIE[LOGGED_IN_COOKIE]) && !empty($_REQUEST['logged_in_cookie']) 
 	$_COOKIE[LOGGED_IN_COOKIE] = $_REQUEST['logged_in_cookie'];
 unset($current_user);
 
-require_once(ABSPATH.'wp-admin/admin.php');
+if(!$frontend_upload)
+	require_once(ABSPATH.'wp-admin/admin.php');
 ob_end_clean();
 
 if(!WP_DEBUG) {
@@ -32,10 +35,18 @@ if(!WP_DEBUG) {
 }
 @header('Content-Type: text/plain; charset=' . get_option('blog_charset'));
 
-if ( !current_user_can('upload_files') )
-	wp_die(__('You do not have permission to upload files.'));
+
+if($frontend_upload) {
+	if(!WPFB_Core::GetOpt('frontend_upload') && !current_user_can('upload_files'))
+		wp_die(__('You do not have permission to upload files.'));
+} else {
+	wpfb_loadclass('Admin');
 	
-check_admin_referer(WPFB.'-async-upload');	
+	if ( !WPFB_Admin::CurUserCanUpload()  )
+		wp_die(__('You do not have permission to upload files.'));
+		
+	check_admin_referer(WPFB.'-async-upload');
+}
 
 wpfb_loadclass('Admin');
 
@@ -70,6 +81,9 @@ if(!@is_uploaded_file($_FILES['async-upload']['tmp_name'])
 $_FILES['async-upload']['tmp_name'] = trim(substr($tmp, strlen(WPFB_Core::UploadDir())),'/');
 
 @header('Content-Type: application/json; charset=' . get_option('blog_charset'));
-echo json_encode($_FILES['async-upload']);
+
+$json = json_encode($_FILES['async-upload']);
+@header('Content-Length: '.strlen($json));
+echo $json;
 
 ?> 

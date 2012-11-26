@@ -189,8 +189,7 @@ function insBrowserTag()
 	return insertTag(tag);
 }
 
-<?php
-?>
+
 //]]>
 </script>
 
@@ -205,8 +204,7 @@ function insBrowserTag()
 		<li><a href="#fileurl" onclick="return tabclick(this)"><?php _e('File URL', WPFB) ?></a></li>
 		<li><a href="#list" onclick="return tabclick(this)"><?php _e('File list', WPFB) ?></a></li>
 		<li><a href="#browser" onclick="return tabclick(this)"><?php _e('File Tree View', WPFB) ?></a></li>
-<?php
-?>
+
 	</ul>
 <?php } ?>
 </div>
@@ -355,8 +353,7 @@ if($action != 'editfile' && (!empty($post_attachments) || $manage_attachments)) 
 </form>
 
 
-<?php
-?>
+
 
 <!-- 
 <form id="uploadform">

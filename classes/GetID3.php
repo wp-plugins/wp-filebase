@@ -15,6 +15,10 @@ class WPFB_GetID3 {
 		if(WPFB_Core::GetOpt('disable_id3')) $info = array();
 		else $info =& self::$engine->analyze($filename);
 		
+		if(!empty($_GET['debug'])) {
+			wpfb_loadclass('Sync');
+			WPFB_Sync::PrintDebugTrace("file_analyzed");
+		}
 		return $info;
 	}
 	

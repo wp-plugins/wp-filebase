@@ -378,7 +378,6 @@ static function SetupDBTables($old_ver=null)
 	if(!empty($old_ver) && version_compare($old_ver, '0.2.9.24') < 0)
 		$queries[] = "ALTER TABLE  `$tbl_files` CHANGE  `file_direct_linking`  `file_direct_linking` ENUM(  '0',  '1',  '2' ) NOT NULL DEFAULT '0'";
 
-
 	// since 0.2.9.25
 	
 	$queries[] = "OPTIMIZE TABLE `$tbl_cats`";

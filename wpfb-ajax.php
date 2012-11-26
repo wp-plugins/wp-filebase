@@ -81,7 +81,7 @@ switch ( $action = $_REQUEST['action'] ) {
 					'text'=> $catsel ?
 									('<a href="javascript:'.sprintf($onselect,$c->cat_id,str_replace('\'','\\\'', htmlspecialchars(stripslashes($c->cat_name)))).'">'.esc_html($c->GetTitle(24)).'</a>')
 								   :($filesel ? (esc_html($c->cat_name)." ($c->cat_num_files / $c->cat_num_files_total)") : $c->GenTpl2('filebrowser', false)),
-					'hasChildren'=>($catsel?(count($c->GetChildCats())>0):($c->cat_num_files_total > 0)),
+					'hasChildren'=>$cat->HasChildren($catsel),
 					'classes'=>($filesel||$catsel)?'folder':null);
 		}
 		

@@ -144,6 +144,12 @@ class WPFB_Category extends WPFB_Item {
 		return $cats;
 	}
 	
+	function HasChildren($cats_only=false)
+	{
+ 		//return ($cats_only ? (count($c->GetChildCats())>0) : ($c->cat_num_files_total > 0)), // FIXME: does not work with secondary categories!
+ 		return true;
+	}
+	
 	function Delete()
 	{	
 		global $wpdb;

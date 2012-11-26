@@ -47,8 +47,9 @@ class WPFB_Item {
 	}
 	function GetParents()
 	{
+		$p = $this;
 		$parents = array();
-		while(!is_null($p = $this->GetParent())) $parents[] = $p;
+		while(!is_null($p = $p->GetParent())) $parents[] = $p;
 		return $parents;
 	}
 	

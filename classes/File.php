@@ -460,7 +460,7 @@ class WPFB_File extends WPFB_Item {
 		get_currentuserinfo();
 		$logged_in = (!empty($user_ID));
 		$user_role = $logged_in ? array_shift($current_user->roles) : null; // get user's highest role (like in user-eidt.php)
-		$is_admin = ('administrator' == $user_role); 
+		$is_admin = current_user_can('edit_files'); 
 		
 		// check user level
 		if(!$this->CurUserCanAccess())
@@ -480,6 +480,7 @@ class WPFB_File extends WPFB_Item {
 				exit;
 			}
 		}
+		
 		
 		// check traffic
 		if($this->IsLocal() && !WPFB_Download::CheckTraffic($this->file_size)) {
