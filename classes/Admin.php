@@ -273,7 +273,8 @@ static function TplVarsDesc($for_cat=false)
 	'file_requirements'		=> __('Requirements to use this file', WPFB),
 	'file_license'			=> __('License', WPFB),
 	
-	'file_category'			=> __('The category name', WPFB),	
+	'file_category'			=> __('The category name', WPFB),
+	
 	
 	'file_thumbnail'		=> __('Name of the thumbnail file', WPFB),	
 	'cat_icon_url'			=> __('URL of the category icon (if any)', WPFB),

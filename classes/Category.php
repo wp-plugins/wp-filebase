@@ -99,12 +99,12 @@ class WPFB_Category extends WPFB_Item {
 
 	function NotifyFileAdded($file)
 	{	
-		if($this->IsAncestorOf($file))
-		{
+		//if($this->IsAncestorOf($file)) // Removed for secondary categories!
+		//{
 			if($file->file_category == $this->cat_id) $this->cat_num_files++;
 			$this->cat_num_files_total++;
 			if(!$this->locked) $this->DBSave();
-		}
+		//}
 		
 		$parent = $this->GetParent();
 		if($parent) $parent->NotifyFileAdded($file);
@@ -146,8 +146,7 @@ class WPFB_Category extends WPFB_Item {
 	
 	function HasChildren($cats_only=false)
 	{
- 		//return ($cats_only ? (count($c->GetChildCats())>0) : ($c->cat_num_files_total > 0)), // FIXME: does not work with secondary categories!
- 		return true;
+ 		return $cats_only ? (count($this->GetChildCats())>0) : ($this->cat_num_files_total > 0);
 	}
 	
 	function Delete()

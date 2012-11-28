@@ -357,7 +357,8 @@ class WPFB_Item {
 	{
 		if($this->is_file) return array($this->GetId() => $this);
 		if(empty($sort_sql)) $sort_sql = "ORDER BY file_id ASC";
-		$files = WPFB_File::GetFiles('WHERE file_category = '.(int)$this->GetId()." $sort_sql");
+		// if recursive, include secondary category links with GetSqlCatWhereStr
+		$files = WPFB_File::GetFiles('WHERE '.($recursive ? WPFB_File::GetSqlCatWhereStr($this->cat_id) : '(file_category = '.$this->cat_id.')')." $sort_sql");
 		if($recursive) {
 			$cats = $this->GetChildCats(true);
 			foreach(array_keys($cats) as $i)

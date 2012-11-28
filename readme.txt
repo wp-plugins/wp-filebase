@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=wpfil
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, images, pdf, widget, filelist, list, thumbnails, thumbnail, attachment, attachments, category, categories, media, template, ftp, http, mp3, id3
 Requires at least: 3.1
 Tested up to: 3.4.2
-Stable tag: 0.2.9.26
+Stable tag: 0.2.9.27
 
 Adds a powerful download manager including file categories, downloads counter, widgets, sorted file lists and more to your WordPress blog.
 
@@ -57,9 +57,10 @@ For support, please [leave a message on my blog](http://fabi.me/wordpress-plugin
 *	PDF indexing and thumbnails
 *	Secondary Categories
 *	Extended Permissions
+*	File Passwords
 *	Embedded Upload Forms
 *	Improved Syncing algorithm
-*	Dropbox and FTP sync
+*	Dropbox, Amazon S3 and FTP sync
 
 == Installation ==
 
@@ -111,6 +112,9 @@ Goto WP-Filebase Settings and disable Permalinks under "Download". Try to disabl
 
 
 == Changelog ==
+
+= 0.2.9.27 =
+* Fixed AJAX tree not showing
 
 = 0.2.9.26 =
 * Fixed flash uploader
