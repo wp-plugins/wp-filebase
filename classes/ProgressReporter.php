@@ -28,7 +28,7 @@
 		$this->progress_end = $progress_end;
 		if(!$this->quiet) {
 			if(is_null($this->progress_bar)) {
-				include_once(WPFB_PLUGIN_ROOT.'extras/progressbar.class.php');
+				if(!class_exists('progressbar')) include_once(WPFB_PLUGIN_ROOT.'extras/progressbar.class.php');
 				$this->progress_bar = new progressbar(0, 100);
 				$this->progress_bar->print_code();
 			}

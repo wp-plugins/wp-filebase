@@ -73,19 +73,11 @@ static function FileList($args)
 		} elseif(is_null($tpl = WPFB_ListTpl::Get('default'))) {
 			return '';
 		}
-	}
+	}	
+
+	$cats = (empty($args['id']) || $args['id'] == -1) ? ($args['showcats'] ? WPFB_Category::GetCats() : null) : array_filter(array_map(array('WPFB_Category','GetCat'), explode(',', $args['id'])));
 	
-	if(empty($args['id']) || $args['id'] == -1) {
-		$cats = $args['showcats'] ? WPFB_Category::GetCats() : null;
-	} else {
-		$cats = array();	
-		$cat_ids = explode(',', $args['id']);	
-		foreach($cat_ids as $cat_id) {
-			if(!is_null($cat = WPFB_Category::GetCat($cat_id))) $cats[] = $cat;
-		}
-	}
-	
-	return $tpl->Generate($cats, $args['showcats'], $args['sort'], $args['num'], $args['sortcats']);
+	return $tpl->Generate($cats, $args['showcats'], $args['sort'], $args['num'], $args['sortcats'], isset($args['pagenav']) && !((int)$args['pagenav']));
 }
 
 static function FileBrowser(&$content, $root_cat_id=0, $cur_cat_id=0)
@@ -459,9 +451,43 @@ static function FileForm($prefix, $form_url, $vars, $secret_key=null) {
 				} ?>
 				<small><?php printf(str_replace('%d%s','%s',__('Maximum upload file size: %d%s'/*def*/)), WPFB_Output::FormatFilesize(WPFB_Core::GetMaxUlSize())) ?></small>
 				
-				<div style="float: right; text-align:right;"><input type="submit" class="button-primary" name="submit-btn" value="<?php _ex('Add New', 'file'); ?>" /></div>
+				<?php if(empty($auto_submit)) { ?><div style="float: right; text-align:right;"><input type="submit" class="button-primary" name="submit-btn" value="<?php _ex('Add New', 'file'); ?>" /></div>
+				<?php } ?>
 			</div>	
 		</form>	
 	<?php
+}
+
+static function GetSearchForm($action, $hidden_vars = array(), $prefix=null)
+{
+	global $wp_query;
+	
+	$searching = !empty($_GET['wpfb_s']);
+	if($searching) { // set preset value for search form
+		$sb = empty($wp_query->query_vars['s'])?null:$wp_query->query_vars['s']; 
+		$wp_query->query_vars['s'] = stripslashes($_GET['wpfb_s']);
+	}	
+	
+	ob_start();
+	get_search_form();
+	$form = ob_get_clean();
+	
+	if($searching) $wp_query->query_vars['s'] = $sb; // restore query var s
+	
+	$form = preg_replace('/action=["\'].+?["\']/', 'action="'.esc_attr($action).'"', $form);
+	$form = str_replace('name="s"', 'name="wpfb_s"', $form);
+	$form = str_replace("name='s'", "name='wpfb_s'", $form);
+	
+	if(!empty($hidden_vars)) {
+		$gets = '';
+		foreach($hidden_vars as $name => $value) if($name != 'wpfb_s' && $name != 'wpfb_list_page') $gets.='<input type="hidden" name="'.esc_attr(stripslashes($name)).'" value="'.esc_attr(stripslashes($value)).'" />';
+		$form = str_ireplace('</form>', "$gets</form>", $form);
+	}
+	
+	if(!empty($prefix)) {
+		$form = str_replace('id="', 'id="'.$prefix, $form);
+		$form = str_replace("id='", "id='".$prefix, $form);
+	}
+	return $form;
 }
 }

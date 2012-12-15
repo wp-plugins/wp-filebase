@@ -39,7 +39,9 @@ static function Display()
 			});	
 		});
 	}
-	</script>	
+	</script>
+	
+
 	<div class="wrap">
 	<div id="icon-wpfilebase" class="icon32"><br /></div>
 	<h2><?php echo WPFB_PLUGIN_NAME; ?></h2>
@@ -101,6 +103,10 @@ static function Display()
 <h3><?php _e('Like this plugin?',WPFB) ?></h3>
 <div id="wpfb-liking">
 	<div style="text-align: center;"><iframe src="http://www.facebook.com/plugins/like.php?href=http%3A%2F%2Fwordpress.org%2Fextend%2Fplugins%2Fwp-filebase%2F&amp;send=false&amp;layout=button_count&amp;width=150&amp;show_faces=false&amp;action=like&amp;colorscheme=light&amp;font&amp;height=21" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:140px; height:21px; display:inline-block; text-align:center;" <?php echo ' allowTransparency="true"'; ?>></iframe></div>
+	
+	<div style="text-align: center;" ><a href="https://twitter.com/wpfilebase" class="twitter-follow-button" data-show-count="false">Follow @wpfilebase</a>
+			<script type="text/javascript">!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script></div>
+	
 	<p>Please <a href="http://wordpress.org/extend/plugins/wp-filebase/">give it a good rating</a>, or even consider a donation using PayPal or Flattr to support the developer of WP-Filebase:</p> 
 	<div style="text-align: center;">	
 	<?php WPFB_Admin::PrintPayPalButton() ?>
@@ -112,37 +118,38 @@ static function Display()
 
 ?>
 
+<div id="wpfb-stats-wrap" style="float:right; border-left: 1px solid #eee; margin-left: 5px;">
 <div id="col-container">
 	<div id="col-right">
 		<div class="col-wrap">
 			<h3><?php _e('Traffic', WPFB); ?></h3>
-			<table class="form-table">
+			<table class="wpfb-stats-table">
 			<?php
 				$traffic_stats = WPFB_Core::GetTraffic();					
 				$limit_day = (WPFB_Core::GetOpt('traffic_day') * 1048576);
 				$limit_month = (WPFB_Core::GetOpt('traffic_month') * 1073741824);
 			?>
 			<tr>
-				<th scope="row"><?php _e('Today', WPFB); ?></th>
 				<td><?php
 					if($limit_day > 0)
 						self::ProgressBar($traffic_stats['today'] / $limit_day, WPFB_Output::FormatFilesize($traffic_stats['today']) . '/' . WPFB_Output::FormatFilesize($limit_day));
 					else
 						echo WPFB_Output::FormatFilesize($traffic_stats['today']);
 				?></td>
+				<th scope="row"><?php _e('Today', WPFB); ?></th>
 			</tr>
 			<tr>
-				<th scope="row"><?php _e('This Month', WPFB); ?></th>
 				<td><?php
 					if($limit_month > 0)
 						self::ProgressBar($traffic_stats['month'] / $limit_month, WPFB_Output::FormatFilesize($traffic_stats['month']) . '/' . WPFB_Output::FormatFilesize($limit_month));
 					else
 						echo WPFB_Output::FormatFilesize($traffic_stats['month']);
 				?></td>
+				<th scope="row"><?php _e('This Month', WPFB); ?></th>
 			</tr>
 			<tr>
-				<th scope="row"><?php _e('Total File Size', WPFB); ?></th>
 				<td><?php echo WPFB_Output::FormatFilesize($wpdb->get_var("SELECT SUM(file_size) FROM $wpdb->wpfilebase_files")) ?></td>
+				<th scope="row"><?php _e('Total File Size', WPFB); ?></th>
 			</tr>	
 			</table>
 </div>
@@ -152,31 +159,34 @@ static function Display()
 <div class="col-wrap">
 
 			<h3><?php _e('Statistics', WPFB); ?></h3>
-			<table class="form-table">
+			<table class="wpfb-stats-table">
 			<tr>
-				<th scope="row"><?php _e('Number of Files', WPFB); ?></th>
 				<td><?php echo WPFB_File::GetNumFiles() ?></td>
+				<th scope="row"><?php _e('Files', WPFB); ?></th>				
 			</tr>
 			<tr>
-				<th scope="row"><?php _e('Number of Categories', WPFB); ?></th>
 				<td><?php echo WPFB_Category::GetNumCats() ?></td>
+				<th scope="row"><?php _e('Categories', WPFB); ?></th>
 			</tr>
 			<tr>
-				<th scope="row"><?php _e('Total Downloads', WPFB); ?></th>
 				<td><?php echo $wpdb->get_var("SELECT SUM(file_hits) FROM $wpdb->wpfilebase_files") ?></td>
+				<th scope="row"><?php _e('Downloads', WPFB); ?></th>
 			</tr>
 			</table>
 </div>
 </div><!-- /col-left -->
 
 </div><!-- /col-container -->
+</div>
 
+
+<div>
 <h2><?php _e('Tools'); ?></h2>
-<p><a href="<?php echo add_query_arg(
+<table class="wpfb-tools">
+<tr><th><a href="<?php echo add_query_arg(
 				array('action' => 'sync',
-				)); ?>" class="button"><?php _e('Sync Filebase',WPFB)?></a> &nbsp; <?php _e('Synchronises the database with the file system. Use this to add FTP-uploaded files.',WPFB) ?></p>
-	
-<p>
+				)); ?>" class="button"><?php _e('Sync Filebase',WPFB)?></a></th><td><?php _e('Synchronises the database with the file system. Use this to add FTP-uploaded files.',WPFB) ?><br />
+				
 <?php		
 if(WPFB_Core::GetOpt('cron_sync')) {
 	_e('Automatic sync is enabled. Cronjob scheduled hourly.');
@@ -186,13 +196,20 @@ if(WPFB_Core::GetOpt('cron_sync')) {
 	_e('Cron sync is disabled.');
 }
 ?>
-</p>
+				</td>
+</tr>
 
-			
+		
+
+
+
+</table>
+	
 				
 <?php if(WPFB_Core::GetOpt('tag_conv_req')) { ?><p><a href="<?php echo add_query_arg('action', 'convert-tags') ?>" class="button"><?php _e('Convert old Tags',WPFB)?></a> &nbsp; <?php printf(__('Convert tags from versions earlier than %s.',WPFB), '0.2.0') ?></p> <?php } ?>
 <!--  <p><a href="<?php echo add_query_arg('action', 'add-urls') ?>" class="button"><?php _e('Add multiple URLs',WPFB)?></a> &nbsp; <?php _e('Add multiple remote files at once.', WPFB); ?></p>
 -->
+</div>
 
 <?php
 	if(WPFB_admin::CurUserCanUpload()) WPFB_Admin::PrintForm('file', null, array('exform' => $exform));

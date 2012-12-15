@@ -103,7 +103,6 @@ static function Display()
 
 	<form class="search-form topmargin" action="" method="get"><p class="search-box">
 		<input type="hidden" value="<?php echo esc_attr($_GET['page']); ?>" name="page" />
-		<input type="hidden" value="<?php echo esc_attr($action); ?>" name="action" />
 		<label class="hidden" for="category-search-input"><?php _e('Search Categories'/*def*/); ?>:</label>
 		<input type="text" class="search-input" id="category-search-input" name="s" value="<?php echo(isset($_GET['s']) ? esc_attr($_GET['s']) : ''); ?>" />
 		<input type="submit" value="<?php _e( 'Search Categories'/*def*/); ?>" class="button" />

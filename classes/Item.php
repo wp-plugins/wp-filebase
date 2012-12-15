@@ -30,7 +30,7 @@ class WPFB_Item {
 	function GetName(){return $this->is_file?$this->file_name:$this->cat_folder;}	
 	function GetTitle($maxlen=0){
 		$t = $this->is_file?$this->file_display_name:$this->cat_name;
-		if($maxlen > 3 && strlen($t) > $maxlen) $t = mb_substr($t, 0, $maxlen-3,'utf8').'...';
+		if($maxlen > 3 && strlen($t) > $maxlen) $t = (function_exists('mb_substr') ? mb_substr($t, 0, $maxlen-3,'utf8') : substr($t, 0, $maxlen-3)).'...';
 		return $t;
 	}	
 	function Equals($item){return (isset($item->is_file) && $this->is_file == $item->is_file && $this->GetId() > 0 && $this->GetId() == $item->GetId());}	
@@ -94,7 +94,7 @@ class WPFB_Item {
 	// Sorts an array of Items by SQL ORDER Clause ( or shortcode order clause (<file_name)
 	static function Sort(&$items, $order_sql) {
 		$order_sql = str_replace(array('&gt;','&lt;'), array('>','<'), $order_sql);
-		if(($desc = ($order_sql{0} == '>')) || $order_sql{0} = '<')
+		if(($desc = ($order_sql{0} == '>')) || $order_sql{0} == '<')
 			$on = substr($order_sql,1);
 		else {
 			$p = strpos($order_sql,','); // strip multi order clauses
@@ -197,17 +197,17 @@ class WPFB_Item {
 	
 	function CurUserCanAccess($for_tpl=false)
 	{
-		global $current_user;
-		if($current_user->ID > 0 && empty($current_user->roles[0]))
-			$current_user = new WP_User($current_user->ID);// load the roles!
+		global $user_ID; // is 0 when not logged in						
+		if(is_null(WPFB_Core::$current_user))
+			WPFB_Core::$current_user = new WP_User($user_ID); //load all roles
 		
-		if( ($for_tpl && !WPFB_Core::GetOpt('hide_inaccessible')) || in_array('administrator',$current_user->roles) || ($this->is_file && $this->CurUserIsOwner()) )
+		if( ($for_tpl && !WPFB_Core::GetOpt('hide_inaccessible')) || in_array('administrator',WPFB_Core::$current_user->roles) || ($this->is_file && $this->CurUserIsOwner()) )
 			return true;
 		if(WPFB_Core::GetOpt('private_files') && $this->GetOwnerId() != 0 && !$this->CurUserIsOwner()) // check private files
 			return false;
 		$frs = $this->GetReadPermissions();
 		if(empty($frs)) return true; // item is for everyone!		
-		foreach($current_user->roles as $ur) { // check user roles against item roles
+		foreach(WPFB_Core::$current_user->roles as $ur) { // check user roles against item roles
 			if(in_array($ur, $frs))
 				return true;
 		}
@@ -309,7 +309,7 @@ class WPFB_Item {
 		if($this->is_category)
 		{
 			// add mtime for cache updates
-			return WPFB_PLUGIN_URI . (empty($this->cat_icon) ? ('images/'.(($size=='small')?'folder48':'crystal_cat').'.png') : "wp-filebase_thumb.php?cid=$this->cat_id&t=".filemtime($this->GetThumbPath()));
+			return WPFB_PLUGIN_URI . (empty($this->cat_icon) ? ('images/'.(($size=='small')?'folder48':'crystal_cat').'.png') : "wp-filebase_thumb.php?cid=$this->cat_id&t=".@filemtime($this->GetThumbPath()));
 		}
 
 		if(!empty($this->file_thumbnail) /* && file_exists($this->GetThumbPath())*/) // speedup
@@ -525,12 +525,14 @@ class WPFB_Item {
 	}
 	
 	protected static function GetPermissionWhere($owner_field, $permissions_field) {
-		global $wpdb, $current_user;
+		global $wpdb, $user_ID;
+		
+		if(is_null(WPFB_Core::$current_user))
+			WPFB_Core::$current_user = new WP_User($user_ID); //load all roles
+		$current_user = WPFB_Core::$current_user;
+		
 		static $permission_sql = '';
 		if(empty($permission_sql)) { // only generate once per request
-			if($current_user->ID > 0 && empty($current_user->roles[0]))
-				$current_user = new WP_User($current_user->ID);// load the roles
-
 			if(in_array('administrator',$current_user->roles)) $permission_sql = '1=1'; // administrator can access everything!
 			elseif(WPFB_Core::GetOpt('private_files')) {
 				$permission_sql = "$owner_field = 0 OR $owner_field = " . (int)$current_user->ID;

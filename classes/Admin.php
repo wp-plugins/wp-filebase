@@ -5,7 +5,7 @@ static $MIN_SIZE_FOR_PROGRESSBAR = 2097152;//2MiB
 
 static function InitClass()
 {	
-	wpfb_loadclass('AdminLite', 'Item', 'File', 'Category');
+	wpfb_loadclass('AdminLite', 'Item', 'File', 'Category','FileUtils');
 	
 	wp_enqueue_script('jquery');
 	wp_enqueue_script('jquery-ui-tabs');
@@ -86,6 +86,8 @@ static function SettingsSchema()
 	
 	'file_browser_fbc'		=> array('default' => false, 'title' => __('Files before Categories', WPFB), 'type' => 'checkbox', 'desc' => __('Files will appear above categories in the file browser.', WPFB)),
 	
+	'small_icon_size'		=> array('default' => 32, 'title' => __('Small Icon Size'), 'desc' => __('Icon size for categories and files', WPFB), 'type' => 'number', 'class' => 'num', 'size' => 8),
+			
 	
 	'cat_drop_down'			=> array('default' => false, 'title' => __('Category drop down list', WPFB), 'type' => 'checkbox', 'desc' => __('Use category drop down list in the file browser instead of listing like files.', WPFB)),
 
@@ -529,7 +531,7 @@ static function InsertFile($data, $in_gui =false)
 	if(!empty($data->file_flash_upload)) { // check for flash upload and validate!
 		$file_flash_upload = json_decode($data->file_flash_upload, true);
 		$file_flash_upload['tmp_name'] = WPFB_Core::UploadDir().'/'.str_replace('../','',$file_flash_upload['tmp_name']);
-		if(is_file($file_flash_upload['tmp_name']) && $file_flash_upload['size'] == filesize($file_flash_upload['tmp_name']))
+		if(is_file($file_flash_upload['tmp_name']) && $file_flash_upload['size'] == WPFB_FileUtils::GetFileSize($file_flash_upload['tmp_name']))
 			$data->file_upload = $file_flash_upload;
 	}
 	// are we uploading a file?
@@ -539,7 +541,7 @@ static function InsertFile($data, $in_gui =false)
 	if($remote_redirect) $remote_scan = !empty($data->file_remote_scan);
 	
 	// are we uploading a thumbnail?
-	$upload_thumb = (!$add_existing && @is_uploaded_file($data->file_upload_thumb['tmp_name']) && self::IsValidImage($data->file_upload_thumb['tmp_name']) !== false);
+	$upload_thumb = (!$add_existing && @is_uploaded_file($data->file_upload_thumb['tmp_name']) && WPFB_FileUtils::FileHasImageExt($data->file_upload['name']) && WPFB_FileUtils::IsValidImage($data->file_upload_thumb['tmp_name']));
 	
 	if($remote_upload) {
 		unset($file_src_path);
@@ -590,7 +592,7 @@ static function InsertFile($data, $in_gui =false)
 	if ($file_category > 0 && ($new_cat=WPFB_Category::GetCat($file_category)) == null) $file_category = 0;
 	
 	
-	// this sets permissions as well:
+	// this inherits permissions as well:
 	$result = $file->ChangeCategoryOrName($file_category, empty($data->file_rename) ? $file_name : $data->file_rename, $add_existing, !empty($data->overwrite));
 	if(!empty($result['error'])) return $result;
 	
@@ -631,7 +633,7 @@ static function InsertFile($data, $in_gui =false)
 	// get file info
 	if(!($update && $remote_redirect) && is_file($file->GetLocalPath()))
 	{
-		$file->file_size = filesize($file->GetLocalPath());
+		$file->file_size = WPFB_FileUtils::GetFileSize($file->GetLocalPath());
 		$file->file_mtime = filemtime($file->GetLocalPath());
 		$old_hash = $file->file_hash;
 		$file->file_hash = WPFB_Admin::GetFileHash($file->GetLocalPath());
@@ -731,9 +733,8 @@ static function InsertFile($data, $in_gui =false)
 	return array( 'error' => false, 'file_id' => $file_id, 'file' => $file);
 }
 
-static function IsValidImage($img) {
-	return @getimagesize($img) !== false;
-}
+
+
 
 static function ParseFileNameVersion($file_name, $file_version) {
 	$fnwv = substr($file_name, 0, strrpos($file_name, '.'));// remove extension
@@ -800,7 +801,7 @@ private static function SideloadFile($url, $dest_file = null, $size_for_progress
 	}
 	
 	if( $size_for_progress >= self::$MIN_SIZE_FOR_PROGRESSBAR) {
-		include_once(WPFB_PLUGIN_ROOT.'extras/progressbar.class.php');
+		if(!class_exists('progressbar')) include_once(WPFB_PLUGIN_ROOT.'extras/progressbar.class.php');
 		$progress_bar = new progressbar(0, $size_for_progress, 300, 30, '#aaa');
 		echo "<p><code>".esc_html($url)."</code> ...</p>";
 		$progress_bar->print_code();
@@ -1119,6 +1120,7 @@ public function ProcessWidgetUpload(){
 		$file = WPFB_File::GetFile($result['file_id']);
 		$content .= $file->GenTpl2();
 		$title = trim(__('File added.', WPFB),'.');
+		
 	}
 	
 	wpfb_loadclass('Output');

@@ -3,8 +3,8 @@ Contributors: fabifott
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=wpfilebase%40fabi%2eme&item_name=WP-Filebase&no_shipping=0&no_note=1&tax=0&currency_code=USD&lc=US&bn=PP%2dDonationsBF&charset=UTF%2d8
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, images, pdf, widget, filelist, list, thumbnails, thumbnail, attachment, attachments, category, categories, media, template, ftp, http, mp3, id3
 Requires at least: 3.1
-Tested up to: 3.4.2
-Stable tag: 0.2.9.27
+Tested up to: 3.5
+Stable tag: 0.2.9.28
 
 Adds a powerful download manager including file categories, downloads counter, widgets, sorted file lists and more to your WordPress blog.
 
@@ -48,11 +48,11 @@ More features are:
 *	Search integration
 *	Automatic synchronization of file system and database
 
-You can see a [live demo on my Website](http://fabi.me/downloads/ "WP-Filebase demo"), [documentation can be found here](http://wpfilebase.fabi.me/documentation/ "WP-Filebase documentation").
+You can see a [live demo on my Website](http://fabi.me/downloads/ "WP-Filebase demo"), [documentation can be found here](http://wpfilebase.com/documentation/ "WP-Filebase documentation").
 For support, please [leave a message on my blog](http://fabi.me/wordpress-plugins/wp-filebase-file-download-manager/#postcomment "Post comment"). When having trouble don't forget to post PHP and Wordpress version! Any ideas/feature requests are welcome.
 
 = WP-Filebase Pro =
-[WP-Filebase Pro](http://wpfilebase.fabi.me/) includes even more advanced features:
+[WP-Filebase Pro](http://wpfilebase.com/) includes even more advanced features:
 
 *	PDF indexing and thumbnails
 *	Secondary Categories
@@ -68,7 +68,7 @@ For support, please [leave a message on my blog](http://fabi.me/wordpress-plugin
 2. Create the directory `/wp-content/uploads/filebase` and make it writable (FTP command: `CHMOD 777 wp-content/uploads/filebase`)
 3. Activate the Plugin and customize the settings under *Settings->WP-Filebase*
 
-Read more in [WP-Filebase documentation](http://wpfilebase.fabi.me/documentation/setup/).
+Read more in [WP-Filebase documentation](http://wpfilebase.com/documentation/setup/).
 
 == Frequently Asked Questions ==
 
@@ -113,6 +113,21 @@ Goto WP-Filebase Settings and disable Permalinks under "Download". Try to disabl
 
 == Changelog ==
 
+= 0.2.9.28 =
+* Made code adjustments for WordPress 3.5 compatibility
+* New Option `Small Icon Size` in File Browser settings to adjust the size of icons and thumbnails
+* Improved compatibility with custom Role Plugins
+* Some GUI changes
+* Fixed 'Cheating uh?' bug when using the category seaech form after editing (thanks to David Bell)
+* Fixed secondary category query causing files to appear in root folder
+* Removed call wp_create_thumbnail which is deprecated since WP 3.5
+* Widget File Search Form now looks like the default search form
+* Added length limit for template variables: `%file_display_name:20%` limits the name to 20 characters
+* Fixed pagenav shortcode parameter, thanks to yuanl
+* Fixed file size limit in Drag&Drop uploader causing trouble
+* Fixed CSS Editor Bug
+* Fixed bug in list sorting
+
 = 0.2.9.27 =
 * Fixed AJAX tree not showing
 
@@ -125,7 +140,7 @@ Goto WP-Filebase Settings and disable Permalinks under "Download". Try to disabl
 * Fixed Item::GetParents() stuck in endless loop
 
 = 0.2.9.25 =
-* [WP-Filebase Documentation](http://wpfilebase.fabi.me/documentation/) and [WP-Filebase Pro](http://wpfilebase.fabi.me/) released
+* [WP-Filebase Documentation](http://wpfilebase.com/documentation/) and [WP-Filebase Pro](http://wpfilebase.com/) released
 * Added Category Owners
 * Raised limits of file name length: file name 300, category folder name: 300, total path length: 2000
 * Fixed invalid AJAX reponses caused by interfering plugins
@@ -568,7 +583,7 @@ Goto WP-Filebase Settings and disable Permalinks under "Download". Try to disabl
 PHP 5 or later required! This is a big upgrade with lots of new features. You have to convert old content tags to new shortcodes. Go to WP-Filebase management page and you should see a yellow box with the converter notice (backup the Database before!). And sync the filebase after that!
 
 == Documentation ==
-[WP-Filebase Documentation](http://wpfilebase.fabi.me/documentation/)
+[WP-Filebase Documentation](http://wpfilebase.com/documentation/)
 
 == Translation ==
 If you want to translate WP-Filebase in your language, open `wp-filebase/languages/template.po` with [Poedit](http://www.poedit.net/download.php) and save as `wpfb-xx_YY.po` (`xx` is your language code, `YY` your country). Poedit will create the file `wpfb-xx_YY.mo`. Put this file in `wp-filebase/languages` and share it if you like (attach it to an email or post it on my blog).
@@ -577,7 +592,7 @@ If you want to translate WP-Filebase in your language, open `wp-filebase/languag
 WP-Filebase currently offers the action `wpfilebase_sync`. This will run a fast filebase sync that adds new files.
 
 == WP-Filebase Pro ==
-[WP-Filebase Pro](http://wpfilebase.fabi.me/) is the commercial version of WP-Filebase with an extended range of functions. It supports secondary categories, extended permissions, embedded upload forms. Furthermore it can generate PDF thumbnails, sync with Dropbox or FTP and includes an improved file sync algorithm.
+[WP-Filebase Pro](http://wpfilebase.com/) is the commercial version of WP-Filebase with an extended range of functions. It supports secondary categories, extended permissions, embedded upload forms. Furthermore it can generate PDF thumbnails, sync with Dropbox or FTP and includes an improved file sync algorithm.
 
 == Traffic Limiter ==
 If you only want to limit traffic or bandwidth of media files you should take a look at my [Traffic Limiter Plugin](http://wordpress.org/extend/plugins/traffic-limiter/ "Traffic Limiter").

@@ -263,6 +263,7 @@
 	z-index: 100;
 	position:absolute;
 	right: 0px;
+	top: 40px;
 	
 	border-width:1px;
 	border-style:solid;
@@ -350,4 +351,40 @@ background: -ms-linear-gradient(top,  #fceabb 0%,#fccd4d 50%,#f8b500 51%,#fbdf93
 background: linear-gradient(to bottom,  #fceabb 0%,#fccd4d 50%,#f8b500 51%,#fbdf93 100%); /* W3C */
 filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#fceabb', endColorstr='#fbdf93',GradientType=0 ); /* IE6-9 */
 	
+}
+
+
+.wpfb-tools td {
+	padding: 10px;
+	cursor: default;
+}
+
+.wpfb-tools th {
+	text-align:center;
+	padding: 10px
+}
+
+.wpfb-tools tr {
+	border-bottom: 1px solid #aaa;
+}
+
+.wpfb-tools tr:hover {
+	background-color: #eee;
+}
+
+.wpfb-stats-table {
+
+}
+
+.wpfb-stats-table th  {
+	text-align: left;
+	padding: 5px;
+	font-weight: normal;
+}
+
+.wpfb-stats-table td  {
+	text-align: right;
+	padding: 2px;
+	font-family: Georgia,"Times New Roman","Bitstream Charter",Times,serif;
+	font-size: 18px;
 }

@@ -269,18 +269,14 @@ class WPFB_SearchWidget extends WP_Widget {
 		echo $before_widget, $before_title . (empty($title) ? __('Search Files',WPFB) : $title) . $after_title;
 		
 		$prefix = "wpfb-search-widget-".$this->id_base;
-		$form_url = add_query_arg('wpfb_add_cat', 1);
-		$nonce_action = $prefix;
-		?>
-		<form name="<?php echo $prefix ?>form" method="get" action="<?php echo remove_query_arg(array('p','post_id','page_id','wpfb_s')); ?>" class="searchform" id="searchform">
-		<input name="p" type="hidden" value="<?php echo WPFB_Core::GetOpt('file_browser_post_id') ?>" />
-		<fieldset>
-			<input name="wpfb_s" id="<?php echo $prefix ?>search" type="text" value="<?php echo empty($_GET['wpfb_s']) ? '' : esc_attr(stripslashes($_GET['wpfb_s'])) ?>" />
-			<!-- <button type="submit" name="searchsubmit" value="Search"></button> -->
-			<input type="submit" class="button-primary" name="searchsubmit" value="<?php _e('Search'/*def*/) ?>" />
-		</fieldset>	
-		</form>
-	<?php
+		
+		$fbp_id = WPFB_Core::GetOpt('file_browser_post_id');
+		$action = WPFB_Core::GetPostUrl($fbp_id);
+		$p_in_query = (strpos($action,'?') !== false); // no permalinks?
+		$action = $p_in_query ? remove_query_arg(array('p','post_id','page_id','wpfb_s')) : $action;
+		
+		echo WPFB_Output::GetSearchForm($action, $p_in_query ? array('p' => $fbp_id) : null, "");
+
 		echo $after_widget;
 	}
 
@@ -406,6 +402,12 @@ class WPFB_FileListWidget extends WP_Widget {
 	function WPFB_FileListWidget() {
 		parent::WP_Widget( false, WPFB_PLUGIN_NAME .' '.__('File list', WPFB), array('description' => __('Listing of files with custom sorting', WPFB)) );
 	}
+	
+	static function limitStrLen($str, $maxlen)
+	{
+		if($maxlen > 3 && strlen($str) > $maxlen) $str = (function_exists('mb_substr') ? mb_substr($str, 0, $maxlen-3,'utf8') : mb_substr($str, 0, $maxlen-3)).'...';
+		return $str;
+	}
 
 	function widget( $args, $instance ) {
 		wpfb_loadclass('File', 'Category', 'Output');
@@ -424,6 +426,9 @@ class WPFB_FileListWidget extends WP_Widget {
 			array($instance['sort-by'] => ($instance['sort-asc'] ? 'ASC' : 'DESC')),
 		 	(int)$instance['limit']
 		);
+		
+		//$instance['tpl_parsed']
+		//WPFB_FileListWidget
 		
 		$tpl_func = WPFB_Core::CreateTplFunc($instance['tpl_parsed']);
 		echo '<ul>';

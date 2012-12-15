@@ -42,30 +42,10 @@ class WPFB_ListTpl {
 	}
 	
 	static function ParseHeaderFooter($str, $uid=null) {
-		global $wp_query;	
 		$str = preg_replace('/%sort_?link:([a-z0-9_]+)%/ie', __CLASS__.'::GenSortlink(\'$1\')', $str);
-		if(strpos($str, '%search_form%') !== false) {
-			$searching = !empty($_GET['wpfb_s']);
-			if($searching) {
-				$sb = empty($wp_query->query_vars['s'])?null:$wp_query->query_vars['s']; 
-				$wp_query->query_vars['s'] = $_GET['wpfb_s'];
-			}
-			
-			ob_start();
-			get_search_form();
-			$form = ob_get_clean();
-			if(empty($form)) echo "Searchform empty!";
-			
-			if($searching) $wp_query->query_vars['s'] = $sb; // restore query var s
-
-			$form = preg_replace('/action=["\'].+?["\']/', 'action=""', $form);
-			$form = str_replace('="s"', '="wpfb_s"', $form);
-			$form = str_replace("='s'", "='wpfb_s'", $form);
-			$gets = '';
-			foreach($_GET as $name => $value) if($name != 'wpfb_s' && $name != 'wpfb_list_page') $gets.='<input type="hidden" name="'.esc_attr(stripslashes($name)).'" value="'.esc_attr(stripslashes($value)).'" />';
-			$form = str_ireplace('</form>', "$gets</form>", $form);
-			$str = str_replace('%search_form%', $form, $str);
-		}
+		
+		if(strpos($str, '%search_form%') !== false)
+			$str = str_replace('%search_form%', WPFB_Output::GetSearchForm("", $_GET), $str);
 		
 		$str = preg_replace('/%print_?script:([a-z0-9_-]+)%/ie', __CLASS__.'::PrintScriptOrStyle(\'$1\', false)', $str);
 		$str = preg_replace('/%print_?style:([a-z0-9_-]+)%/ie', __CLASS__.'::PrintScriptOrStyle(\'$1\', true)', $str);
@@ -94,7 +74,7 @@ class WPFB_ListTpl {
 		return $link.($desc?'gt;':'lt;').$by;
 	}
 	
-	function Generate($categories, $show_cats, $file_order, $page_limit, $cat_order=null)
+	function Generate($categories, $show_cats, $file_order, $page_limit, $cat_order=null, $hide_pagenav = false)
 	{
 		$uid = uniqid();
 		$content = self::ParseHeaderFooter($this->header, $uid);
@@ -151,7 +131,7 @@ class WPFB_ListTpl {
 						//if($n > $page_limit) break; // TODO!!
 						if($nf > 0) {
 							$files = WPFB_File::GetFiles2("($where) AND ".WPFB_File::GetSqlCatWhereStr($cat->cat_id), $hia, $sort, $page_limit, $start);
-							if($show_cats && count($files) > 0)
+							if(count($files) > 0)
 								$content .= $cat->GenTpl2($this->cat_tpl_tag); // check for file count again, due to pagination!
 								
 							foreach($files as $file) {
@@ -174,7 +154,7 @@ class WPFB_ListTpl {
 					
 					$keys = array_keys($all_files);
 					if($start == -1) $start = 0;
-					$last = min($start + $page_limit, $num_total_files);
+					$last = ($page_limit > 0) ? min($start + $page_limit, $num_total_files) : $num_total_files;
 					for($i = $start; $i < $last; $i++)
 						$content .= $all_files[$keys[$i]]->GenTpl2($this->file_tpl_tag);
 				}
@@ -183,23 +163,13 @@ class WPFB_ListTpl {
 		
 		$footer = self::ParseHeaderFooter($this->footer, $uid);
 		
-		if($page_limit > 0 && $num_total_files > $page_limit) {
+		if($page_limit > 0 && $num_total_files > $page_limit && !$hide_pagenav) {
 			$pagenav = paginate_links( array(
 				'base' => add_query_arg( 'wpfb_list_page', '%#%' ),
 				'format' => '',
 				'total' => ceil($num_total_files / $page_limit),
 				'current' => empty($_GET['wpfb_list_page']) ? 1 : absint($_GET['wpfb_list_page'])
 			));
-			/*
-			'show_all' => false,
-			'prev_next' => true,
-			'prev_text' => __('&laquo; Previous'),
-			'next_text' => __('Next &raquo;'),
-			'end_size' => 1,
-			'mid_size' => 2,
-			'type' => 'plain',
-			'add_args' => false, // array of query args to add
-			'add_fragment' => ''*/		
 
 			if(strpos($footer, '%page_nav%') === false)
 				$footer .= $pagenav;

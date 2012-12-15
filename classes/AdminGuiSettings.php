@@ -205,7 +205,7 @@ jQuery(document).ready( function() {
 	$option_categories = array(
 		__('Common', WPFB)					=> array('upload_path','search_integration' /*'cat_drop_down'*/),
 		__('Display', WPFB)					=> array('file_date_format','thumbnail_size','auto_attach_files', 'attach_loop','attach_pos', 'filelist_sorting', 'filelist_sorting_dir', 'filelist_num', /* TODO: remove? 'parse_tags_rss',*/ 'decimal_size_format'),
-		__('File Browser',WPFB)				=> array('file_browser_post_id','file_browser_cat_sort_by','file_browser_cat_sort_dir','file_browser_file_sort_by','file_browser_file_sort_dir','file_browser_fbc', 'late_script_loading',
+		__('File Browser',WPFB)				=> array('file_browser_post_id','file_browser_cat_sort_by','file_browser_cat_sort_dir','file_browser_file_sort_by','file_browser_file_sort_dir','file_browser_fbc', 'late_script_loading','small_icon_size',
 		'disable_footer_credits','footer_credits_style',
 		),
 		__('Download', WPFB)				=> array(

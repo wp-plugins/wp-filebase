@@ -40,8 +40,7 @@ global $is_IE, $is_opera;
 
 $id = $this->id;
 
-require_once(ABSPATH . 'wp-admin/includes/template.php'); // wp_max_upload_size
-$upload_size_unit = $max_upload_size = wp_max_upload_size();
+$upload_size_unit = $max_upload_size = WPFB_Core::GetMaxUlSize();
 $sizes = array( 'KB', 'MB', 'GB' );
 
 for ( $u = -1; $upload_size_unit > 1024 && $u < count( $sizes ) - 1; $u++ ) {

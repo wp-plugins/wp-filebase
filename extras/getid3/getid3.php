@@ -1736,9 +1736,11 @@ abstract class getid3_handler
 }
 
 
-class getid3_exception extends Exception
-{
-    public $message;
+if(!class_exists('getid3_exception')) {
+	class getid3_exception extends Exception
+	{
+	    public $message;
+	}
 }
 
 ?>

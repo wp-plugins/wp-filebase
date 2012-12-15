@@ -3,7 +3,7 @@ class WPFB_Core {
 static $load_js = false;
 static $file_browser_search = false;
 static $file_browser_item = null;
-//static $options = null;
+static $current_user = null;
 
 static function InitClass()
 {
@@ -304,7 +304,7 @@ static function Footer() {
 	
 	if(!empty($wpfb_fb) && !WPFB_Core::GetOpt('disable_footer_credits')) {
 		echo '<div id="wpfb-credits" name="wpfb-credits" style="'.esc_attr(WPFB_Core::GetOpt('footer_credits_style')).'">';
-		printf(__('<a href="%s" title="Wordpress Download Manager Plugin" style="color:inherit;font-size:inherit;">Downloads served by WP-Filebase</a>',WPFB),'http://wpfilebase.fabi.me/');
+		printf(__('<a href="%s" title="Wordpress Download Manager Plugin" style="color:inherit;font-size:inherit;">Downloads served by WP-Filebase</a>',WPFB),'http://wpfilebase.com/');
 		echo '</div>';
 	}
 }
@@ -655,5 +655,6 @@ static function GetCustomCssPath($path=null) {
 static function CreateTplFunc($parsed_tpl) {
 	return create_function('$f', "return ($parsed_tpl);");
 }
+
 
 }

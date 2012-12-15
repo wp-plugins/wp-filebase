@@ -4,7 +4,7 @@ const HIGH_START_MEM = 100000000; // 100MB
 
 static function InitClass()
 {
-	wpfb_loadclass("Admin", "GetID3");
+	wpfb_loadclass("Admin", "GetID3", "FileUtils");
 	require_once(ABSPATH . 'wp-admin/includes/file.php');
 	
 	@ini_set('max_execution_time', '0');
@@ -110,7 +110,7 @@ static function Sync($hash_sync=false, $output=false)
 		printf(__('%d Files found, %d new.', WPFB), $sync_data->num_all_files, $sync_data->num_files_to_add);
 		echo "</p>";
 		
-		include_once(WPFB_PLUGIN_ROOT.'extras/progressbar.class.php');
+		if(!class_exists('progressbar')) include_once(WPFB_PLUGIN_ROOT.'extras/progressbar.class.php');
 		$progress_bar = new progressbar(0, $sync_data->num_files_to_add);
 		$progress_bar->print_code();
 	} else {
@@ -192,7 +192,7 @@ static function CheckChangedFiles($sync_data)
 		}
 		
 		if($sync_data->hash_sync) $file_hash = WPFB_Admin::GetFileHash($file_path);
-		$file_size = (int)@filesize($file_path);
+		$file_size = WPFB_FileUtils::GetFileSize($file_path);
 		$file_mtime = filemtime($file_path);
 		$file_analyzetime = !$sync_id3 ? $file_mtime : WPFB_GetID3::GetFileAnalyzeTime($file);
 		if(is_null($file_analyzetime)) $file_analyzetime = 0;

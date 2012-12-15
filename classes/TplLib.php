@@ -38,7 +38,7 @@ static function Parse($tpl)
 	$tpl = str_replace('%wpfb_url%', '\'.(WPFB_PLUGIN_URI).\'', $tpl);
 	
 	// parse variables
-	$tpl = preg_replace('/%([a-z0-9_\/]+?)%/i', '\'.$f->get_tpl_var(\'$1\').\'', $tpl);
+	$tpl = preg_replace('/%([a-z0-9_\/:]+?)%/i', '\'.$f->get_tpl_var(\'$1\').\'', $tpl);
 	
 	// remove html comments
 	$tpl = preg_replace('/<\!\-\-[\s\S]+?\-\->/', '', $tpl);

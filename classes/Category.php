@@ -176,7 +176,7 @@ class WPFB_Category extends WPFB_Item {
 			case 'cat_parent':
 			case 'cat_parent_name':	return is_object($parent =& $this->GetParent()) ? $parent->cat_name : '';
 			case 'cat_icon_url':	return $this->GetIconUrl();
-			case 'cat_small_icon': 	$esc=false; return '<img src="'.$this->GetIconUrl('small').'" style="height:32px;vertical-align:middle;" />';
+			case 'cat_small_icon': 	$esc=false; return '<img src="'.$this->GetIconUrl('small').'" style="height:'.WPFB_Core::GetOpt('small_icon_size').'px;vertical-align:middle;" />';
 			case 'cat_num_files':		return $this->cat_num_files;
 			case 'cat_num_files_total':	return $this->cat_num_files_total;
 			//case 'cat_required_level':	return ($this->cat_required_level - 1);

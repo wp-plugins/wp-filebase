@@ -160,7 +160,7 @@ class WPFB_File extends WPFB_Item {
 	static function GetNumFiles2($where, $check_permissions = true)
 	{
 		global $wpdb;
-		return (int)$wpdb->get_var("SELECT COUNT($wpdb->wpfilebase_files.file_id) FROM ".self::genSelectSql($where, $check_permissions));
+		return (int)$wpdb->get_var("SELECT COUNT(`{$wpdb->wpfilebase_files}`.`file_id`) FROM ".self::genSelectSql($where, $check_permissions));
 	}
 	
 	static function GetAttachedFiles($post_id)
@@ -177,7 +177,7 @@ class WPFB_File extends WPFB_Item {
 	function DBSave()
 	{ // validate some values before saving (fixes for mysql strict mode)
 		if($this->locked > 0) return $this->TriggerLockedError();	
-		$ints = array('file_size','file_category','file_post_id','file_attach_order','file_wpattach_id','file_added_by','file_update_of','file_hits','file_ratings','file_rating_sum');
+		$ints = array('file_category','file_post_id','file_attach_order','file_wpattach_id','file_added_by','file_update_of','file_hits','file_ratings','file_rating_sum');
 		foreach($ints as $i) $this->$i = intval($this->$i);
 		$this->file_offline = (int)!empty($this->file_offline);
 		$this->file_direct_linking = (int)$this->file_direct_linking;
@@ -198,7 +198,9 @@ class WPFB_File extends WPFB_Item {
 	}	
 	
 	function CreateThumbnail($src_image='', $del_src=false)
-	{		
+	{
+		wpfb_loadclass('FileUtils');
+		
 		$src_set = !empty($src_image) && file_exists($src_image);
 		$tmp_src = $del_src;
 		if(!$src_set)
@@ -219,9 +221,10 @@ class WPFB_File extends WPFB_Item {
 		}
 		
 		$ext = trim($this->GetExtension(), '.');
-	
-		if($ext != 'bmp' && 
-		($src_size = @getimagesize($src_image)) === false) { // check if valid image
+		$src_size = array();
+		
+		if(!WPFB_FileUtils::FileHasImageExt($this->file_name) && 
+		!($src_set && WPFB_FileUtils::IsValidImage($src_image, $src_size))) { // check if valid image
 			if($tmp_src) @unlink($src_image);
 			return;
 		}
@@ -230,15 +233,7 @@ class WPFB_File extends WPFB_Item {
 		$thumb = null;
 		$thumb_size = (int)WPFB_Core::GetOpt('thumbnail_size');
 		
-		if(!function_exists('wp_create_thumbnail')) {
-			require_once(ABSPATH . 'wp-admin/includes/image.php');
-			if(!function_exists('wp_create_thumbnail'))
-			{
-				if($tmp_src) @unlink($src_image);
-				wp_die('Function wp_create_thumbnail does not exist!');
-				return;
-			}
-		}
+
 			
 		$extras_dir = WPFB_PLUGIN_ROOT . 'extras/';
 		
@@ -258,14 +253,14 @@ class WPFB_File extends WPFB_Item {
 						@imagejpeg($im, $jpg_file, 100);
 						if(@file_exists($jpg_file) && @filesize($jpg_file) > 0)
 						{
-							$thumb = @wp_create_thumbnail($jpg_file, $thumb_size);
+							$thumb = WPFB_FileUtils::CreateThumbnail($jpg_file, $thumb_size);
 						}
 						@unlink($jpg_file);
 					}						
 				}
 			}
 		} else {
-			$thumb = @wp_create_thumbnail($src_image, $thumb_size);
+			$thumb = WPFB_FileUtils::CreateThumbnail($src_image, $thumb_size);
 			if(is_wp_error($thumb) && max($src_size) <= $thumb_size) { // error occurs when image is smaller than thumb_size. in this case, just copy original
 				$name = wp_basename($src_image, ".$ext");
 				$thumb = dirname($src_image)."/{$name}-{$src_size[0]}x{$src_size[1]}.".strtolower(strrchr($src_image, '.'));
@@ -386,12 +381,12 @@ class WPFB_File extends WPFB_Item {
 			case 'file_url_rel':		return htmlspecialchars(WPFB_Core::GetOpt('download_base') . '/' . str_replace('\\', '/', $this->GetLocalPathRel()));
 			case 'file_post_url':		return htmlspecialchars(!($url = $this->GetPostUrl()) ? $this->GetUrl() : $url);			
 			case 'file_icon_url':		return htmlspecialchars($this->GetIconUrl());
-			case 'file_small_icon':		return '<img src="'.esc_attr($this->GetIconUrl('small')).'" style="vertical-align:middle;height:32px;" />';
+			case 'file_small_icon':		return '<img src="'.esc_attr($this->GetIconUrl('small')).'" style="vertical-align:middle;height:'.WPFB_Core::GetOpt('small_icon_size').'px;" />';
 			case 'file_size':			return $this->GetFormattedSize();
 			case 'file_path':			return htmlspecialchars($this->GetLocalPathRel());
 			
 			case 'file_category':		return htmlspecialchars(is_object($cat = $this->GetParent()) ? $cat->cat_name : '');
-			case 'cat_small_icon':		return is_null($cat = $this->GetParent()) ? '' : ('<img align="" src="'.htmlspecialchars($cat->GetIconUrl('small')).'" style="height:32px;vertical-align:middle;" />');
+			case 'cat_small_icon':		return is_null($cat = $this->GetParent()) ? '' : ('<img align="" src="'.htmlspecialchars($cat->GetIconUrl('small')).'" style="height:'.WPFB_Core::GetOpt('small_icon_size').'px;vertical-align:middle;" />');
 			case 'cat_icon_url':		return is_null($cat = $this->GetParent()) ? '' : htmlspecialchars($cat->GetIconUrl());
 			case 'cat_url':				return is_null($cat = $this->GetParent()) ? '' : htmlspecialchars($cat->GetUrl());
 			
@@ -427,7 +422,17 @@ class WPFB_File extends WPFB_Item {
 			$path = explode('/',substr($name, 10));
 			return htmlspecialchars($this->getInfoValue($path));
 		} elseif(strpos($name, 'file_custom') === 0) // dont esc custom
-			return isset($this->$name) ? $this->$name : '';		
+			return isset($this->$name) ? $this->$name : '';
+		
+		// string length limit:
+		if(!isset($this->$name) && ($p=strpos($name, ':')) > 0) {
+			$maxlen = (int)substr($name, $p+1);
+			$name = substr($name, 0, $p);
+			$str = $this->get_tpl_var($name);			
+			if($maxlen > 3 && strlen($str) > $maxlen) $str = (function_exists('mb_substr') ? mb_substr($str, 0, $maxlen-3,'utf8') : mb_substr($str, 0, $maxlen-3)).'...';
+			return $str;
+		}
+		
 		return isset($this->$name) ? htmlspecialchars($this->$name) : '';
     }
 	

@@ -358,7 +358,8 @@ function SendFile($file_path, $args=array())
 		wp_die('File ' . basename($file_path) . ' not found!');
 	}
 	
-	$size = filesize($file_path);
+	wpfb_loadclass('FileUtils');
+	$size = WPFB_FileUtils::GetFileSize($file_path);
 	$time = filemtime($file_path);
 	$file_type = WPFB_Download::GetFileType($file_path);
 	if(empty($etag))
