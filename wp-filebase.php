@@ -4,14 +4,14 @@ Plugin Name: WP-Filebase
 Plugin URI: http://fabi.me/wordpress-plugins/wp-filebase-file-download-manager/
 Description: Adds a powerful downloads manager supporting file categories, download counter, widgets, sorted file lists and more to your WordPress blog.
 Author: Fabian Schlieper
-Version: 0.2.9.28
-Author URI: http://fabi.me/
+Version: 0.2.9.29
+Author URI: http://wpfilebase.com/
 */
 
 if(!defined('WPFB'))
 {
 	define('WPFB', 'wpfb');
-	define('WPFB_VERSION', '0.2.9.28');
+	define('WPFB_VERSION', '0.2.9.29');
 	define('WPFB_PLUGIN_ROOT', str_replace('\\','/',dirname(__FILE__)).'/');
 	if(!defined('ABSPATH')) {
 		define('ABSPATH', dirname(dirname(dirname(dirname(__FILE__)))));
@@ -30,11 +30,8 @@ if(!defined('WPFB'))
 	function wpfb_loadclass($cl)
 	{
 		if(func_num_args() > 1)
-			return wpfb_loadclass(func_get_args());
-		elseif(is_array($cl)) {
-			$res = true;
-			foreach($cl as $c) $res = (wpfb_loadclass($c) && $res);
-		} else {
+			return array_map(__FUNCTION__, func_get_args());
+		else {
 			$cln = 'WPFB_'.$cl;
 			
 			if(class_exists($cln))
@@ -46,7 +43,6 @@ if(!defined('WPFB'))
 			{
 				echo("<p>WP-Filebase Error: Could not include class file <b>'{$cl}'</b>!</p>");
 				if(defined('WP_DEBUG') && WP_DEBUG) {
-					//echo "<p><b>Path:</b> $p<br /><b>Error:</b>".print_r(error_get_last(), true)."</p>";
 					print_r(debug_backtrace());
 				}
 			}
@@ -71,9 +67,7 @@ if(!defined('WPFB'))
 	{
 		$cln = 'WPFB_'.$cl;
 		$fnc = array($cln, $fnc);
-		if(class_exists($cln) || wpfb_loadclass($cl))
-			return $is_args_array ? call_user_func_array($fnc, $params) : call_user_func($fnc, $params);
-		return null;
+		return (class_exists($cln) || wpfb_loadclass($cl)) ? ($is_args_array ? call_user_func_array($fnc, $params) : call_user_func($fnc, $params)) : null;
 	}
 	
 	function wpfilebase_init()

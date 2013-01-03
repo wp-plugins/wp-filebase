@@ -127,6 +127,7 @@ static function SettingsSchema()
 	
 	'remove_missing_files'	=> array('default' => false, 'title' => __('Remove Missing Files', WPFB), 'type' => 'checkbox', 'desc' => __('Missing files are removed from the database during sync', WPFB)),
 	
+			
 	
 	'search_integration' =>  array('default' => true, 'title' => __('Search Integration', WPFB), 'type' => 'checkbox', 'desc' => __('Searches in attached files and lists the associated posts and pages when searching the site.', WPFB)),
 
@@ -134,7 +135,6 @@ static function SettingsSchema()
 	'search_id3' =>  array('default' => true, 'title' => __('Search ID3 Tags', WPFB), 'type' => 'checkbox', 'desc' => __('Search in file meta data, like ID3 for MP3 files, EXIF for JPEG... (this option does not increase significantly server load since all data is cached in a MySQL table)', WPFB)),
 	'use_path_tags' => array('default' => false, 'title' => __('Use path instead of ID in Shortcode', WPFB), 'type' => 'checkbox', 'desc' => __('Files and Categories are identified by paths and not by their IDs in the generated Shortcodes', WPFB)),
 	'no_name_formatting'  => array('default' => false, 'title' => __('Disable Name Formatting', WPFB), 'type' => 'checkbox', 'desc' => __('This will disable automatic formatting/uppercasing file names when they are used as title (e.g. when syncing)', WPFB)),
-	
 	
 	// file browser
 	'disable_footer_credits'  => array('default' => false, 'title' => __('Remove WP-Filebase Footer credits', WPFB), 'type' => 'checkbox', 'desc' => sprintf(__('This disables the footer credits only displayed on <a href="%s">File Browser Page</a>. Why should you keep the credits? Every backlink helps WP-Filebase to get more popular, popularity motivates the developer to continue work on the plugin.', WPFB), get_permalink(WPFB_Core::GetOpt('file_browser_post_id')).'#wpfb-credits')),
@@ -158,6 +158,8 @@ Open Office|ooffice|http://www.openoffice.org/download/index.html
 .NET Framework 3.5|.net35|http://www.microsoft.com/downloads/details.aspx?FamilyID=333325fd-ae52-4e35-b531-508d977d32a6",
 	'title' => __('Requirements', WPFB), 'type' => 'textarea', 'desc' => $multiple_entries_desc . ' ' . __('You can optionally add |<i>URL</i> to each line to link to the required software/file.', WPFB), 'nowrap' => true),
 	
+	'default_direct_linking'	=> array('default' => 1, 'title' => __('Default File Direct Linking'), 'type' => 'select', 'desc' => __('', WPFB), 'options' => array(1 => __('Allow direct linking', WPFB), 0 => __('Redirect to post', WPFB) )),	 
+		 
 	'custom_fields'			=> array('default' => "Custom Field 1|cf1\nCustom Field 2|cf2", 'title' => __('Custom Fields'), 'type' => 'textarea', 'desc' => 
 	__('With custom fields you can add even more file properties.',WPFB).' '.$multiple_entries_desc),
 	
@@ -541,7 +543,10 @@ static function InsertFile($data, $in_gui =false)
 	if($remote_redirect) $remote_scan = !empty($data->file_remote_scan);
 	
 	// are we uploading a thumbnail?
-	$upload_thumb = (!$add_existing && @is_uploaded_file($data->file_upload_thumb['tmp_name']) && WPFB_FileUtils::FileHasImageExt($data->file_upload['name']) && WPFB_FileUtils::IsValidImage($data->file_upload_thumb['tmp_name']));
+	$upload_thumb = (!$add_existing && @is_uploaded_file($data->file_upload_thumb['tmp_name']));
+
+	if($upload_thumb && !(WPFB_FileUtils::FileHasImageExt($data->file_upload_thumb['name']) && WPFB_FileUtils::IsValidImage($data->file_upload_thumb['tmp_name'])))
+		return array( 'error' => __('Thumbnail is not a valid image!.', WPFB) );
 	
 	if($remote_upload) {
 		unset($file_src_path);
@@ -602,9 +607,12 @@ static function InsertFile($data, $in_gui =false)
 
 	// if there is an uploaded file 
 	if($upload) {
-		if(@file_exists($file->GetLocalPath())) return array( 'error' => sprintf( __( 'File %s already exists. You have to delete it first!', WPFB), $file->GetLocalPath() ) );
+		$file_dest_path = $file->GetLocalPath();
+		$file_dest_dir = dirname($file_dest_path);
+		if(@file_exists($file_dest_path)) return array( 'error' => sprintf( __( 'File %s already exists. You have to delete it first!', WPFB), $file->GetLocalPath() ) );
+		if(!is_dir($file_dest_dir)) self::Mkdir($file_dest_dir);
 		// try both move_uploaded_file for http, rename for flash uploads!
-		if(!(@move_uploaded_file($file_src_path, $file->GetLocalPath()) || @rename($file_src_path, $file->GetLocalPath())) || !@file_exists($file->GetLocalPath())) return array( 'error' => sprintf( __( 'Unable to move file %s! Is the upload directory writeable?', WPFB), $file->file_name ).' '.$file->GetLocalPathRel());	
+		if(!(move_uploaded_file($file_src_path, $file_dest_path) || rename($file_src_path, $file->GetLocalPath())) || !@file_exists($file->GetLocalPath())) return array( 'error' => sprintf( __( 'Unable to move file %s! Is the upload directory writeable?', WPFB), $file->file_name ).' '.$file->GetLocalPathRel());	
 	} elseif($remote_upload) {
 		if(!$remote_redirect || $remote_scan) {	
 			$tmp_file = self::GetTmpFile($file->file_name);
@@ -679,7 +687,7 @@ static function InsertFile($data, $in_gui =false)
 	$file->file_offline = (int)(!empty($data->file_offline));
 	
 	if(!isset($data->file_direct_linking))
-		$data->file_direct_linking = 1; // allow direct linking by default
+		$data->file_direct_linking = WPFB_Core::$settings->default_direct_linking;
 	$file->file_direct_linking = intval($data->file_direct_linking);
 
 	if(isset($data->file_post_id))
@@ -1110,7 +1118,7 @@ public function ProcessWidgetUpload(){
 		
 	// if category is set in widget options, force to use this. security done with nonce checking ($_POST['cat'] is reliable)
 	if($_POST['cat'] >= 0) $_POST['file_category'] = $_POST['cat'];
-	$result = WPFB_Admin::InsertFile(array_merge(stripslashes_deep($_POST), $_FILES, array('frontend_upload' => true)));
+	$result = WPFB_Admin::InsertFile(array_merge(stripslashes_deep($_POST), $_FILES, array('frontend_upload' => true, 'form' => empty($form) ? null : $form)));
 	if(isset($result['error']) && $result['error']) {
 		$content .= '<div id="message" class="updated fade"><p>'.$result['error'].'</p></div>';
 		$title .= __('Error ');
@@ -1120,7 +1128,6 @@ public function ProcessWidgetUpload(){
 		$file = WPFB_File::GetFile($result['file_id']);
 		$content .= $file->GenTpl2();
 		$title = trim(__('File added.', WPFB),'.');
-		
 	}
 	
 	wpfb_loadclass('Output');
@@ -1189,12 +1196,15 @@ public function SettingsUpdated($old, &$new) {
 	if($old['thumbnail_path'] != $new['thumbnail_path']) {
 
 		update_option(WPFB_OPT_NAME, $old); // temporaly restore old settings
+		WPFB_Core::$settings = (object)$old;
 		
 		$items = array_merge(WPFB_File::GetFiles2(),WPFB_Category::GetCats());			
 		$old_thumbs = array();				
 		foreach($items as $i => $item) $old_thumbs[$i] = $item->GetThumbPath(true);
 
 		update_option(WPFB_OPT_NAME, $new); // restore new settings
+		WPFB_Core::$settings = (object)$new;
+		
 		$n = 0;		
 		foreach($items as $i => $item) {
 			if(!empty($old_thumbs[$i]) && is_file($old_thumbs[$i])) {

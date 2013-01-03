@@ -75,6 +75,7 @@ private static function SyncPase1($sync_data, $output)
 		$fbn = basename($fn);
 		if(strlen($fn) < 2 || $fbn{0} == '.' || strpos($fn, '/.tmp') !== false
 				|| $fbn == '_wp-filebase.css' || strpos($fbn, '_caticon.') !== false
+				|| strpos($fbn, '.__info.xml') !== false
 				|| in_array(substr($fn, strlen($upload_dir)), $sync_data->known_filenames)
 				|| !is_file($fn) || !is_readable($fn)
 				|| (!empty($fext_blacklist) && in_array(trim(strrchr($fbn, '.'),'.'), $fext_blacklist)) // check for blacklisted extension
@@ -228,22 +229,23 @@ static function AddNewFiles($sync_data, $progress_bar=null, $max_batch_size=0)
 	foreach($keys as $i)
 	{		
 		$fn = $sync_data->new_files[$i];
+		$rel_path = substr($fn, $upload_dir_len);
 		unset($sync_data->new_files[$i]);
 		if(empty($fn)) continue;
 		
 		$fbn = basename($fn);
 
-		self::PrintDebugTrace("add_existing_file:$fn");
-		$res = WPFB_Admin::AddExistingFile($fn, empty($sync_data->thumbnails[$fn]) ? null : $sync_data->thumbnails[$fn]);
-		self::PrintDebugTrace("added_existing_file");
-		if(empty($res['error'])) {
-			$sync_data->log['added'][] = empty($res['file']) ? substr($fn, $upload_dir_len) : $res['file'];
-			
-			$sync_data->known_filenames[] = substr($fn, $upload_dir_len);
-			if(!empty($res['file']) && $res['file']->GetThumbPath())
-				$sync_data->known_filenames[] = substr(self::cleanPath($res['file']->GetThumbPath()), $upload_dir_len);
-		} else
-			$sync_data->log['error'][] = $res['error'] . " (file $fn)";
+			self::PrintDebugTrace("add_existing_file:$fn");
+			$res = WPFB_Admin::AddExistingFile($fn, empty($sync_data->thumbnails[$fn]) ? null : $sync_data->thumbnails[$fn]);
+			self::PrintDebugTrace("added_existing_file");
+			if(empty($res['error'])) {
+				$sync_data->log['added'][] = empty($res['file']) ? substr($fn, $upload_dir_len) : $res['file'];
+				
+				$sync_data->known_filenames[] = $rel_path;
+				if(!empty($res['file']) && $res['file']->GetThumbPath())
+					$sync_data->known_filenames[] = substr(self::cleanPath($res['file']->GetThumbPath()), $upload_dir_len);
+			} else
+				$sync_data->log['error'][] = $res['error'] . " (file $fn)";
 		
 		$sync_data->num_files_processed++;
 			
@@ -260,7 +262,7 @@ static function AddNewFiles($sync_data, $progress_bar=null, $max_batch_size=0)
 	
 	if(!empty($progress_bar))
 		$progress_bar->complete();
-		
+	
 	return true;
 }
 
@@ -426,7 +428,7 @@ static function PrintResult(&$result)
 			
 			echo '<h2>' . __($t) . '</h2><ul>';
 			foreach($group as $item)
-				echo '<li>' . (is_object($item) ? ('<a href="'.$item->GetEditUrl().'">'.$item->GetLocalPathRel().'</a>') : $item) . '</li>';
+				echo '<li>' . (is_object($item) ? ('<a href="'.$item->GetEditUrl().'" target="_top">'.$item->GetLocalPathRel().'</a>') : $item) . '</li>';
 			echo '</ul>';
 		}
 		

@@ -319,13 +319,14 @@ if($action != 'editfile' && (!empty($post_attachments) || $manage_attachments)) 
 	<label for="list-sort-order-desc" class="radio"><?php _e('Descending'); ?></label>
 	</p>
 	<p>
-	<label for="list-show-cats"><?php _e('Files per page:',WPFB) ?></label>
+	<label for="list-num"><?php _e('Files per page:',WPFB) ?></label>
 	<input name="list-num" type="text" id="list-num" value="0" class="small-text" />
 	<?php printf(__('Set to 0 to use the default limit (%d), -1 will disable pagination.',WPFB), WPFB_Core::GetOpt('filelist_num')) ?>
+		
 	</p>
 	<p>
 	<input type="checkbox" id="list-show-cats" name="list-show-cats" value="1" />
-	<label for="list-show-cats"><?php _e('List selected Categories',WPFB) ?></label>
+	<label for="list-show-cats"><?php _e('Group by Categories',WPFB); echo " / "; _e('List selected Categories',WPFB) ?></label>
 	</p>
 	<p id="cat-sorting-wrap">
 	<label for="list-cat-sort-by"><?php _e("Category order",WPFB) ?>:</label>
@@ -338,8 +339,11 @@ if($action != 'editfile' && (!empty($post_attachments) || $manage_attachments)) 
 	<label for="list-cat-sort-order-asc" class="radio"><?php _e('Ascending'); ?></label>
 	<input type="radio" name="list-cat-sort-order" id="list-sort-order-desc" value="desc" />
 	<label for="list-cat-sort-order-desc" class="radio"><?php _e('Descending'); ?></label>
-	</p>
-	
+	</p>	
+	<p id="list-pagenav-wrap">
+	<input type="checkbox" id="list-pagenav" name="list-pagenav" value="1" checked="checked" />
+	<label for="list-pagenav"><?php _e('Display Page Navigation',WPFB); ?></label>
+	</p>	
 	<p><a class="button" style="float: right;" href="javascript:void(0)" onclick="return insListTag()"><?php echo _e('Insert') ?></a></p>
 </form>
 

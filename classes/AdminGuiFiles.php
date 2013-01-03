@@ -25,10 +25,9 @@ static function Display()
 	// switch simple/extended form
 	if(isset($_GET['exform'])) {
 		$exform = (!empty($_GET['exform']) && $_GET['exform'] == 1);
-		update_user_option($user_ID, WPFB_OPT_NAME . '_exform', $exform?1:0); 
-	} else {
-		$exform = (get_user_option(WPFB_OPT_NAME . '_exform') === 1);
-	}
+		update_user_option($user_ID, WPFB_OPT_NAME . '_exform', $exform); 
+	} else
+		$exform = (bool)get_user_option(WPFB_OPT_NAME . '_exform');
 	
 	if(!empty($_REQUEST['redirect']) && !empty($_REQUEST['redirect_to'])) WPFB_AdminLite::JsRedirect($_REQUEST['redirect_to']);
 	

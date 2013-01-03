@@ -372,7 +372,7 @@ function SendFile($file_path, $args=array())
 		header("Pragma: no-cache");
 		header("Expires: Wed, 11 Jan 1984 05:00:00 GMT");
 	} elseif($cache_max_age > 0)	
-		header("Cache-Control: max-age=$cache_max_age");	
+		header("Cache-Control: must-revalidate, max-age=$cache_max_age");	
 		
 	//header("Connection: close");
 	//header("Keep-Alive: timeout=5, max=100");
@@ -491,7 +491,7 @@ static function SideloadFile($url, $dest_path, $progress_bar=null)
 {
 	$rh = @fopen($url, 'rb'); // read binary
 	if($rh === false)
-		return array('error' => sprintf('Could not open URL %s!', $url));
+		return array('error' => sprintf('Could not open URL %s!', $url). ' '.  print_r(error_get_last(), true));
 	$fh = @fopen($dest_path, 'wb'); // write binary
 	if($fh === false) {
 		@fclose($rh);

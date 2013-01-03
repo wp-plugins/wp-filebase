@@ -100,6 +100,7 @@ switch ( $action = $_REQUEST['action'] ) {
 		
 		wpfb_print_json($files_before_cats ? array_merge($file_items, $cat_items) : array_merge($cat_items, $file_items));
 		exit;
+
 	
 	case 'delete':
 		wpfb_loadclass('File','Category');
@@ -157,7 +158,7 @@ switch ( $action = $_REQUEST['action'] ) {
 			die('-1');
 		
 		$tpl = empty($_POST['tpl']) ? null : WPFB_TplLib::Parse($_POST['tpl']);
-		echo $item->GenTpl($tpl, 'ajax');
+		echo do_shortcode($item->GenTpl($tpl, 'ajax'));
 		exit;
 		
 	case 'fileinfo':

@@ -134,6 +134,7 @@ static function Display()
 		
 		$old_options = get_option(WPFB_OPT_NAME);
 		update_option(WPFB_OPT_NAME, $options);
+		WPFB_Core::$settings = (object)$options;
 		
 		$messages += WPFB_Admin::SettingsUpdated($old_options, $options);
 		
@@ -210,7 +211,7 @@ jQuery(document).ready( function() {
 		),
 		__('Download', WPFB)				=> array(
 												'hide_links', 'disable_permalinks', 'download_base', 'force_download', 'range_download', 'http_nocache', 'ignore_admin_dls', 'accept_empty_referers','allowed_referers','dl_destroy_session'),
-		__('Form Presets', WPFB)			=> array('default_author','default_roles', 'default_cat', 'languages', 'platforms', 'licenses', 'requirements', 'custom_fields'),
+		__('Form Presets', WPFB)			=> array('default_author','default_roles', 'default_cat', 'default_direct_linking','languages', 'platforms', 'licenses', 'requirements', 'custom_fields'),
 		__('Limits', WPFB)					=> array('bitrate_unregistered', 'bitrate_registered', 'traffic_day', 'traffic_month', 'traffic_exceeded_msg', 'file_offline_msg', 'daily_user_limits', 'daily_limit_subscriber', 'daily_limit_contributor', 'daily_limit_author', 'daily_limit_editor', 'daily_limit_exceeded_msg'),
 		__('Security', WPFB)				=> array('allow_srv_script_upload', 'fext_blacklist', 'frontend_upload', 'hide_inaccessible', 'inaccessible_msg', 'inaccessible_redirect', 'cat_inaccessible_msg', 'login_redirect_src', 'protect_upload_path', 'private_files'),
 		__('Templates and Scripts', WPFB)	=> array('template_file', 'template_cat', 'dlclick_js'),

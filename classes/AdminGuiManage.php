@@ -169,7 +169,7 @@ static function Display()
 				<th scope="row"><?php _e('Categories', WPFB); ?></th>
 			</tr>
 			<tr>
-				<td><?php echo $wpdb->get_var("SELECT SUM(file_hits) FROM $wpdb->wpfilebase_files") ?></td>
+				<td><?php echo "".(int)$wpdb->get_var("SELECT SUM(file_hits) FROM $wpdb->wpfilebase_files") ?></td>
 				<th scope="row"><?php _e('Downloads', WPFB); ?></th>
 			</tr>
 			</table>
@@ -259,7 +259,8 @@ if(WPFB_Core::GetOpt('cron_sync')) {
 		}
 		$opts = WPFB_Core::GetOpt();
 		unset($opts['tag_conv_req']);
-		update_option(WPFB_OPT_NAME, $opts);		
+		update_option(WPFB_OPT_NAME, $opts);
+		WPFB_Core::$settings = (object)$opts;
 		
 		break; // convert-tags
 		

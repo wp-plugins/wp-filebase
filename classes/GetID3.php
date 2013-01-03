@@ -4,7 +4,8 @@ class WPFB_GetID3 {
 	
 	static function InitClass()
 	{
-		require_once(WPFB_PLUGIN_ROOT.'extras/getid3/getid3.php');		
+		if(!class_exists('getID3'))
+			require_once(WPFB_PLUGIN_ROOT.'extras/getid3/getid3.php');		
 		self::$engine = new getID3;
 	}
 	

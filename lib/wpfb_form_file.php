@@ -39,8 +39,17 @@ else
 
 //$file_category = ($update || empty($_REQUEST['file_category'])) ? $file->file_category : $_REQUEST['file_category'];
 
+if(!$update) $file->file_direct_linking = WPFB_Core::$settings->default_direct_linking;
+
 wpfb_loadclass('AdvUploader');
 $adv_uploader = new WPFB_AdvUploader($form_url);
+
+
+if(isset($_GET['visual_editor'])) {
+	global $user_ID;
+	update_user_option($user_ID, WPFB.'_visual_editor', (int)$_GET['visual_editor']);
+}
+$visual_editor = get_user_option(WPFB.'_visual_editor') && !$in_widget;
 
 ?>
 
@@ -92,6 +101,11 @@ jQuery(document).ready(function($){
 			return false;
 		}
 	});
+
+//	jQuery("#file_description").addClass("mceEditor");
+//	if ( typeof( tinyMCE ) == "object" && typeof( tinyMCE.execCommand ) == "function" ) {
+//		tinyMCE.execCommand("mceAddControl", false, "file_description");
+//	}
 	
 	$('#file_tags').keyup(function() {
 		var tags = $(this).val();
@@ -246,7 +260,7 @@ function WPFB_addTag(tag)
 		<th scope="row" valign="top"><label for="file_category"><?php _e('Category') ?></label></th>
 		<td><select name="file_category" id="file_category" class="postform" onchange="WPFB_formCategoryChanged();"><?php echo WPFB_Output::CatSelTree(array('selected'=>$file_category
 )) ?></select></td>
-		<?php if($exform) { ?>
+		<?php if($exform && !empty(WPFB_Core::$settings->licenses)) { ?>
 		<th scope="row" valign="top"><label for="file_license"><?php _e('License', WPFB) ?></label></th>
 		<td><select name="file_license" id="file_license" class="postform"><?php echo  WPFB_Admin::MakeFormOptsList('licenses', $file ? $file->file_license : null, true) ?></select></td>
 		<?php } ?>
@@ -291,9 +305,19 @@ function WPFB_addTag(tag)
 		</td>
 		<?php } ?>
 	</tr>
-	<tr class="form-field">
-		<th scope="row" valign="top"><label for="file_description"><?php _e('Description') ?></label></th>
-		<td colspan="3"><textarea name="file_description" id="file_description" rows="5" cols="50" style="width: 97%;"><?php echo esc_html($file->file_description); ?></textarea></td>
+	<tr <?php if(!$visual_editor) { ?>class="form-field"<?php } ?>>
+		<th scope="row" valign="top"><label for="file_description"><?php _e('Description') ?></label>
+		<?php if(!$in_widget) { ?><br /><br />
+		<a style="font-style:normal; font-size:9px; padding:3px; margin:0;" href="<?php echo add_query_arg('visual_editor', ($visual_editor ? '0' : '1')).'#'.$action; ?>" class="add-new-h2"><?php _e($visual_editor ? 'Simple Editor' : 'Visual Editor', WPFB) ?></a>
+		<?php } ?>
+		</th>
+		<td colspan="3">
+		<?php if($visual_editor) {
+			wp_editor($file->file_description, 'file_description', array('media_buttons' => false));
+		} else { ?>
+			<textarea name="file_description" id="file_description" rows="5" cols="50" style="width: 97%;"><?php echo esc_html($file->file_description); ?></textarea>
+		<?php } ?>
+		</td>
 	</tr>
 	<tr class="form-field">
 		<th scope="row" valign="top"><label for="file_tags"><?php _e('Tags') ?></label></th>

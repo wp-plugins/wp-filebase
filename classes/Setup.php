@@ -6,8 +6,8 @@ const MANY_CATEGORIES = 200;
 
 static function AddOptions()
 {
-	$default_opts = &WPFB_Admin::SettingsSchema();		
-	$existing_opts = WPFB_Core::GetOpt();
+	$default_opts = WPFB_Admin::SettingsSchema();		
+	$existing_opts = get_option(WPFB_OPT_NAME);
 	$new_opts = array();
 	
 	foreach($default_opts as $opt_name => $opt_data)
@@ -38,6 +38,8 @@ static function AddOptions()
 
 		update_option(WPFB_OPT_NAME, $new_opts);
 	}
+	
+	WPFB_Core::$settings = (object)get_option(WPFB_OPT_NAME);
 	
 	add_option(WPFB_OPT_NAME.'_ftags', array(), null, 'no'/*autoload*/); 
 	
@@ -198,6 +200,7 @@ static function RemoveOptions()
 	$options = WPFB_Admin::SettingsSchema();
 	foreach($options as $opt_name => $opt_data)
 		delete_option(WPFB_OPT_NAME . '_' . $opt_name);
+	WPFB_Core::$settings = new stdClass();
 }
 
 static function RemoveTpls() {

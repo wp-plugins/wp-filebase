@@ -23,15 +23,21 @@
 		self::DEcho("<span style='color:#d00;'>$err</span><br />");		
 	}
 	
+	function LogException(Exception $e)
+	{
+		if($this->quiet) return;
+		self::DEcho("<span style='color:#d00;'>".$e->getMessage()."</span><br />");
+	}
+	
 	function InitProgress($progress_end)
 	{
 		$this->progress_end = $progress_end;
 		if(!$this->quiet) {
-			if(is_null($this->progress_bar)) {
+			//if(is_null($this->progress_bar)) {
 				if(!class_exists('progressbar')) include_once(WPFB_PLUGIN_ROOT.'extras/progressbar.class.php');
 				$this->progress_bar = new progressbar(0, 100);
 				$this->progress_bar->print_code();
-			}
+			//}
 		}			
 	}
 	

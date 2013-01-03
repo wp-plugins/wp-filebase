@@ -254,7 +254,7 @@ static function TplsTable($type) {
 		</td>
 		<td>
 			<div class="entry-content wpfilebase-tpl-preview">
-				<div id="tpl-preview_<?php echo $tpl_tag ?>"><?php echo $list ? $tpl->Sample(self::$sample_cat, self::$sample_file) : $item->GenTpl(WPFB_TplLib::Parse($tpl_src), 'sample') ?></div>
+				<div id="tpl-preview_<?php echo $tpl_tag ?>"><?php echo do_shortcode($list ? $tpl->Sample(self::$sample_cat, self::$sample_file) : $item->GenTpl(WPFB_TplLib::Parse($tpl_src), 'sample')) ?></div>
 				<div style="height: 50px; float: left;"></div>
 				<div class="clear"></div>
 			</div>
@@ -326,6 +326,7 @@ static function TplForm($type, $tpl_tag=null)
 			<textarea id="tpl-list-footer" name="tpl-list-footer" cols="70" rows="<?php echo (max(2, count(explode("\n",$tpl->footer)))+3); ?>" wrap="off" class="codepress html wpfilebase-tpledit" onkeyup="WPFB_PreviewTpl(this, '<?php echo $type ?>')" onchange="WPFB_PreviewTpl(this, '<?php echo $type ?>')"><?php echo htmlspecialchars($tpl->footer) ?></textarea><br />
 		</td>
 	</tr>
+
 </table>
 	<?php } else { ?>
 	<p>

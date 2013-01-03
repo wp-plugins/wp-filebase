@@ -17,7 +17,7 @@ static function InitClass()
 	}
 	
 	
-	wp_register_widget_control(WPFB_PLUGIN_NAME, "[DEPRECATED]".WPFB_PLUGIN_NAME .' '. __('File list'), array(__CLASS__, 'WidgetFileListControl'), array('description' => __('DEPRECATED', WPFB)));
+	//wp_register_widget_control(WPFB_PLUGIN_NAME, "[DEPRECATED]".WPFB_PLUGIN_NAME .' '. __('File list'), array(__CLASS__, 'WidgetFileListControl'), array('description' => __('DEPRECATED', WPFB)));
 	
 	add_action('admin_print_scripts', array('WPFB_AdminLite', 'PrintCKEditorPlugin'));
 	
@@ -82,12 +82,6 @@ static function MceButtons($buttons) {
 	return $buttons;
 }
 
-static function WidgetFileListControl()
-{
-	WPFB_Core::LoadLang();
-	wpfb_loadclass('Widget');
-	WPFB_Widget::FileListCntrl();
-}
 
 private static function CheckChangedVer()
 {

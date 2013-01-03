@@ -40,6 +40,8 @@ class WPFB_File extends WPFB_Item {
 	var $file_last_dl_ip;
 	var $file_last_dl_time;
 	
+	//var $file_edited_time;
+	
 	//var $file_meta;
 	
 	static $cache = array();
@@ -94,7 +96,7 @@ class WPFB_File extends WPFB_Item {
 		
 		if($check_permissions != false) {
 			if(is_string($check_permissions) && $check_permissions == 'edit') {
-				$edit_cond = (current_user_can('edit_others_posts') && !WPFB_Core::GetOpt('private_files')) ? "1=1" : ("file_added_by = ".((int)$current_user->ID));
+				$edit_cond = (current_user_can('edit_others_posts') && !WPFB_Core::$settings->private_files) ? "1=1" : ("file_added_by = ".((int)$current_user->ID));
 				$where_str = "($where_str) AND ($edit_cond)";
 			} else
 				$where_str = "($where_str) AND (".self::GetReadPermsWhere().") AND file_offline = '0'";
@@ -141,7 +143,7 @@ class WPFB_File extends WPFB_Item {
 	
 	static function GetFile($id)
 	{		
-		$id = intval($id);		
+		$id = (int)($id);		
 		if(isset(self::$cache[$id]) || WPFB_File::GetFiles("WHERE file_id = $id")) return self::$cache[$id];
 		return null;
 	}
@@ -166,7 +168,7 @@ class WPFB_File extends WPFB_Item {
 	static function GetAttachedFiles($post_id)
 	{
 		$post_id = intval($post_id);
-		return WPFB_File::GetFiles2(array('file_post_id' => $post_id), WPFB_Core::GetOpt('hide_inaccessible'), WPFB_Core::GetFileListSortSql(null, true));
+		return WPFB_File::GetFiles2(array('file_post_id' => $post_id), WPFB_Core::$settings->hide_inaccessible, WPFB_Core::GetFileListSortSql(null, true));
 	}
 	
 	function WPFB_File($db_row=null) {		
@@ -231,7 +233,7 @@ class WPFB_File extends WPFB_Item {
 		$this->DeleteThumbnail(); // delete old thumbnail
 		
 		$thumb = null;
-		$thumb_size = (int)WPFB_Core::GetOpt('thumbnail_size');
+		$thumb_size = (int)WPFB_Core::$settings->thumbnail_size;
 		
 
 			
@@ -292,7 +294,7 @@ class WPFB_File extends WPFB_Item {
 
 	function GetPostUrl() { return empty($this->file_post_id) ? '' : WPFB_Core::GetPostUrl($this->file_post_id).'#wpfb-file-'.$this->file_id; }
 	function GetFormattedSize() { return wpfb_call('Output', 'FormatFilesize', $this->file_size); }
-	function GetFormattedDate($f='file_date') { return (empty($this->$f) || $this->$f == '0000-01-00 00:00:00') ? null : mysql2date(WPFB_Core::GetOpt('file_date_format'), $this->$f); }
+	function GetFormattedDate($f='file_date') { return (empty($this->$f) || $this->$f == '0000-01-00 00:00:00') ? null : mysql2date(WPFB_Core::$settings->file_date_format, $this->$f); }
 	function GetModifiedTime($gmt=false) { return $this->file_mtime + ($gmt ? ( get_option( 'gmt_offset' ) * 3600 ) : 0); }
 	
 	// only deletes file/thumbnail on FS, keeping DB entry
@@ -378,15 +380,15 @@ class WPFB_File extends WPFB_Item {
     {		
 		switch($name) {
 			case 'file_url':			return htmlspecialchars($this->GetUrl());
-			case 'file_url_rel':		return htmlspecialchars(WPFB_Core::GetOpt('download_base') . '/' . str_replace('\\', '/', $this->GetLocalPathRel()));
+			case 'file_url_rel':		return htmlspecialchars(WPFB_Core::$settings->download_base . '/' . str_replace('\\', '/', $this->GetLocalPathRel()));
 			case 'file_post_url':		return htmlspecialchars(!($url = $this->GetPostUrl()) ? $this->GetUrl() : $url);			
 			case 'file_icon_url':		return htmlspecialchars($this->GetIconUrl());
-			case 'file_small_icon':		return '<img src="'.esc_attr($this->GetIconUrl('small')).'" style="vertical-align:middle;height:'.WPFB_Core::GetOpt('small_icon_size').'px;" />';
+			case 'file_small_icon':		return '<img src="'.esc_attr($this->GetIconUrl('small')).'" style="vertical-align:middle;height:'.WPFB_Core::$settings->small_icon_size.'px;" />';
 			case 'file_size':			return $this->GetFormattedSize();
 			case 'file_path':			return htmlspecialchars($this->GetLocalPathRel());
 			
 			case 'file_category':		return htmlspecialchars(is_object($cat = $this->GetParent()) ? $cat->cat_name : '');
-			case 'cat_small_icon':		return is_null($cat = $this->GetParent()) ? '' : ('<img align="" src="'.htmlspecialchars($cat->GetIconUrl('small')).'" style="height:'.WPFB_Core::GetOpt('small_icon_size').'px;vertical-align:middle;" />');
+			case 'cat_small_icon':		return is_null($cat = $this->GetParent()) ? '' : ('<img align="" src="'.htmlspecialchars($cat->GetIconUrl('small')).'" style="height:'.WPFB_Core::$settings->small_icon_size.'px;vertical-align:middle;" />');
 			case 'cat_icon_url':		return is_null($cat = $this->GetParent()) ? '' : htmlspecialchars($cat->GetIconUrl());
 			case 'cat_url':				return is_null($cat = $this->GetParent()) ? '' : htmlspecialchars($cat->GetUrl());
 			
@@ -437,9 +439,9 @@ class WPFB_File extends WPFB_Item {
     }
 	
 	function DownloadDenied($msg_id) {
-		if(WPFB_Core::GetOpt('inaccessible_redirect') && !is_user_logged_in()) {
+		if(WPFB_Core::$settings->inaccessible_redirect && !is_user_logged_in()) {
 			//auth_redirect();
-			$redirect = (WPFB_Core::GetOpt('login_redirect_src') && wp_get_referer()) ? wp_get_referer() : $this->GetUrl();
+			$redirect = (WPFB_Core::$settings->login_redirect_src && wp_get_referer()) ? wp_get_referer() : $this->GetUrl();
 			$login_url = wp_login_url($redirect, true); // force re-auth
 			wp_redirect($login_url);
 			exit;
@@ -472,8 +474,8 @@ class WPFB_File extends WPFB_Item {
 			$this->DownloadDenied('inaccessible_msg');
 		
 		// check offline
-		if($this->file_offline)
-			wp_die(WPFB_Core::GetOpt('file_offline_msg'));
+		if($this->file_offline && !$is_admin)
+			wp_die(WPFB_Core::$settings->file_offline_msg);
 		
 		// check referrer
 		if($this->file_direct_linking != 1) {			
@@ -490,11 +492,11 @@ class WPFB_File extends WPFB_Item {
 		// check traffic
 		if($this->IsLocal() && !WPFB_Download::CheckTraffic($this->file_size)) {
 			header('HTTP/1.x 503 Service Unavailable');
-			wp_die(WPFB_Core::GetOpt('traffic_exceeded_msg'));
+			wp_die(WPFB_Core::$settings->traffic_exceeded_msg);
 		}
 
 		// check daily user limit
-		if(!$is_admin && WPFB_Core::GetOpt('daily_user_limits')) {
+		if(!$is_admin && WPFB_Core::$settings->daily_user_limits) {
 			if(!$logged_in)
 				$this->DownloadDenied('inaccessible_msg');
 			
@@ -507,7 +509,7 @@ class WPFB_File extends WPFB_Item {
 			// check for limit
 			$dl_limit = intval(WPFB_Core::GetOpt('daily_limit_'.$user_role));
 			if($dl_limit > 0 && $usr_dls_today >= $dl_limit)
-				$this->DownloadDenied(sprintf(WPFB_Core::GetOpt('daily_limit_exceeded_msg'), $dl_limit));			
+				$this->DownloadDenied(sprintf(WPFB_Core::$settings->daily_limit_exceeded_msg, $dl_limit));			
 			
 			$usr_dls_today++;
 			update_user_option($user_ID, WPFB_OPT_NAME . '_dls_today', $usr_dls_today);
@@ -515,19 +517,21 @@ class WPFB_File extends WPFB_Item {
 		}			
 		
 		// count download
-		if(!$is_admin || !WPFB_Core::GetOpt('ignore_admin_dls')) {
+		if(!$is_admin || !WPFB_Core::$settings->ignore_admin_dls) {
 			$last_dl_time = mysql2date('U', $this->file_last_dl_time , false);
 			if(empty($this->file_last_dl_ip) || $this->file_last_dl_ip != $downloader_ip || ((time() - $last_dl_time) > 86400))
 				$wpdb->query("UPDATE " . $wpdb->wpfilebase_files . " SET file_hits = file_hits + 1, file_last_dl_ip = '" . $downloader_ip . "', file_last_dl_time = '" . current_time('mysql') . "' WHERE file_id = " . (int)$this->file_id);
 		}
 		
 		// download or redirect
+		$bw = 'bitrate_' . ($logged_in?'registered':'unregistered');
 		if($this->IsLocal())
 			WPFB_Download::SendFile($this->GetLocalPath(), array(
-				'bandwidth' => WPFB_Core::GetOpt('bitrate_' . ($logged_in?'registered':'unregistered')),
+				'bandwidth' => WPFB_Core::$settings->$bw,
 				'etag' => $this->file_hash,
 				'md5_hash' => $this->file_hash,
-				'force_download' => $this->file_force_download
+				'force_download' => $this->file_force_download,
+				'cache_max_age' => 10
 			));
 		else {
 			header('HTTP/1.1 301 Moved Permanently');
@@ -595,7 +599,6 @@ class WPFB_File extends WPFB_Item {
 		//global $wpdb;
 		//return $wpdb->get_var( $wpdb->prepare("SELECT ID FROM $wpdb->posts WHERE guid = %s", $this->GetUrl()) );
 	}
-	
 	
 	function IsRemote() { return !empty($this->file_remote_uri); }	
 	function IsLocal() { return empty($this->file_remote_uri); }
