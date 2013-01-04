@@ -18,11 +18,11 @@ static $post_url_cache = array();
 static $settings;
 
 static function InitClass()
-{
+{	
+	if(defined('WPFB_SIMPLE_LOAD')) return;	// used with CSS proxy
+	
 	//Load settings
 	self::$settings = (object)get_option(WPFB_OPT_NAME);
-	
-	if(defined('WPFB_SIMPLE_LOAD')) return;	// used with CSS proxy
 	
 	// load lang
 	$lang_dir = basename(WPFB_PLUGIN_ROOT).'/languages';
