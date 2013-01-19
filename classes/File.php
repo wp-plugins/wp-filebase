@@ -124,6 +124,16 @@ class WPFB_File extends WPFB_Item {
 		return "$wpdb->wpfilebase_files $join_str WHERE ($where_str) $order_str $limit_str";
 	}
 	
+/**
+ * Queries Files
+ *
+ * @param array|string $where Associative Where Array or SQL Expression
+ * @param bool $check_permissions Whether to check permissions
+ * @param array|string $order File Sorting Array or SQL Expression
+ * @param int $limit Description
+ * @param int $offset Description
+ * @return array Array of File Objects.
+ */
 	static function GetFiles2($where = null, $check_permissions = false, $order = null, $limit = -1, $offset = -1)
 	{
 		global $wpdb;
@@ -171,6 +181,13 @@ class WPFB_File extends WPFB_Item {
 		return WPFB_File::GetFiles2(array('file_post_id' => $post_id), WPFB_Core::$settings->hide_inaccessible, WPFB_Core::GetFileListSortSql(null, true));
 	}
 	
+	static function GetByPost($post_id)
+	{
+		global $wpdb;
+		$row = $wpdb->get_row("SELECT `$wpdb->wpfilebase_files`.* FROM $wpdb->wpfilebase_files WHERE file_wpattach_id = ".(int)$post_id." LIMIT 1");
+		return empty($row) ? null : new WPFB_File($row);
+	}
+	
 	function WPFB_File($db_row=null) {		
 		parent::WPFB_Item($db_row);
 		$this->is_file = true;
@@ -180,7 +197,7 @@ class WPFB_File extends WPFB_Item {
 	{ // validate some values before saving (fixes for mysql strict mode)
 		if($this->locked > 0) return $this->TriggerLockedError();	
 		$ints = array('file_category','file_post_id','file_attach_order','file_wpattach_id','file_added_by','file_update_of','file_hits','file_ratings','file_rating_sum');
-		foreach($ints as $i) $this->$i = intval($this->$i);
+		foreach($ints as $i) $this->$i = (int)($this->$i);
 		$this->file_offline = (int)!empty($this->file_offline);
 		$this->file_direct_linking = (int)$this->file_direct_linking;
 		$this->file_force_download = (int)!empty($this->file_force_download);
@@ -232,43 +249,14 @@ class WPFB_File extends WPFB_Item {
 		}
 		$this->DeleteThumbnail(); // delete old thumbnail
 		
-		$thumb = null;
 		$thumb_size = (int)WPFB_Core::$settings->thumbnail_size;
-		
-
-			
-		$extras_dir = WPFB_PLUGIN_ROOT . 'extras/';
-		
-		if($ext == 'bmp') {			
-			if(@file_exists($extras_dir . 'phpthumb.functions.php') && @file_exists($extras_dir . 'phpthumb.bmp.php'))
-			{
-				@include_once($extras_dir . 'phpthumb.functions.php');
-				@include_once($extras_dir . 'phpthumb.bmp.php');
-				
-				if(class_exists('phpthumb_functions') && class_exists('phpthumb_bmp'))
-				{
-					$phpthumb_bmp = new phpthumb_bmp();
-					
-					$im = $phpthumb_bmp->phpthumb_bmpfile2gd($src_image);
-					if($im) {
-						$jpg_file = $src_image . '_thumb.jpg';
-						@imagejpeg($im, $jpg_file, 100);
-						if(@file_exists($jpg_file) && @filesize($jpg_file) > 0)
-						{
-							$thumb = WPFB_FileUtils::CreateThumbnail($jpg_file, $thumb_size);
-						}
-						@unlink($jpg_file);
-					}						
-				}
-			}
-		} else {
-			$thumb = WPFB_FileUtils::CreateThumbnail($src_image, $thumb_size);
-			if(is_wp_error($thumb) && max($src_size) <= $thumb_size) { // error occurs when image is smaller than thumb_size. in this case, just copy original
-				$name = wp_basename($src_image, ".$ext");
-				$thumb = dirname($src_image)."/{$name}-{$src_size[0]}x{$src_size[1]}.".strtolower(strrchr($src_image, '.'));
-				copy($src_image, $thumb);
-			}
+		if($thumb_size == 0) {
+			if($tmp_src) @unlink($src_image);
+			return;
 		}
+	
+		$thumb = WPFB_FileUtils::CreateThumbnail($src_image, $thumb_size);
+
 		
 		$success = (!empty($thumb) && !is_wp_error($thumb) && is_string($thumb) && file_exists($thumb));
 

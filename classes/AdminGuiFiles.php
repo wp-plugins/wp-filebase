@@ -60,16 +60,16 @@ static function Display()
 			break;
 
 		case 'updatefile':
-			if(!current_user_can('upload_files')) wp_die(__('Cheatin&#8217; uh?'));
 			$file_id = (int)$_POST['file_id'];
 			$update = true;
 			$file = WPFB_File::GetFile($file_id);
 			if(is_null($file) || !$file->CurUserCanEdit())
-				wp_die(__('Cheatin&#8217; uh?'));			
+				wp_die(__('Cheatin&#8217; uh?'));
+			
 		case 'addfile':
 			$update = !empty($update);
 		
-			if ( !current_user_can('upload_files') )
+			if ( !WPFB_Admin::CurUserCanUpload() )
 				wp_die(__('Cheatin&#8217; uh?'));
 			
 			extract($_POST);

@@ -3,7 +3,7 @@ class WPFB_AdminGuiTpls {
 	
 static $sample_file = null;
 static $sample_cat = null;
-static $protected_tags = array('default','single','excerpt','filebrowser','filepage');
+static $protected_tags = array('default','single','excerpt','filebrowser','filepage','filepage_excerpt');
 
 static function InitClass() {
 	global $user_identity, $current_user;
@@ -173,11 +173,12 @@ jQuery(document).ready( function() {
 			
 		default:
 ?>
+<h2><?php _e('Templates',WPFB); ?></h2>
 <div id="wpfb-tabs">
 	<ul class="wpfb-tab-menu">
 		<li><a href="#file"><?php _e('Files', WPFB) ?></a></li>
 		<li><a href="#cat"><?php _e('Categories') ?></a></li>
-		<li><a href="#list"><?php _e('File list', WPFB) ?></a></li>
+		<li><a href="#list"><?php _e('File List', WPFB) ?></a></li>
 	</ul>
 	
 	<div id="file" class="wrap">
@@ -194,6 +195,7 @@ jQuery(document).ready( function() {
 	<p><?php _e('A list-template consists of header, footer and file template. It can optionally have a category template to list sub-categories.',WPFB); ?></p>
 	<?php self::TplsTable('list'); ?>
 	</div>
+
 	
 	<div id="browser" class="wrap">
 	</div>
@@ -208,7 +210,7 @@ jQuery(document).ready( function() {
 	}
 }
 
-static function TplsTable($type) {
+static function TplsTable($type, $exclude=array(), $include=array()) {
 	global $user_identity;
 	$cat = ($type == 'cat');
 	$list = ($type == 'list');
@@ -236,6 +238,7 @@ static function TplsTable($type) {
 
 	<tbody>
 <?php foreach($tpls as $tpl_tag => $tpl_src) {
+	if( (!empty($include) && !in_array($tpl_tag, $include)) || (!empty($exclude) && in_array($tpl_tag, $exclude))) continue;
 	$edit_link = add_query_arg(array('action'=>'edit','type'=>$type,'tpl'=>$tpl_tag));
 	if($list) $tpl = WPFB_ListTpl::Get($tpl_tag);
 	

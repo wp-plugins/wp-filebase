@@ -225,7 +225,11 @@ if(WPFB_Core::GetOpt('cron_sync')) {
 			<?php echo WPFB_PLUGIN_NAME . ' ' . WPFB_VERSION ?> by Fabian Schlieper <a href="http://fabi.me/">
 			<?php if(strpos($_SERVER['SERVER_PROTOCOL'], 'HTTPS') === false) { ?><img src="http://fabi.me/misc/wpfb_icon.gif?lang=<?php if(defined('WPLANG')) {echo WPLANG;} ?>" alt="" /><?php } ?> fabi.me</a><br/>
 			Includes the great file analyzer <a href="http://www.getid3.org/">getID3()</a> by James Heinrich
-			</p><?php
+			</p>
+			<?php if(current_user_can('edit_files')) { ?>
+			<p><a href="<?php echo admin_url('plugins.php?wpfb-uninstall=1') ?>" class="button"><?php _e('Completely Uninstall WP-Filebase') ?></a></p>
+				<?php
+			}
 			break;
 			
 	case 'convert-tags':

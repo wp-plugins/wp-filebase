@@ -97,21 +97,7 @@ static function FileBrowser(&$content, $root_cat_id=0, $cur_cat_id=0)
 			$cur_item = WPFB_Category::GetCat($cur_cat_id);
 		}
 		
-		/*else {
-			$url = (is_ssl()?'https':'http').'://'.$_SERVER["HTTP_HOST"].$_SERVER['REQUEST_URI'];
-			if( ($qs=strpos($url,'?')) !== false ) $url = substr($url,0,$qs); // remove query string	
-			$path = trim(substr($url, strlen(WPFB_Core::GetPostUrl(WPFB_Core::GetPostId()))), '/');
-			echo $path;
-			if(!empty($path)) {
-				$cur_cat = WPFB_Item::GetByPath($path);
-				if(!is_null($cur_cat) && $cur_cat->is_file) {
-					$file =& $cur_cat;
-					print_r($file);
-					return;
-				}
-			}
-		}
-		*/
+
 		
 		// make sure cur cat is a child cat of parent
 		if(!is_null($cur_item) && !is_null($root_cat) && !$root_cat->IsAncestorOf($cur_item))
@@ -417,7 +403,7 @@ static function RoleNames($roles, $fmt_string=false) {
 	return $fmt_string ? (empty($names) ? ("<i>".__('Everyone',WPFB)."</i>") : join(', ',$names)) : $names;
 }
 
-static function FileForm($prefix, $form_url, $vars, $secret_key=null) {
+static function FileForm($prefix, $form_url, $vars, $secret_key=null, $extended=false) {
 	$category = $vars['cat'];
 	$nonce_action = "$prefix=";
 	if(!empty($secret_key)) $nonce_action .= $secret_key;
@@ -435,9 +421,13 @@ static function FileForm($prefix, $form_url, $vars, $secret_key=null) {
 		wp_nonce_field($nonce_action, 'wpfb-file-nonce'); ?>
 			<input type="hidden" name="prefix" value="<?php echo $prefix ?>" />
 			<div>
-				<?php if($category == -1) { ?><br />
+				
+	
+				<?php if($category == -1) { ?>
+				<div>
 				<label for="<?php echo $prefix ?>file_category"><?php _e('Category') ?></label>
 				<select name="file_category" id="<?php echo $prefix; ?>file_category"><?php wpfb_loadclass('Category'); echo WPFB_Output::CatSelTree(); ?></select>
+				</div>
 				<?php } else { ?>
 				<input type="hidden" name="file_category" value="<?php echo $category; ?>" id="<?php echo $prefix ?>file_category" />
 				<?php } ?>
@@ -469,14 +459,16 @@ static function GetSearchForm($action, $hidden_vars = array(), $prefix=null)
 	}	
 	
 	ob_start();
+	echo "<!-- WPFB searchform -->";
 	get_search_form();
+	echo "<!-- /WPFB searchform -->";
 	$form = ob_get_clean();
 	
 	if($searching) $wp_query->query_vars['s'] = $sb; // restore query var s
 	
-	$form = preg_replace('/action=["\'].+?["\']/', 'action="'.esc_attr($action).'"', $form);
-	$form = str_replace('name="s"', 'name="wpfb_s"', $form);
-	$form = str_replace("name='s'", "name='wpfb_s'", $form);
+	$form = preg_replace('/action=["\'].+?["\']/', 'action="'.esc_attr($action).'"', $form, -1, $count);
+	if($count === 0) { return "<!-- NO FORM ACTION MATCH -->";	}
+	$form = str_replace(array('name="s"',"name='s'"), array('name="wpfb_s"',"name='wpfb_s'"), $form);
 	
 	if(!empty($hidden_vars)) {
 		$gets = '';

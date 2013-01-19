@@ -38,6 +38,7 @@ $file_id = empty($_REQUEST['file_id']) ? 0 : intval($_REQUEST['file_id']);
 $file = ($file_id > 0) ? WPFB_File::GetFile($file_id) : null;
 
 $manage_attachments = !empty($_REQUEST['manage_attachments']);
+$post_title = $post_id ? get_the_title($post_id) : null;
 
 switch($action){
 case 'detachfile':
@@ -244,7 +245,7 @@ if($action =='addfile' || $action =='updatefile')
 if($action != 'editfile' && (!empty($post_attachments) || $manage_attachments)) {
 	?>
 	<form action="<?php echo add_query_arg(array('action'=>'change-order')) ?>" method="post">	
-	<h3 class="media-title"><?php _e('Files', WPFB) ?></h3>
+	<h3 class="media-title"><?php echo $post_title ? sprintf(__('Files attached to <i>%s</i>',WPFB), $post_title) : __('Files', WPFB) ?></h3>
 	<div id="media-items">
 	<?php 
 	if(empty($post_attachments)) echo "<div class='media-item'>",__('No items found.'),"</div>";

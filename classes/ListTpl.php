@@ -46,8 +46,10 @@ class WPFB_ListTpl {
 	private function ParseHeaderFooter($str, $uid=null) {
 		$str = preg_replace('/%sort_?link:([a-z0-9_]+)%/ie', __CLASS__.'::GenSortlink(\'$1\')', $str);
 		
-		if(strpos($str, '%search_form%') !== false)
+		if(strpos($str, '%search_form%') !== false) {
+			wpfb_loadclass('Output');
 			$str = str_replace('%search_form%', WPFB_Output::GetSearchForm("", $_GET), $str);
+		}
 		
 		$str = preg_replace('/%print_?script:([a-z0-9_-]+)%/ie', __CLASS__.'::PrintScriptOrStyle(\'$1\', false)', $str);
 		$str = preg_replace('/%print_?style:([a-z0-9_-]+)%/ie', __CLASS__.'::PrintScriptOrStyle(\'$1\', true)', $str);
@@ -116,9 +118,9 @@ function wpfb_DataTableOptionsFilter{$uid}(options){
 			$start = $page_limit * ($page-1);
 		} else $start = -1;
 		
-		if(!empty($_GET['wpfb_s'])) { // search
+		if(!empty($_GET['wpfb_s']) || WPFB_Core::$file_browser_search) { // search
 			wpfb_loadclass('Search');
-			$where = WPFB_Search::SearchWhereSql(WPFB_Core::GetOpt('search_id3'), $_GET['wpfb_s']);
+			$where = WPFB_Search::SearchWhereSql(WPFB_Core::GetOpt('search_id3'), isset($_GET['wpfb_s']) ? $_GET['wpfb_s'] : null);
 		} else $where = '1=1';
 		
 		$num_total_files = 0;
@@ -194,7 +196,7 @@ function wpfb_DataTableOptionsFilter{$uid}(options){
 	}
 
         
-	function Generate($categories, $cat_grouping, $file_order, $page_limit, $cat_order=null, $hide_pagenav = false)
+	function Generate($categories=null, $cat_grouping=false, $file_order=null, $page_limit=0, $cat_order=null, $hide_pagenav = false)
 	{
 		$this->current_list = (object)compact('cat_grouping', 'file_order', 'page_limit', 'cat_order');
 		
@@ -237,7 +239,7 @@ function wpfb_DataTableOptionsFilter{$uid}(options){
 		
 		return $content;
 	}
-	
+		
 	function Sample($cat, $file) {
 		$uid = uniqid();
 		$this->current_list = (object)array('cat_grouping' => false, 'file_order' => null, 'page_limit' => 3, 'cat_order' => null);

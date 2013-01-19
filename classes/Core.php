@@ -45,6 +45,7 @@ static function InitClass()
 	add_filter('get_attached_file', array(__CLASS__, 'GetAttachedFileFilter'));
 
 	
+	
 	// register treeview stuff
 	//wp_register_script('jquery-cookie', WPFB_PLUGIN_URI.'extras/jquery/jquery.cookie.js', array('jquery'));
 	wp_register_script('jquery-treeview', WPFB_PLUGIN_URI.'extras/jquery/treeview/jquery.treeview.js', array('jquery'), WPFB_VERSION);
@@ -61,10 +62,7 @@ static function InitClass()
 	// TODO Optimization: cache to css file to static file!
 	$upload_path = path_is_absolute(WPFB_Core::$settings->upload_path) ? '' : WPFB_Core::$settings->upload_path;
 	wp_enqueue_style(WPFB, WPFB_PLUGIN_URI."wp-filebase_css.php?rp=$upload_path", array(), WPFB_VERSION, 'all');
-	
-	// widgets
-	//wp_register_sidebar_widget(WPFB_PLUGIN_NAME, "[DEPRECATED]".WPFB_PLUGIN_NAME .' '. __('File list', WPFB), array(__CLASS__, 'FileWidget'), array('description' => __('Deprecated, use other widget instead!', WPFB)));
-	
+
 	if((is_admin() && !empty($_GET['page']) && strpos($_GET['page'], 'wpfilebase_') !== false) || defined('WPFB_EDITOR_PLUGIN'))
 		wpfb_loadclass('Admin');
 	
@@ -115,12 +113,13 @@ static function ParseQuery(&$query)
 	// conditional loading of the search hooks
 	global $wp_query;
 	
-	if (!empty($wp_query->query_vars['s']) && self::GetOpt('search_integration'))
-		wpfb_loadclass('Search');
+	if (!empty($wp_query->query_vars['s']))
+			wpfb_loadclass('Search');
+			
 	
-	if(!empty($_GET['wpfb_s'])) {
+	if(!empty($_GET['wpfb_s']) || !empty($_GET['s'])) {
 		WPFB_Core::$file_browser_search = true;		
-		add_filter('the_excerpt',	array(__CLASS__, 'SearchExcerptFilter'), 10); // must be lower than 11 (before do_shortcode) and after wpautop (>9)
+		add_filter('the_excerpt',	array(__CLASS__, 'SearchExcerptFilter'), 100); // must be lower than 11 (before do_shortcode) and after wpautop (>9)
 	}
 	
 	// check if current post is file browser
@@ -213,18 +212,9 @@ function ContentFilter($content)
 	global $id, $wpfb_fb, $post;
 	
 	if(!WPFB_Core::$settings->parse_tags_rss && is_feed())
-		return $content;	
-		
-	// all tags start with '[filebase'
-	/*
-	if(strpos($content, '[filebase') !== false)
-	{
-		wpfb_loadclass('Output');
-		WPFB_Output::wpfilebase_parse_content_tags($content);
-	}
-	*/
+		return $content;
 	
-	if(!empty($post) && is_object($post) && !post_password_required())
+	if(is_object($post) && !post_password_required())
 	{
 		// TODO: file resulst are generated twice, 2nd time in the_excerpt filter (SearchExcerptFilter)
 		// some themes do not use excerpts in search resulsts!!
@@ -531,9 +521,9 @@ static function AdminBar() {
 static function Sync() { wpfb_call('Sync', 'Sync'); }
 
 static function Cron() {
-	if(self::GetOpt('cron_sync')) {
+	if(self::$settings->cron_sync) {
 		wpfb_call('Sync', 'Sync');
-		update_option(WPFB_OPT_NAME.'_cron_sync_time', $_SERVER["REQUEST_TIME"]);
+		update_option(WPFB_OPT_NAME.'_cron_sync_time', empty($_SERVER["REQUEST_TIME"]) ? time() : $_SERVER["REQUEST_TIME"]);
 	}
 }
 

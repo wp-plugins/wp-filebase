@@ -353,16 +353,19 @@ class WPFB_Item {
 	
 	// for a category this return an array of child files
 	// for a file an array with a single element, the file itself
-	function GetChildFiles($recursive=false,$sort_sql=null)
+	function GetChildFiles($recursive=false, $sorting=null, $check_permissions = false)
 	{
-		if($this->is_file) return array($this->GetId() => $this);
-		if(empty($sort_sql)) $sort_sql = "ORDER BY file_id ASC";
+		if($this->is_file)
+			return array($this->GetId() => $this);
+		
 		// if recursive, include secondary category links with GetSqlCatWhereStr
-		$files = WPFB_File::GetFiles('WHERE '.($recursive ? WPFB_File::GetSqlCatWhereStr($this->cat_id) : '(file_category = '.$this->cat_id.')')." $sort_sql");
+		$where = $recursive ? WPFB_File::GetSqlCatWhereStr($this->cat_id) : '(file_category = '.$this->cat_id.')';
+
+		$files = WPFB_File::GetFiles2($where, $check_permissions, $sorting);
 		if($recursive) {
 			$cats = $this->GetChildCats(true);
 			foreach(array_keys($cats) as $i)
-				$files += $cats[$i]->GetChildFiles(false,$sort_sql);
+				$files += $cats[$i]->GetChildFiles(false, $sorting, $check_permissions);
 		}		
 		return $files;
 	}

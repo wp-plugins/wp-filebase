@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=wpfil
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, images, pdf, widget, filelist, list, thumbnails, thumbnail, attachment, attachments, category, categories, media, template, ftp, http, mp3, id3
 Requires at least: 3.1
 Tested up to: 3.5
-Stable tag: 0.2.9.31
+Stable tag: 0.2.9.32
 
 Adds a powerful download manager including file categories, downloads counter, widgets, sorted file lists and more to your WordPress blog.
 
@@ -112,6 +112,13 @@ Goto WP-Filebase Settings and disable Permalinks under "Download". Try to disabl
 
 
 == Changelog ==
+
+= 0.2.9.32 =
+* New Option: Search Result Template
+* Added complete un-install (Button located at WP-Filebase dashboard bottom)
+* Fixed download URLs for file names containing `'`
+* Files added with multi uploader are added directly after upload finished
+* File Form: Licenses are hidden if none specified in Settings
 
 = 0.2.9.31 =
 * Fixed fatal error occuring in PHP Versions before 5.3 (`func_get_args() can't be used as a function parameter`)

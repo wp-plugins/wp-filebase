@@ -193,7 +193,7 @@ static function AddTpls($old_ver) {
 }
 
 static function RemoveOptions()
-{		
+{
 	delete_option(WPFB_OPT_NAME);
 	
 	// delete old options too
@@ -537,6 +537,7 @@ static function ProtectUploadPath()
 }
 
 static function OnActivateOrVerChange($old_ver=null) {
+	global $wpdb;
 	wpfb_loadclass('Admin','File','Category');
 	self::SetupDBTables($old_ver);
 	$old_options = get_option(WPFB_OPT_NAME);
@@ -559,10 +560,27 @@ static function OnActivateOrVerChange($old_ver=null) {
 	
 	if (!wp_next_scheduled(WPFB.'_cron'))	
 		wp_schedule_event(time(), 'hourly', WPFB.'_cron');	
+	if(!get_option('wpfb_install_time')) add_option('wpfb_install_time', (($ft=(int)mysql2date('U',$wpdb->get_var("SELECT file_mtime FROM $wpdb->wpfilebase_files ORDER BY file_date ASC LIMIT 1")))>0)?$ft:time(), null, 'no');
+	
 }
 
 static function OnDeactivate() {
 	wp_clear_scheduled_hook(WPFB.'_cron');
+	
+	if(get_option('wpfb_uninstall')) {
+		self::RemoveOptions();
+		self::DropDBTables();
+		self::RemoveTpls();
+		
+		delete_option('wpfilebase_cron_sync_time');		
+		delete_option('wpfb_license_key');
+		delete_option('wpfilebase_last_check');
+		delete_option('wpfilebase_forms');
+		delete_option('wpfilebase_ftags');
+		delete_option('wpfilebase_rsyncs');
+		
+		delete_option('wpfb_uninstall');
+	}
 }
 
 }

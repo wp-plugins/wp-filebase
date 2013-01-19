@@ -23,14 +23,17 @@ $default_roles = WPFB_Core::GetOpt('default_roles');
 $user_roles = ($update || empty($default_roles)) ? $file->GetReadPermissions() : $default_roles;
 $file_members_only = !empty($user_roles);
 
-$form_url = $in_editor ? remove_query_arg(array('file_id', 'page', 'action')) : add_query_arg('page', 'wpfilebase_files', admin_url('admin.php'));
+if(empty($form_url))
+	$form_url = $in_editor ? remove_query_arg(array('file_id', 'page', 'action')) : add_query_arg('page', 'wpfilebase_files', admin_url('admin.php'));
 
 if(!empty($_GET['redirect_to']))
-	$form_url = add_query_arg(array('redirect' => 1, 'redirect_to' => $_GET['redirect_to']), $form_url);
-	
-$nonce_action = WPFB."-".$action;
-if($update) $nonce_action .= ($multi_edit ? $item_ids : $file->file_id);
-if($in_editor) $nonce_action .= "-editor";
+	$form_url = add_query_arg(array('redirect' => 1, 'redirect_to' => urlencode($_GET['redirect_to'])), $form_url);
+
+if(empty($nonce_action)) {
+	$nonce_action = WPFB."-".$action;
+	if($update) $nonce_action .= ($multi_edit ? $item_ids : $file->file_id);
+	if($in_editor) $nonce_action .= "-editor";
+}
 
 if($update)
 	$file_category = $file->file_category;
@@ -69,8 +72,9 @@ if(!$in_widget) {
 }
 ?>
 
+<?php	wp_print_scripts('utils'); ?>
+		
 <script type="text/javascript">
-//<![CDATA[
 var uploaderMode = 0;
 
 function WPFB_switchFileUpload(i)
@@ -88,8 +92,8 @@ function WPFB_switchFileUpload(i)
 jQuery(document).ready(function($){	
 	$('#file-upload-progress').hide();
 	$('#cancel-upload').hide();
-
-	WPFB_switchUploader(getUserSetting('wpfb_adv_uploader'));
+	
+	WPFB_switchUploader((typeof(getUserSetting) != 'function') ? true : getUserSetting('wpfb_adv_uploader', true));
 	$('#file-upload-wrap').bind('click.uploader', function(e) {
 		var target = $(e.target);
 
@@ -154,17 +158,17 @@ jQuery(document).ready(function($){
 });
 
 function WPFB_switchUploader(adv) {
-	if (adv) {
+	if (adv && adv != "0") {
 		jQuery('#flash-upload-ui').show();
 		jQuery('#html-upload-ui').hide();
-		setUserSetting('wpfb_adv_uploader', '1');
+		setUserSetting('wpfb_adv_uploader', 1);
 		if ( typeof(uploader) == 'object' )
 			uploader.refresh();
 		if(typeof(swfuploadPreLoad) == 'function') swfuploadPreLoad();
 	} else {
 		jQuery('#flash-upload-ui').hide();
 		jQuery('#html-upload-ui').show();
-		deleteUserSetting('wpfb_adv_uploader');
+		setUserSetting('wpfb_adv_uploader', 0);
 	}
 }
 
@@ -178,13 +182,11 @@ function WPFB_addTag(tag)
 	inp.focus();
 }
 
-
-//]]>
 </script>
 
 
-<input type="hidden" name="action" value="<?php echo $action ?>" />
-<?php if($update) { ?><input type="hidden" name="file_id" value="<?php echo $multi_edit ? $item_ids : $file->file_id; ?>" /><?php } ?>
+<input type="hidden" name="action" id="file_form_action" value="<?php echo $action ?>" />
+<input type="hidden" name="file_id" id="file_id" value="<?php echo $update ? ($multi_edit ? $item_ids : $file->file_id) : ""; ?>" />
 <?php wp_nonce_field($nonce_action, 'wpfb-file-nonce'); ?>
 <table class="form-table">
 <?php if(!$multi_edit) { ?>
@@ -225,11 +227,12 @@ function WPFB_addTag(tag)
 		<th scope="row" valign="top"><label for="file_upload_thumb"><?php _e('Thumbnail'/*def*/) ?></label></th>
 		<td class="form-field" colspan="3"><input type="file" name="file_upload_thumb" id="file_upload_thumb" />
 		<br /><?php _e('You can optionally upload a thumbnail here. If the file is a valid image, a thumbnail is generated automatically.', WPFB); ?>
-		<?php if($update && !empty($file->file_thumbnail)) { ?>
+		<div style="<?php if(empty($file->file_thumbnail)) echo "display:none;"; ?>" id="file_thumbnail_wrap">
 			<br /><img src="<?php echo esc_attr($file->GetIconUrl()); ?>" /><br />
-			<b><?php echo $file->file_thumbnail; ?></b><br />
-			<label for="file_delete_thumb"><?php _e('Delete') ?></label><input type="checkbox" value="1" name="file_delete_thumb" id="file_delete_thumb" style="display:inline; width:30px;" />
-		<?php } ?>
+			<b id="file_thumbnail_name"><?php echo $file->file_thumbnail; ?></b><br />
+			<?php if($update && !empty($file->file_thumbnail)) { ?> <label for="file_delete_thumb"><?php _e('Delete') ?></label><input type="checkbox" value="1" name="file_delete_thumb" id="file_delete_thumb" style="display:inline; width:30px;" />
+			<?php } ?>
+		</div>
 		</td>
 		<?php } else { ?><th scope="row"></th><td colspan="3"><?php _e('The following fields are optional.', WPFB) ?></td><?php } ?>
 	</tr>

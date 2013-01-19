@@ -515,4 +515,5 @@ static function SideloadFile($url, $dest_path, $progress_bar=null)
 	
 	return array('error' => false, 'size' => $size);
 }
+
 }

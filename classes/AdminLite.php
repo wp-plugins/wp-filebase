@@ -2,6 +2,8 @@
 class WPFB_AdminLite {
 static function InitClass()
 {
+	global $parent_file;
+	
 	wp_enqueue_style(WPFB.'-admin', WPFB_PLUGIN_URI.'wp-filebase-admin.css', array(), WPFB_VERSION, 'all' );
 	
 	if (isset($_GET['page']))
@@ -20,8 +22,24 @@ static function InitClass()
 	//wp_register_widget_control(WPFB_PLUGIN_NAME, "[DEPRECATED]".WPFB_PLUGIN_NAME .' '. __('File list'), array(__CLASS__, 'WidgetFileListControl'), array('description' => __('DEPRECATED', WPFB)));
 	
 	add_action('admin_print_scripts', array('WPFB_AdminLite', 'PrintCKEditorPlugin'));
+
 	
 	self::CheckChangedVer();
+	
+	
+	if(basename($_SERVER['PHP_SELF']) === "plugins.php") {
+		if(isset($_GET['wpfb-uninstall']) && current_user_can('edit_files'))
+				update_option('wpfb_uninstall', !empty($_GET['wpfb-uninstall']) && $_GET['wpfb-uninstall'] != "0");
+		
+		if(get_option('wpfb_uninstall')) {
+			function wpfb_uninstall_warning() {
+				echo "
+				<div id='wpfb-warning' class='updated fade'><p><strong>".__('WP-Filebase will be uninstalled completely when deactivating the Plugin! All settings and File/Category Info will be deleted. Actual files in the upload directory will not be removed.').' <a href="'.add_query_arg('wpfb-uninstall', '0').'">'.__('Cancel')."</a></strong></p></div>
+				";
+			}
+			add_action('admin_notices', 'wpfb_uninstall_warning');
+		}
+	}
 	
 }
 
@@ -110,4 +128,5 @@ static function PrintCKEditorPlugin() {
 </script>
 	<?php
 }
+
 }

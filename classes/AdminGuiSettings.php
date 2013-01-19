@@ -205,7 +205,7 @@ jQuery(document).ready( function() {
 	
 	$option_categories = array(
 		__('Common', WPFB)					=> array('upload_path','search_integration' /*'cat_drop_down'*/),
-		__('Display', WPFB)					=> array('file_date_format','thumbnail_size','auto_attach_files', 'attach_loop','attach_pos', 'filelist_sorting', 'filelist_sorting_dir', 'filelist_num', /* TODO: remove? 'parse_tags_rss',*/ 'decimal_size_format'),
+		__('Display', WPFB)					=> array('file_date_format','thumbnail_size','auto_attach_files', 'attach_loop','attach_pos', 'filelist_sorting', 'filelist_sorting_dir', 'filelist_num', /* TODO: remove? 'parse_tags_rss',*/ 'decimal_size_format','search_result_tpl'),
 		__('File Browser',WPFB)				=> array('file_browser_post_id','file_browser_cat_sort_by','file_browser_cat_sort_dir','file_browser_file_sort_by','file_browser_file_sort_dir','file_browser_fbc', 'late_script_loading','small_icon_size',
 		'disable_footer_credits','footer_credits_style',
 		),
@@ -279,7 +279,7 @@ jQuery(document).ready( function() {
 				case 'select':
 					echo '<select name="' . $opt_tag . '" id="' . $opt_tag . '">';
 					foreach($field_data['options'] as $opt_v => $opt_n)
-						echo '<option value="' . esc_attr($opt_v) . '"' . (($opt_v == $opt_val) ? ' selected="selected" ' : '') . $style_class . '>' . (!is_numeric($opt_v) ? (esc_html($opt_v) . ': ') : '') . esc_html($opt_n) . '</option>';
+						echo '<option value="' . esc_attr($opt_v) . '"' . (($opt_v == $opt_val) ? ' selected="selected" ' : '') . $style_class . '>' . ((!is_numeric($opt_v) && $opt_v !== $opt_n) ? (esc_html($opt_v) . ': ') : '') . esc_html($opt_n) . '</option>';
 					echo '</select>';
 					break;
 					

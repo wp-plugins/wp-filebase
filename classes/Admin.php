@@ -2,6 +2,7 @@
 class WPFB_Admin {
 
 static $MIN_SIZE_FOR_PROGRESSBAR = 2097152;//2MiB
+const MAX_USERS_PER_ROLE_DISPLAY = 50;
 
 static function InitClass()
 {	
@@ -32,6 +33,9 @@ static function SettingsSchema()
 	$last_sync_time	= intval(get_option(WPFB_OPT_NAME.'_cron_sync_time'));
 	$last_sync_time = ($last_sync_time > 0) ? (" (".sprintf( __('Last cron sync on %1$s at %2$s.',WPFB), date_i18n( get_option( 'date_format'), $last_sync_time ), date_i18n( get_option( 'time_format'), $last_sync_time ) ).")") : '';
 		
+	
+	$list_tpls = array_keys(wpfb_call('ListTpl','GetAll'));
+	$list_tpls = array_combine($list_tpls, $list_tpls);
 	return array (
 	
 	// common
@@ -130,7 +134,10 @@ static function SettingsSchema()
 			
 	
 	'search_integration' =>  array('default' => true, 'title' => __('Search Integration', WPFB), 'type' => 'checkbox', 'desc' => __('Searches in attached files and lists the associated posts and pages when searching the site.', WPFB)),
+	
+	'search_result_tpl' =>  array('default' => 'default', 'title' => __('Search Result Template', WPFB), 'type' => 'select', 'options' => $list_tpls, 'desc' => __('Set the List Template used for Search Results when using the Search Widget', WPFB)),
 
+		 
 	'disable_id3' =>  array('default' => false, 'title' => __('Disable ID3 tag detection', WPFB), 'type' => 'checkbox', 'desc' => __('This disables all meta file info reading. Use this option if you have issues adding large files.', WPFB)),
 	'search_id3' =>  array('default' => true, 'title' => __('Search ID3 Tags', WPFB), 'type' => 'checkbox', 'desc' => __('Search in file meta data, like ID3 for MP3 files, EXIF for JPEG... (this option does not increase significantly server load since all data is cached in a MySQL table)', WPFB)),
 	'use_path_tags' => array('default' => false, 'title' => __('Use path instead of ID in Shortcode', WPFB), 'type' => 'checkbox', 'desc' => __('Files and Categories are identified by paths and not by their IDs in the generated Shortcodes', WPFB)),
@@ -533,7 +540,7 @@ static function InsertFile($data, $in_gui =false)
 	if(!empty($data->file_flash_upload)) { // check for flash upload and validate!
 		$file_flash_upload = json_decode($data->file_flash_upload, true);
 		$file_flash_upload['tmp_name'] = WPFB_Core::UploadDir().'/'.str_replace('../','',$file_flash_upload['tmp_name']);
-		if(is_file($file_flash_upload['tmp_name']) && $file_flash_upload['size'] == WPFB_FileUtils::GetFileSize($file_flash_upload['tmp_name']))
+		if(is_file($file_flash_upload['tmp_name']))
 			$data->file_upload = $file_flash_upload;
 	}
 	// are we uploading a file?
@@ -667,6 +674,9 @@ static function InsertFile($data, $in_gui =false)
 				@unlink($cover);
 			}
 		}
+	} else {
+		if(isset($data->file_size)) $file->file_size = $data->file_size;
+		if(isset($data->file_hash)) $file->file_hash = $data->file_hash;
 	}
 	
 	if($remote_redirect) {
