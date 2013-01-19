@@ -19,6 +19,7 @@ class WPFB_ListTpl {
 	
 	static function GetAll() {
 		$tpls = get_option(WPFB_OPT_NAME.'_list_tpls');
+		if(empty($tpls)) return array();
 		foreach($tpls as $tag => $tpl)
 			$tpls[$tag] = new WPFB_ListTpl($tag, $tpl);
 		return $tpls;

@@ -35,7 +35,7 @@ static function SettingsSchema()
 		
 	
 	$list_tpls = array_keys(wpfb_call('ListTpl','GetAll'));
-	$list_tpls = array_combine($list_tpls, $list_tpls);
+	$list_tpls = empty($list_tpls) ? array() : array_combine($list_tpls, $list_tpls);
 	return array (
 	
 	// common

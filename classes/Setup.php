@@ -560,7 +560,7 @@ static function OnActivateOrVerChange($old_ver=null) {
 	
 	if (!wp_next_scheduled(WPFB.'_cron'))	
 		wp_schedule_event(time(), 'hourly', WPFB.'_cron');	
-	if(!get_option('wpfb_install_time')) add_option('wpfb_install_time', (($ft=(int)mysql2date('U',$wpdb->get_var("SELECT file_mtime FROM $wpdb->wpfilebase_files ORDER BY file_date ASC LIMIT 1")))>0)?$ft:time(), null, 'no');
+	if(!get_option('wpfb_install_time')) add_option('wpfb_install_time', (($ft=(int)mysql2date('U',$wpdb->get_var("SELECT file_mtime FROM $wpdb->wpfilebase_files ORDER BY file_mtime ASC LIMIT 1")))>0)?$ft:time(), null, 'no');
 	
 }
 
