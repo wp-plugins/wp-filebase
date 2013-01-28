@@ -439,7 +439,7 @@ static function FileForm($prefix, $form_url, $vars, $secret_key=null, $extended=
 				<?php  } else {
 					$adv_uploader->Display($prefix);
 				} ?>
-				<small><?php printf(str_replace('%d%s','%s',__('Maximum upload file size: %d%s'/*def*/)), WPFB_Output::FormatFilesize(WPFB_Core::GetMaxUlSize())) ?></small>
+				<small><?php printf(str_replace('%d%s','%s',__('Maximum upload file size: %d%s.'/*def*/)), WPFB_Output::FormatFilesize(WPFB_Core::GetMaxUlSize())) ?></small>
 				
 				<?php if(empty($auto_submit)) { ?><div style="float: right; text-align:right;"><input type="submit" class="button-primary" name="submit-btn" value="<?php _ex('Add New', 'file'); ?>" /></div>
 				<?php } ?>

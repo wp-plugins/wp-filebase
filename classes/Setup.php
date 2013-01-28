@@ -545,7 +545,6 @@ static function OnActivateOrVerChange($old_ver=null) {
 	self::AddTpls($old_ver);
 	WPFB_Admin::SettingsUpdated($old_options, get_option(WPFB_OPT_NAME));
 	self::ProtectUploadPath();
-	WPFB_Admin::FlushRewriteRules();
 	
 	WPFB_Admin::WPCacheRejectUri(WPFB_Core::GetOpt('download_base') . '/', $old_options['download_base'] . '/');
 		
@@ -562,6 +561,8 @@ static function OnActivateOrVerChange($old_ver=null) {
 		wp_schedule_event(time(), 'hourly', WPFB.'_cron');	
 	if(!get_option('wpfb_install_time')) add_option('wpfb_install_time', (($ft=(int)mysql2date('U',$wpdb->get_var("SELECT file_mtime FROM $wpdb->wpfilebase_files ORDER BY file_mtime ASC LIMIT 1")))>0)?$ft:time(), null, 'no');
 	
+	
+	WPFB_Admin::FlushRewriteRules();
 }
 
 static function OnDeactivate() {

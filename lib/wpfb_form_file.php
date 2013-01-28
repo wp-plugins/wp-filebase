@@ -45,7 +45,7 @@ else
 if(!$update) $file->file_direct_linking = WPFB_Core::$settings->default_direct_linking;
 
 wpfb_loadclass('AdvUploader');
-$adv_uploader = new WPFB_AdvUploader($form_url);
+$adv_uploader = WPFB_AdvUploader::Create($form_url, $update);
 
 
 if(isset($_GET['visual_editor'])) {

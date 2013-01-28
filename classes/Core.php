@@ -25,7 +25,7 @@ static function InitClass()
 	self::$settings = (object)get_option(WPFB_OPT_NAME);
 	
 	// load lang
-	$lang_dir = basename(WPFB_PLUGIN_ROOT).'/languages';
+	$lang_dir = defined('WPFB_LANG_DIR') ? ('../../'.WPFB_LANG_DIR) : basename(WPFB_PLUGIN_ROOT).'/languages';
 	load_plugin_textdomain(WPFB, 'wp-content/plugins/'.$lang_dir, $lang_dir);
 
 	add_action('parse_query', array(__CLASS__, 'ParseQuery')); // search

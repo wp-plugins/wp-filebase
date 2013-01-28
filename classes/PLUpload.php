@@ -1,14 +1,7 @@
 <?php
 
-class WPFB_PLUpload
-{
-	var $id;
-	
-	function __construct()
-	{
-		$this->id = uniqid();
-	}
-	
+class WPFB_PLUpload extends WPFB_AdvUploader
+{	
 	function Scripts($prefix)
 	{
 		$id = $this->id;
@@ -34,7 +27,7 @@ function uploadProgress(up, file) {
 <?php
 	}
 	
-function Display($form_url) {
+function Display() {
 
 global $is_IE, $is_opera;
 
@@ -70,7 +63,7 @@ $plupload_init = array(
 	'filters' => array( array('title' => __( 'Allowed Files' ), 'extensions' => '*') ),
 	'multipart' => true,
 	'urlstream_upload' => true,
-	'multipart_params' => WPFB_AdvUploader::GetAjaxAuthData()
+	'multipart_params' => $this->GetAjaxAuthData()
 );
 
 $plupload_init = apply_filters( 'plupload_init', $plupload_init );
@@ -88,7 +81,7 @@ wpUploaderInit = <?php echo json_encode($plupload_init); ?>;
 <?php do_action('pre-plupload-upload-ui'); // hook change, old name: 'pre-flash-upload-ui' ?>
 <div id="drag-drop-area">
 	<div class="drag-drop-inside">
-	<p class="drag-drop-info"><?php _e('Drop files here'); ?> - <?php _ex('or', 'Uploader: Drop files here - or - Select Files'); ?> - <span class="drag-drop-buttons"><input id="plupload-browse-button" type="button" value="<?php esc_attr_e('Select Files'); ?>" class="button" /></span></p>
+	<p class="drag-drop-info"><?php _e('Drop files here - or -',WPFB); ?> <span class="drag-drop-buttons"><input id="plupload-browse-button" type="button" value="<?php esc_attr_e('Select Files'); ?>" class="button" /></span></p>
 	</div>
 </div>
 <?php do_action('post-plupload-upload-ui'); // hook change, old name: 'post-flash-upload-ui' ?>

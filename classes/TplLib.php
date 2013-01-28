@@ -63,6 +63,10 @@ static function ParseTplExp($exp)
 	$exp = preg_replace('/([^\w])AND([^\w])/', '$1&&$2', $exp);
 	$exp = preg_replace('/([^\w])OR([^\w])/', '$1||$2', $exp);
 	$exp = preg_replace('/([^\w])NOT([^\w])/', '$1!$2', $exp);
+	
+	// unescape "
+	$exp = stripslashes($exp);
+	
 	return $exp;
 }
 

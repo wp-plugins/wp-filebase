@@ -1,9 +1,20 @@
-<?php class WPFB_AdvUploader {
+<?php abstract class WPFB_AdvUploader {
 	
 	var $uploader;
 	var $form_url;
+	var $id;
+	var $is_edit;
 	
-	static function GetAjaxAuthData($json=false)
+	public static function Create($form_url, $is_edit=false)
+	{
+		$uploader_class = (version_compare(get_bloginfo('version'), '3.2.1') <= 0) ? 'SWFUpload' : 'PLUpload';
+		wpfb_loadclass($uploader_class);
+		$uploader_class = "WPFB_".$uploader_class;
+
+		return new $uploader_class($form_url, $is_edit);
+	}
+	
+	function GetAjaxAuthData($json=false)
 	{
 		$frontend = !is_admin() && !defined('WPFB_EDITOR_PLUGIN');
 		$dat = array(
@@ -11,23 +22,21 @@
 			"logged_in_cookie" => @$_COOKIE[LOGGED_IN_COOKIE],
 			"_wpnonce" => wp_create_nonce(WPFB.'-async-upload'),
 			"frontend_upload" => $frontend,
-			"file_add_now" => !$frontend
+			"file_add_now" => (!$frontend && !$this->is_edit)
 		);
 		return $json ? trim(json_encode($dat),'{}') : $dat;
 	}
 	
-	public function __construct($form_url)
+	function WPFB_AdvUploader($form_url, $is_edit=false)
 	{
-		$uploader_class = (version_compare(get_bloginfo('version'), '3.2.1') <= 0) ? 'SWFUpload' : 'PLUpload';
-		wpfb_loadclass($uploader_class);
-		$uploader_class = "WPFB_".$uploader_class;
-		$this->uploader = new $uploader_class;
 		$this->form_url = $form_url;
+		$this->id = uniqid();
+		$this->is_edit = $is_edit;
 	}
 	
 	function PrintScripts($prefix='', $auto_submit=false)
 	{
-		$this->uploader->Scripts($prefix);
+		$this->Scripts($prefix);
 		?>
 		
 <script type="text/javascript">
@@ -48,7 +57,7 @@ function fileQueued(fileObj) {
 	 // delete already uploaded temp file	
 	if(jQuery('#file_flash_upload').val() != '0') {
 		jQuery.ajax({type: 'POST', async: true, url:"<?php echo esc_attr( WPFB_PLUGIN_URI.'wpfb-async-upload.php' ); ?>",
-		data: {<?php echo WPFB_AdvUploader::GetAjaxAuthData(true) ?> , "delupload": jQuery('#file_flash_upload').val()},
+		data: {<?php echo $this->GetAjaxAuthData(true) ?> , "delupload": jQuery('#file_flash_upload').val()},
 		success: (function(data){})
 		});
 		jQuery('#file_flash_upload').val(0);

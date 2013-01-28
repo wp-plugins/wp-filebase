@@ -1,14 +1,7 @@
 <?php
 
-class WPFB_SWFUpload
+class WPFB_SWFUpload extends WPFB_AdvUploader
 {
-	var $id;
-	
-	function __construct()
-	{
-		$this->id = uniqid();
-	}
-	
 	function Scripts($prefix)
 	{
 		$id = $this->id;
@@ -36,7 +29,7 @@ function uploadProgress(fileObj, bytesDone, bytesTotal) {
 <?php
 	}
 	
-	function Display($form_url) {
+	function Display() {
 
 // #8545. wmode=transparent cannot be used with SWFUpload
 
@@ -62,7 +55,7 @@ SWFUpload.onload = function() {
 			flash_url : "<?php echo includes_url('js/swfupload/swfupload.swf'); ?>",
 			file_post_name: "async-upload",
 			file_types: "<?php echo apply_filters('upload_file_glob', '*.*'); ?>",
-			post_params : { <?php echo WPFB_AdvUploader::GetAjaxAuthData(); ?> },
+			post_params : { <?php echo $this->GetAjaxAuthData(); ?> },
 			file_size_limit : "<?php
 			require_once(ABSPATH . 'wp-admin/includes/template.php');
 			echo wp_max_upload_size(); ?>b",

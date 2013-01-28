@@ -3,8 +3,8 @@ Contributors: fabifott
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=wpfilebase%40fabi%2eme&item_name=WP-Filebase&no_shipping=0&no_note=1&tax=0&currency_code=USD&lc=US&bn=PP%2dDonationsBF&charset=UTF%2d8
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, images, pdf, widget, filelist, list, thumbnails, thumbnail, attachment, attachments, category, categories, media, template, ftp, http, mp3, id3
 Requires at least: 3.1
-Tested up to: 3.5
-Stable tag: 0.2.9.33
+Tested up to: 3.5.1
+Stable tag: 0.2.9.34
 
 Adds a powerful download manager including file categories, downloads counter, widgets, sorted file lists and more to your WordPress blog.
 
@@ -112,6 +112,11 @@ Goto WP-Filebase Settings and disable Permalinks under "Download". Try to disabl
 
 
 == Changelog ==
+
+= 0.2.9.34 =
+* Custom language files dir can be set with PHP constant WPFB_LANG_DIR in wp-config.php
+* Fixed quote escaping in template IF expressions
+* Fixed flash uploader behavior when uploading file updates
 
 = 0.2.9.33 =
 * New Option: Search Result Template

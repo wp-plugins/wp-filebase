@@ -475,7 +475,12 @@ static function InsertCategory($catarr)
 		foreach($childs as $child) $child->SetReadPermissions($cur);
 		
 		$childs = $cat->GetChildCats(true);
-		foreach($childs as $child) $child->SetReadPermissions($cur);
+		foreach($childs as $child) {
+			$child->Lock(true);
+			$child->SetReadPermissions($cur);
+			$child->Lock(false);
+			$child->DBSave();
+		}
 	}
 		
 	// icon
@@ -567,6 +572,8 @@ static function InsertFile($data, $in_gui =false)
 		$file_src_path = $upload ? $data->file_upload['tmp_name'] : ($add_existing ? $data->file_path : null);
 		$file_name = $upload ? str_replace('\\','',$data->file_upload['name']) : ((empty($file_src_path) && $update) ? $file->file_name : basename($file_src_path));		
 	}
+	
+	if($upload) $data->file_rename = null;
 		
 	
 	// VALIDATION
