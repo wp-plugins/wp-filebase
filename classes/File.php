@@ -96,7 +96,7 @@ class WPFB_File extends WPFB_Item {
 		
 		if($check_permissions != false) {
 			if(is_string($check_permissions) && $check_permissions == 'edit') {
-				$edit_cond = (current_user_can('edit_others_posts') && !WPFB_Core::$settings->private_files) ? "1=1" : ("file_added_by = ".((int)$current_user->ID));
+				$edit_cond = ((current_user_can('edit_others_posts') && !WPFB_Core::$settings->private_files)||current_user_can('edit_files')) ? "1=1" : ("file_added_by = ".((int)$current_user->ID));
 				$where_str = "($where_str) AND ($edit_cond)";
 			} else
 				$where_str = "($where_str) AND (".self::GetReadPermsWhere().") AND file_offline = '0'";
@@ -228,8 +228,9 @@ class WPFB_File extends WPFB_Item {
 				$src_image = $this->GetLocalPath();
 			elseif($this->IsRemote()) {
 				// if remote file, download it and use as source
-				require_once(ABSPATH . 'wp-admin/includes/file.php');			
-				$src_image = wpfb_call('Admin', 'SideloadFile', $this->file_remote_uri);
+				require_once(ABSPATH . 'wp-admin/includes/file.php');
+				$res = wpfb_call('Admin', 'SideloadFile', $this->GetRemoteUri());
+				$src_image = $res['file'];
 				$tmp_src = true;
 			}
 		}
@@ -436,11 +437,11 @@ class WPFB_File extends WPFB_Item {
 		}
 		$msg = WPFB_Core::GetOpt($msg_id);
 		if(!$msg) $msg = $msg_id;
-		elseif(preg_match('/^https?:\/\//i',$msg)) {
+		elseif(@preg_match('/^https?:\/\//i',$msg)) {
 			wp_redirect($msg); // redirect if msg is url
 			exit;
 		}
-		wp_die(empty($msg) ? __('Cheatin&#8217; uh?') : $msg);
+		wp_die((empty($msg)||!is_string($msg)) ? __('Cheatin&#8217; uh?') : $msg);
 		exit;
 	}
 	
@@ -523,10 +524,16 @@ class WPFB_File extends WPFB_Item {
 			));
 		else {
 			header('HTTP/1.1 301 Moved Permanently');
-			header('Location: '.$this->file_remote_uri);
+			header("Cache-Control: no-cache, must-revalidate, max-age=0");
+			header('Location: '.$this->GetRemoteUri());
 		}
 		
 		exit;
+	}
+	
+
+	function GetRemoteUri() {
+			return $this->file_remote_uri;
 	}
 	
 	function SetPostId($id)

@@ -93,6 +93,9 @@ jQuery(document).ready(function($){
 	$('#file-upload-progress').hide();
 	$('#cancel-upload').hide();
 	
+<?php if(isset($_GET['flash'])) { ?>
+		WPFB_switchUploader(<?php echo (int)$_GET['flash']; ?>);
+<?php } else { ?>
 	WPFB_switchUploader((typeof(getUserSetting) != 'function') ? true : getUserSetting('wpfb_adv_uploader', true));
 	$('#file-upload-wrap').bind('click.uploader', function(e) {
 		var target = $(e.target);
@@ -105,6 +108,7 @@ jQuery(document).ready(function($){
 			return false;
 		}
 	});
+<?php } ?>
 
 //	jQuery("#file_description").addClass("mceEditor");
 //	if ( typeof( tinyMCE ) == "object" && typeof( tinyMCE.execCommand ) == "function" ) {

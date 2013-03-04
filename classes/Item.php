@@ -358,6 +358,8 @@ class WPFB_Item {
 		if($this->is_file)
 			return array($this->GetId() => $this);
 		
+		if($check_permissions && !$this->CurUserCanAccess()) return array();
+		
 		// if recursive, include secondary category links with GetSqlCatWhereStr
 		$where = $recursive ? WPFB_File::GetSqlCatWhereStr($this->cat_id) : '(file_category = '.$this->cat_id.')';
 

@@ -180,7 +180,7 @@ class WPFB_Category extends WPFB_Item {
 			case 'cat_num_files':		return $this->cat_num_files;
 			case 'cat_num_files_total':	return $this->cat_num_files_total;
 			//case 'cat_required_level':	return ($this->cat_required_level - 1);
-			case 'cat_user_can_access': return $this->CurUserCanAccess();	
+			case 'cat_user_can_access': return $this->CurUserCanAccess();
 			case 'uid':					return self::$tpl_uid;				
 		}
 		return isset($this->$name) ? $this->$name : '';

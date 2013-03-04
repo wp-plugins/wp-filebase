@@ -9,6 +9,8 @@ static function Parse($tpl)
 		return $tpl;
 	}
 	
+	
+	
 	// remove existing onclicks
 	$tpl = preg_replace(array('/<a\s+([^>]*)onclick=".+?"\s+([^>]*)href="%file_url%"/i', '/<a\s+([^>]*)href="%file_url%"\s+([^>]*)onclick=".+?"/i'), '<a href="%file_url%" $1$2', $tpl);
 	
@@ -40,8 +42,10 @@ static function Parse($tpl)
 	// parse variables
 	$tpl = preg_replace('/%([a-z0-9_\/:]+?)%/i', '\'.$f->get_tpl_var(\'$1\').\'', $tpl);
 	
+	// this removes JS enc. in HTML comments
 	// remove html comments
-	$tpl = preg_replace('/<\!\-\-[\s\S]+?\-\->/', '', $tpl);
+	//$tpl = preg_replace('/<\!\-\-[\s\S]+?\-\->/', '', $tpl);
+	
 	
 	$tpl = "'$tpl'";
 	
@@ -108,5 +112,6 @@ static function Check($tpl)
 	
 	return $result;
 }
+
 }
 ?>

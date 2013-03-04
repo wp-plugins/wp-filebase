@@ -1,6 +1,6 @@
 <?php
 class WPFB_Download {
-function RefererCheck()
+static function RefererCheck()
 {
 	// fix (FF?): avoid caching of redirections so the file cannot be downloaded anymore
 	if(!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) || !empty($_COOKIE[WPFB_OPT_NAME]))
@@ -29,7 +29,7 @@ function RefererCheck()
 	return false;
 }
 
-function AddTraffic($bytes)
+static function AddTraffic($bytes)
 {
 	$traffic = WPFB_Core::GetTraffic();
 	$traffic['month'] = $traffic['month'] + $bytes;
@@ -38,7 +38,7 @@ function AddTraffic($bytes)
 	WPFB_Core::UpdateOption('traffic_stats', $traffic);
 }
 
-function CheckTraffic($file_size)
+static function CheckTraffic($file_size)
 {
 	$traffic = WPFB_Core::GetTraffic();
 	
@@ -49,7 +49,7 @@ function CheckTraffic($file_size)
 }
 
 
-function GetFileType($name)
+static function GetFileType($name)
 {
 	$pos = strrpos($name, '.');
 	if($pos !== false) $name = substr($name, $pos + 1);
@@ -245,7 +245,7 @@ function GetFileType($name)
 	}
 }
 
-function FileType2Ext($type)
+static function FileType2Ext($type)
 {
 	$pos = strrpos($type, ';');
 	if($pos > 0) $type = substr($type, 0, $pos);
@@ -285,7 +285,7 @@ function FileType2Ext($type)
 }
 
 // returns true if the download should not be streamed in the browser
-function ShouldSendDLHeader($file_path, $file_type)
+static function ShouldSendDLHeader($file_path, $file_type)
 {
 	if(WPFB_Core::GetOpt('force_download'))
 		return true;
@@ -309,7 +309,7 @@ function ShouldSendDLHeader($file_path, $file_type)
 }
 
 // returns true if range download should be supported for the specified file/file type
-function ShouldSendRangeHeader($file_path, $file_type)
+static function ShouldSendRangeHeader($file_path, $file_type)
 {
 	static $no_range_types = array('application/pdf', 'application/x-shockwave-flash');
 	
@@ -326,14 +326,15 @@ function ShouldSendRangeHeader($file_path, $file_type)
 }
 
 // this is the cool function which sends the file!
-function SendFile($file_path, $args=array())
+static function SendFile($file_path, $args=array())
 {
 	$defaults = array(
 		'bandwidth' => 0,
 		'etag' => null,
 		'force_download' => false,
 		'cache_max_age' => 0,
-		'md5_hash' => null
+		'md5_hash' => null,
+		'filename' => null
 	);
 	extract(wp_parse_args($args, $defaults), EXTR_SKIP);
 	
@@ -343,6 +344,8 @@ function SendFile($file_path, $args=array())
 	while(@ob_end_clean()){}
 	
 	$no_cache = WPFB_Core::GetOpt('http_nocache') && ($cache_max_age <= 0);
+	
+	@ini_set("zlib.output_compression", "Off");
 	
 	// remove some headers
 	if(function_exists('header_remove')) {
@@ -437,52 +440,66 @@ function SendFile($file_path, $args=array())
 		header("Accept-Ranges: bytes");
 	
 	// content headers
-	if(!empty($force_download) || WPFB_Download::ShouldSendDLHeader($file_path, $file_type)) {
-		header("Content-Disposition: attachment; filename=\"" . basename($file_path) . "\"");
+	if(!empty($force_download) || WPFB_Download::ShouldSendDLHeader($file_path, $file_type) || !empty($filename)) {
+		header("Content-Disposition: attachment; filename=\"" . (empty($filename) ? basename($file_path) : $filename) . "\"");
 		header("Content-Description: File Transfer");
 	}
 	header("Content-Length: " . $length);
 	if(!empty($http_range))
 		header("Content-Range: bytes " . $begin . "-" . ($end-1) . "/" . $size);
 	
-	if(WPFB_Core::GetOpt('dl_destroy_session'))
-		@session_destroy();
-	
-	// send the file!
-	
-	$bandwidth = empty($bandwidth) ? 0 : (float)$bandwidth;
-	if($bandwidth <= 0)
-		$bandwidth = 1024 * 1024;
-	
-	$buffer_size = (int)(1024 * min($bandwidth, 64));
-	
-	// convert kib/s => bytes/ms
-	$bandwidth *= 1024;
-	$bandwidth /= 1000;
-	
+	// clean up things that are not needed for download
+	@session_write_close(); // disable blocking of multiple downloads at the same time
 	global $wpdb;
 	if(!empty($wpdb->dbh))
 		@mysql_close($wpdb->dbh);
-
-	$cur = $begin;
-	fseek($fh,$begin,0);
-	while(!@feof($fh) && $cur < $end && @connection_status() == 0)
-	{		
-		$nbytes = min($buffer_size, $end-$cur);
-		$ts = microtime(true);
-		
-		print @fread($fh, $nbytes);
-		@ob_flush();
-		@flush();
-		
-		$dt = (microtime(true) - $ts) * 1000; // dt = time delta in ms		
-		$st = ($nbytes / $bandwidth) - $dt;
-		if($st > 0)
-			usleep($st * 1000);			
-		
-		$cur += $nbytes;
-	}
 	
+	@ob_flush();
+   @flush();
+	
+	//if(WPFB_Core::GetOpt('dl_destroy_session'))
+//		@session_destroy();
+	
+	// ready to send the file!
+	
+	if($begin > 0)
+		fseek($fh,$begin,0);
+	
+	if(WPFB_Core::$settings->use_fpassthru) {
+		fpassthru($fh);
+	}
+	else
+	{
+		$bandwidth = empty($bandwidth) ? 0 : (float)$bandwidth;
+		if($bandwidth <= 0)
+			$bandwidth = 1024 * 1024;
+
+		$buffer_size = (int)(1024 * min($bandwidth, 64));
+
+		// convert kib/s => bytes/ms
+		$bandwidth *= 1024;
+		$bandwidth /= 1000;
+
+		$cur = $begin;
+		
+		while(!@feof($fh) && $cur < $end && @connection_status() == 0)
+		{		
+			$nbytes = min($buffer_size, $end-$cur);
+			$ts = microtime(true);
+
+			print @fread($fh, $nbytes);
+			@ob_flush();
+			@flush();
+
+			$dt = (microtime(true) - $ts) * 1000; // dt = time delta in ms		
+			$st = ($nbytes / $bandwidth) - $dt;
+			if($st > 0)
+				usleep($st * 1000);			
+
+			$cur += $nbytes;
+		}
+	}
+
 	@fclose($fh);	
 	return true;
 }

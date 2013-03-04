@@ -2,19 +2,26 @@
 class WPFB_GetID3 {
 	static $engine;
 	
-	static function InitClass()
+	static function GetEngine()
 	{
-		if(!class_exists('getID3'))
-			require_once(WPFB_PLUGIN_ROOT.'extras/getid3/getid3.php');		
-		self::$engine = new getID3;
+		if(!self::$engine) {
+			if(!class_exists('getID3')) {
+				$tmp_dir = WPFB_Core::UploadDir().'/.tmp';
+				if(!is_dir($tmp_dir)) @mkdir($tmp_dir);
+				define('GETID3_TEMP_DIR', $tmp_dir.'/');
+				unset($tmp_dir);
+				require_once(WPFB_PLUGIN_ROOT.'extras/getid3/getid3.php');		
+			}
+			self::$engine = new getID3;
+		}
+		return self::$engine;
 	}
 	
 	static function AnalyzeFile($file)
 	{
 		$filename = is_string($file) ? $file : $file->GetLocalPath();
 		
-		if(WPFB_Core::GetOpt('disable_id3')) $info = array();
-		else $info =& self::$engine->analyze($filename);
+		$info = WPFB_Core::GetOpt('disable_id3') ? array() : self::GetEngine()->analyze($filename);
 		
 		if(!empty($_GET['debug'])) {
 			wpfb_loadclass('Sync');
@@ -47,7 +54,7 @@ class WPFB_GetID3 {
 	
 	static function UpdateCachedFileInfo($file)
 	{
-		$info =& self::AnalyzeFile($file);
+		$info = self::AnalyzeFile($file);
 		self::StoreFileInfo($file->GetId(), $info);
 		return $info;
 	}

@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=wpfil
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, images, pdf, widget, filelist, list, thumbnails, thumbnail, attachment, attachments, category, categories, media, template, ftp, http, mp3, id3
 Requires at least: 3.1
 Tested up to: 3.5.1
-Stable tag: 0.2.9.34
+Stable tag: 0.2.9.35
 
 Adds a powerful download manager including file categories, downloads counter, widgets, sorted file lists and more to your WordPress blog.
 
@@ -112,6 +112,20 @@ Goto WP-Filebase Settings and disable Permalinks under "Download". Try to disabl
 
 
 == Changelog ==
+
+= 0.2.9.35 =
+* Increased stability of sync
+* Backend: Fixed not all files beeing visible for Admins
+* Fixed Editor Plugin flash uploader
+* Fixed minor bugs
+* Upload permissions are inherited
+* New Option 'Use fpassthru' to avoid invalid download data on some servers
+* New GUI tab for File Page Templates
+* Removed Option `Destroy session when downloading`, this will now work in a different way
+* Fixed flash uploader behavior when uploading file updates
+* Fixed file renaming on upload
+* Fixed quote escaping in template IF expressions
+
 
 = 0.2.9.34 =
 * Custom language files dir can be set with PHP constant WPFB_LANG_DIR in wp-config.php

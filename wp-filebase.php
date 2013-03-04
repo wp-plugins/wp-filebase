@@ -4,14 +4,14 @@ Plugin Name: WP-Filebase
 Plugin URI: http://fabi.me/wordpress-plugins/wp-filebase-file-download-manager/
 Description: Adds a powerful downloads manager supporting file categories, download counter, widgets, sorted file lists and more to your WordPress blog.
 Author: Fabian Schlieper
-Version: 0.2.9.34
+Version: 0.2.9.35
 Author URI: http://wpfilebase.com/
 */
 
 if(!defined('WPFB'))
 {
 	define('WPFB', 'wpfb');
-	define('WPFB_VERSION', '0.2.9.34');
+	define('WPFB_VERSION', '0.2.9.35');
 	define('WPFB_PLUGIN_ROOT', str_replace('\\','/',dirname(__FILE__)).'/');
 	if(!defined('ABSPATH')) {
 		define('ABSPATH', dirname(dirname(dirname(dirname(__FILE__)))));
@@ -82,6 +82,7 @@ if(!defined('WPFB'))
 	}
 	
 	function wpfilebase_activate() {
+		define('WPFB_SIMPLE_LOAD',true);
 		wpfb_loadclass('Core','Admin', 'Setup');
 		WPFB_Setup::OnActivateOrVerChange(WPFB_Core::GetOpt('version'));
 	}

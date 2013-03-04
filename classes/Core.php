@@ -163,13 +163,12 @@ static function DownloadRedirect()
 		if(!WPFB_Core::$settings->download_base || is_admin()) return;
 		$dl_url_path = parse_url(home_url(WPFB_Core::$settings->download_base.'/'), PHP_URL_PATH);
 		$pos = strpos($_SERVER['REQUEST_URI'], $dl_url_path);
-		if($pos !== false && $pos == 0) {
-			$filepath = trim(substr($_SERVER['REQUEST_URI'], strlen($dl_url_path)), '/');
+		if($pos === 0) {
+			$filepath = trim(substr(stripslashes($_SERVER['REQUEST_URI']), strlen($dl_url_path)), '/');
 			if( ($qs=strpos($filepath,'?')) !== false ) $filepath = substr($filepath,0,$qs); // remove query string
 			if(!empty($filepath)) {
 				wpfb_loadclass('File','Category');
-				$file = WPFB_File::GetByPath($filepath);
-				if(empty($file)) $file = WPFB_File::GetByPath(urldecode($filepath));
+				$file = is_null($file=WPFB_File::GetByPath($filepath)) ? WPFB_File::GetByPath(urldecode($filepath)) : $file;
 			}
 		}
 	}
@@ -521,7 +520,7 @@ static function AdminBar() {
 static function Sync() { wpfb_call('Sync', 'Sync'); }
 
 static function Cron() {
-	if(self::$settings->cron_sync) {
+	if(self::$settings->cron_sync ) {
 		wpfb_call('Sync', 'Sync');
 		update_option(WPFB_OPT_NAME.'_cron_sync_time', empty($_SERVER["REQUEST_TIME"]) ? time() : $_SERVER["REQUEST_TIME"]);
 	}
@@ -553,7 +552,7 @@ static function ParseIniFileSize($val) {
 }
 
 public static function GetCustomFields($full_field_names=false) {
-	$custom_fields = explode("\n",WPFB_Core::$settings->custom_fields);
+	$custom_fields = isset(WPFB_Core::$settings->custom_fields)?explode("\n",WPFB_Core::$settings->custom_fields):array();
 	$arr = array();
 	if(empty($custom_fields[0])) return array();
 	foreach($custom_fields as $cf) {
@@ -604,3 +603,4 @@ static function CreateTplFunc($parsed_tpl) {
 
 }
 
+ 

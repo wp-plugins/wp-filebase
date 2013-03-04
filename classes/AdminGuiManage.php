@@ -3,6 +3,9 @@ class WPFB_AdminGuiManage {
 static function Display()
 {
 	global $wpdb, $user_ID;
+	
+	//register_shutdown_function( create_function('','$error = error_get_last(); if( $error && $error[\'type\'] != E_STRICT ){print_r( $error );}else{return true;}') );
+	
 	wpfb_loadclass('File', 'Category', 'Admin', 'Output');
 	
 	$_POST = stripslashes_deep($_POST);
@@ -107,7 +110,7 @@ static function Display()
 	<div style="text-align: center;" ><a href="https://twitter.com/wpfilebase" class="twitter-follow-button" data-show-count="false">Follow @wpfilebase</a>
 			<script type="text/javascript">!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script></div>
 	
-	<p>Please <a href="http://wordpress.org/extend/plugins/wp-filebase/">give it a good rating</a>, or even consider a donation using PayPal or Flattr to support the developer of WP-Filebase:</p> 
+	<p>Please <a href="http://wordpress.org/support/view/plugin-reviews/wp-filebase">give it a good rating</a>, or even consider a donation using PayPal or Flattr to support the developer of WP-Filebase:</p> 
 	<div style="text-align: center;">	
 	<?php WPFB_Admin::PrintPayPalButton() ?>
 	<?php WPFB_Admin::PrintFlattrButton() ?>
@@ -193,7 +196,7 @@ if(WPFB_Core::GetOpt('cron_sync')) {
 	$last_sync_time	= intval(get_option(WPFB_OPT_NAME.'_cron_sync_time'));
 	echo ($last_sync_time > 0) ? (" (".sprintf( __('Last cron sync on %1$s at %2$s.',WPFB), date_i18n( get_option( 'date_format'), $last_sync_time ), date_i18n( get_option( 'time_format'), $last_sync_time ) ).")") : '';
 } else {
-	_e('Cron sync is disabled.');
+	_e('Cron sync is disabled.',WPFB);
 }
 ?>
 				</td>
@@ -275,7 +278,7 @@ if(WPFB_Core::GetOpt('cron_sync')) {
 				$nd = 0;
 				foreach($ids as $id) {
 					$id = intval($id);					
-					if(($file=WPFB_File::GetFile($id))!=null) {
+					if(($file=WPFB_File::GetFile($id))!=null && $file->CurUserCanEdit()) {
 						$file->Remove(true);
 						$nd++;
 					}

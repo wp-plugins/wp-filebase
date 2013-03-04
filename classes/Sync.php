@@ -1,6 +1,9 @@
-<?php class WPFB_Sync {
+<?php
+class WPFB_Sync {
 	
 const HIGH_START_MEM = 100000000; // 100MB
+
+static $error_log_file;
 
 static function InitClass()
 {
@@ -10,13 +13,57 @@ static function InitClass()
 	@ini_set('max_execution_time', '0');
 	@set_time_limit(0);
 	
+	self::$error_log_file = WPFB_Core::UploadDir().'/_wpfb_sync_errors_'.md5(WPFB_Core::UploadDir()).'.log';
+	if(is_file(self::$error_log_file))
+		file_put_contents(self::$error_log_file, "\n".str_repeat('=',20)."\nINIT SYNC\n", FILE_APPEND);
+	@ini_set ("error_log", self::$error_log_file);
+	
+	if(!empty($_GET['output']) || !empty($_GET['debug'])) {
+		@ini_set( 'display_errors', 1 );
+		@error_reporting(E_ERROR | E_WARNING | E_PARSE);
+	
+		set_error_handler( array( __CLASS__, 'CaptureError' ) );
+		set_exception_handler( array( __CLASS__, 'CaptureException' ) );
+		register_shutdown_function( array(__CLASS__, 'CaptureShutdown' ) );
+	}
+	
 	// raise memory limit if needed
-	if(WPFB_Core::ParseIniFileSize(ini_get('memory_limit')) < 128000000)
+	if(WPFB_Core::ParseIniFileSize(ini_get('memory_limit')) < 64000000) {
 		@ini_set('memory_limit', '128M'); 
+		@ini_set('memory_limit', '256M');
+		@ini_set('memory_limit', '512M'); 
+	}
 }
 
 private static function cleanPath($path) {
 	return str_replace('//','/',str_replace('\\', '/', $path));
+}
+
+public static function CaptureError( $number, $message, $file, $line )
+{
+	 if($number == E_STRICT || $number == E_NOTICE) return;
+	 $error = array( 'type' => $number, 'message' => $message, 'file' => $file, 'line' => $line );
+	 echo '<pre>ERROR:';
+	 print_r( $error );
+	 echo '</pre>';
+}
+
+public static function CaptureException( $exception )
+{
+	 echo '<pre>EXCEPTION:';
+	 print_r( $exception );
+	 echo '</pre>';
+}
+
+// UNCATCHABLE ERRORS
+public static function CaptureShutdown( )
+{
+	 $error = error_get_last( );
+	 if( $error && $error['type'] != E_STRICT && $error['type'] != E_NOTICE && $error['type'] != E_WARNING ) {
+		  echo '<pre>FATAL ERROR:';
+		  print_r( $error );
+		  echo '</pre>';
+	 } else { return true; }
 }
 
 static function DEcho($str) {
@@ -73,8 +120,7 @@ private static function SyncPase1($sync_data, $output)
 	{
 		$fn = $all_files[$i];
 		$fbn = basename($fn);
-		if(strlen($fn) < 2 || $fbn{0} == '.' || strpos($fn, '/.tmp') !== false
-				|| $fbn == '_wp-filebase.css' || strpos($fbn, '_caticon.') !== false
+		if(strlen($fn) < 2 || $fbn{0} == '.' || strpos($fn, '/.tmp') !== false 				|| $fbn == '_wp-filebase.css' || strpos($fbn, '_caticon.') !== false || strpos($fbn, '_wpfb_') === 0
 				|| strpos($fbn, '.__info.xml') !== false
 				|| in_array(substr($fn, strlen($upload_dir)), $sync_data->known_filenames)
 				|| !is_file($fn) || !is_readable($fn)
@@ -127,7 +173,7 @@ static function Sync($hash_sync=false, $output=false)
 	return $sync_data->log;
 }
 
-private function PostSync($sync_data, $output)
+private static function PostSync($sync_data, $output)
 {
 	self::PrintDebugTrace("post_sync");
 	
@@ -385,7 +431,7 @@ static function SyncCats(&$cats = null)
 	return $updated_cats;
 }
 
-function Chmod($base_dir, $files)
+static function Chmod($base_dir, $files)
 {
 	$result = array();
 	

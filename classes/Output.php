@@ -2,6 +2,7 @@
 class WPFB_Output {
 static $page_title = '';
 static $page_content = '';
+
 static function ProcessShortCode($args, $content = null, $tag = null)
 {
 	$id = empty($args ['id']) ? -1 : intval($args ['id']);
@@ -175,7 +176,7 @@ static function ParseSelOpts($opt_name, $sel_tags, $uris=false)
 	for($i = 0; $i < count($opts); $i++)
 	{
 		$opt = explode('|', trim($opts[$i]));
-		if(in_array($opt[1], $sel_tags)) {
+		if(in_array(isset($opt[1])?$opt[1]:$opt[0], $sel_tags)) {
 			$o = esc_html(ltrim($opt[0], '*'));;
 			if($uris && isset($opt[2]))
 				$o = '<a href="' . esc_attr($opt[2]) . '" target="_blank">' . $o . '</a>';

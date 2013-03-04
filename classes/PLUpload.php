@@ -84,7 +84,10 @@ wpUploaderInit = <?php echo json_encode($plupload_init); ?>;
 	<p class="drag-drop-info"><?php _e('Drop files here - or -',WPFB); ?> <span class="drag-drop-buttons"><input id="plupload-browse-button" type="button" value="<?php esc_attr_e('Select Files'); ?>" class="button" /></span></p>
 	</div>
 </div>
-<?php do_action('post-plupload-upload-ui'); // hook change, old name: 'post-flash-upload-ui' ?>
+	<p class="upload-flash-bypass">
+	<?php printf( __( 'You are using the multi-file uploader. Problems? Try the <a href="%1$s">browser uploader</a> instead.' ), esc_url(add_query_arg('flash', 0)) ); ?>
+	</p>
+	
 </div>
 
 <?php

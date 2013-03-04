@@ -525,7 +525,8 @@ static function ProtectUploadPath()
 	if(!is_dir($dir)) WPFB_Admin::Mkdir($dir);
 	$htaccess = "$dir/.htaccess";
 	
-	@unlink($htaccess);
+	if(is_file($htaccess)) @unlink($htaccess);
+	
 	if(WPFB_Core::GetOpt('protect_upload_path') && is_writable(WPFB_Core::UploadDir()) && ($fp = @fopen($htaccess, 'w')) )
 	{
 		@fwrite($fp, "Order deny,allow\n");
@@ -562,7 +563,7 @@ static function OnActivateOrVerChange($old_ver=null) {
 	if(!get_option('wpfb_install_time')) add_option('wpfb_install_time', (($ft=(int)mysql2date('U',$wpdb->get_var("SELECT file_mtime FROM $wpdb->wpfilebase_files ORDER BY file_mtime ASC LIMIT 1")))>0)?$ft:time(), null, 'no');
 	
 	
-	WPFB_Admin::FlushRewriteRules();
+	flush_rewrite_rules();
 }
 
 static function OnDeactivate() {

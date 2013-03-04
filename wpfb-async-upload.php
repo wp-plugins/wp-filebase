@@ -4,6 +4,15 @@
  *
  */
 
+function wpfb_on_shutdown()
+{
+	 $error = error_get_last( );
+	 if( $error && $error['type'] != E_STRICT && $error['type'] != E_NOTICE && $error['type'] != E_WARNING  ) {
+		 wpfb_ajax_die(json_encode($error));
+	 } else { return true; }
+}
+register_shutdown_function('wpfb_on_shutdown');
+
 define('TMP_FILE_MAX_AGE', 3600*3);
 
 $frontend_upload = !empty($_REQUEST['frontend_upload']) && $_REQUEST['frontend_upload'] !== "false";
@@ -20,6 +29,7 @@ else
 error_reporting(0);
 
 function wpfb_ajax_die($msg) {
+	@ob_end_clean();
 	echo '<div class="error-div">
 	<strong>' . $msg . '</strong></div>';
 	exit;	
@@ -36,7 +46,7 @@ unset($current_user);
 
 if(!$frontend_upload)
 	require_once(ABSPATH.'wp-admin/admin.php');
-ob_end_clean();
+@ob_end_clean();
 
 if(!WP_DEBUG) {
 	send_nosniff_header();
