@@ -103,6 +103,8 @@ static function Display()
 ?>
 	<h2><?php
 	echo str_replace(array('(<','>)'),array('<','>'), sprintf(__('Manage Files (<a href="%s">add new</a>)', WPFB), '#addfile" class="add-new-h2'));
+	echo '<a href="'.admin_url('admin.php?page=wpfilebase_manage&amp;action=batch-upload').'" class="add-new-h2">'.__('Batch Upload',WPFB).'</a>';
+	
 	if ( isset($_GET['s']) && $_GET['s'] )
 		printf( '<span class="subtitle">' . __('Search results for &#8220;%s&#8221;'/*def*/) . '</span>', esc_html(stripslashes($_GET['s'])));
 	?></h2>

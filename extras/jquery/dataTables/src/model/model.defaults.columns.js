@@ -1,5 +1,4 @@
 
-
 /**
  * Column options that can be given to DataTables at initialisation time.
  *  @namespace

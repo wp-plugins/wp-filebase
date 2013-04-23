@@ -1,5 +1,4 @@
 
-
 /**
  * Generate the node required for user display length changing
  *  @param {object} oSettings dataTables settings object

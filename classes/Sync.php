@@ -1,18 +1,18 @@
 <?php
 class WPFB_Sync {
-	
+
 const HIGH_START_MEM = 100000000; // 100MB
 
 static $error_log_file;
 
 static function InitClass()
 {
-	wpfb_loadclass("Admin", "GetID3", "FileUtils");
+	wpfb_loadclass("Admin", "GetID3", "FileUtils", "Misc");
 	require_once(ABSPATH . 'wp-admin/includes/file.php');
 	
 	@ini_set('max_execution_time', '0');
 	@set_time_limit(0);
-	
+
 	self::$error_log_file = WPFB_Core::UploadDir().'/_wpfb_sync_errors_'.md5(WPFB_Core::UploadDir()).'.log';
 	if(is_file(self::$error_log_file))
 		file_put_contents(self::$error_log_file, "\n".str_repeat('=',20)."\nINIT SYNC\n", FILE_APPEND);
@@ -28,7 +28,7 @@ static function InitClass()
 	}
 	
 	// raise memory limit if needed
-	if(WPFB_Core::ParseIniFileSize(ini_get('memory_limit')) < 64000000) {
+	if(WPFB_Misc::ParseIniFileSize(ini_get('memory_limit')) < 64000000) {
 		@ini_set('memory_limit', '128M'); 
 		@ini_set('memory_limit', '256M');
 		@ini_set('memory_limit', '512M'); 
@@ -41,7 +41,7 @@ private static function cleanPath($path) {
 
 public static function CaptureError( $number, $message, $file, $line )
 {
-	 if($number == E_STRICT || $number == E_NOTICE) return;
+	 if($number == E_STRICT || $number == E_NOTICE || $number == E_WARNING) return;
 	 $error = array( 'type' => $number, 'message' => $message, 'file' => $file, 'line' => $line );
 	 echo '<pre>ERROR:';
 	 print_r( $error );
@@ -118,17 +118,47 @@ private static function SyncPase1($sync_data, $output)
 	$fext_blacklist = array_map('strtolower', array_map('trim', explode(',', WPFB_Core::GetOpt('fext_blacklist'))));
 	for($i = 0; $i < $sync_data->num_all_files; $i++)
 	{
+		// $fn = $upload_dir.implode('/',array_map('urlencode', explode('/', substr($all_files[$i], strlen($upload_dir)))));
+
 		$fn = $all_files[$i];
 		$fbn = basename($fn);
 		if(strlen($fn) < 2 || $fbn{0} == '.' || strpos($fn, '/.tmp') !== false 				|| $fbn == '_wp-filebase.css' || strpos($fbn, '_caticon.') !== false || strpos($fbn, '_wpfb_') === 0
 				|| strpos($fbn, '.__info.xml') !== false
 				|| in_array(substr($fn, strlen($upload_dir)), $sync_data->known_filenames)
+				//|| in_array(utf8_encode(substr($fn, strlen($upload_dir))), $sync_data->known_filenames)
 				|| !is_file($fn) || !is_readable($fn)
 				|| (!empty($fext_blacklist) && in_array(trim(strrchr($fbn, '.'),'.'), $fext_blacklist)) // check for blacklisted extension
 			)
 			continue;
+		
+		// look for an equal missing file -> this file has been moved then!
+		foreach($sync_data->missing_files as $mf) {
+			if($fbn == $mf->file_name && filesize($fn) == $mf->file_size && filemtime($fn) == $mf->file_mtime)
+			{
+				// make sure cat tree to new file location exists, and set the cat of the moved file
+				$cat_id = WPFB_Admin::CreateCatTree($fn);
+				$mf->ChangeCategoryOrName($cat_id, null, true);
+				
+				// rm form missing list, add to changed
+				unset($sync_data->missing_files[$mf->file_id]);
+				$sync_data->log['changed'][$mf->file_id] = $mf;			
+				
+				continue 2;
+			}
+		}
+		
 		$sync_data->new_files[$num_new_files] = $fn;
 		$num_new_files++;
+	}
+	
+	foreach($sync_data->missing_files as $mf) {
+		if(WPFB_Core::GetOpt('remove_missing_files')) {
+			$mf->Remove();
+		} elseif(!$mf->file_offline) {
+			$mf->file_offline = true; 				// set offline if not found
+			if(!$mf->locked) $mf->DBSave();	
+		}
+		$sync_data->log['missing_files'][$mf->file_id] = $mf;
 	}
 	
 	self::PrintDebugTrace("new_files_end");
@@ -221,6 +251,14 @@ static function CheckChangedFiles($sync_data)
 		
 		if($file->file_category > 0 && is_null($file->GetParent()))
 			$sync_data->log['warnings'][] = sprintf(__('Category (ID %d) of file %s does not exist!', WPFB), $file->file_category, $file->GetLocalPathRel()); 
+		
+		// remove thumb if missing
+		if($file->file_thumbnail && !file_exists($file->GetThumbPath()))
+		{
+			$file->file_thumbnail = '';
+			$file->DBSave();
+			$sync_data->log['changed'][$id] = $file;
+		}
 			
 		// TODO: check for file changes remotly
 		if($file->IsRemote())
@@ -228,13 +266,7 @@ static function CheckChangedFiles($sync_data)
 			
 		if(!@is_file($file_path) || !@is_readable($file_path))
 		{
-			if(WPFB_Core::GetOpt('remove_missing_files')) {
-				$file->Remove();
-			} else {
-				$file->file_offline = true; 				// set offline if not found
-				if(!$file->locked) $file->DBSave();	
-			}
-			$sync_data->log['missing_files'][$id] = $file;
+			$sync_data->missing_files[$id] = $file;
 			continue;
 		}
 		
@@ -319,7 +351,7 @@ static function GetMemStats()
 {
 	static $limit = -2;
 	if($limit == -2)
-		$limit = WPFB_Core::ParseIniFileSize(ini_get('memory_limit'));
+		$limit = wpfb_call("Misc","ParseIniFileSize",ini_get('memory_limit'));
 	return array('limit' => $limit, 'used' => max(memory_get_usage(true), memory_get_usage()));
 }
 
@@ -425,7 +457,8 @@ static function SyncCats(&$cats = null)
 			}
 		}
 		
-		@chmod ($cat->GetLocalPath(), octdec(WPFB_PERM_DIR));
+		if(is_dir($cat->GetLocalPath()))
+			chmod ($cat->GetLocalPath(), octdec(WPFB_PERM_DIR));
 	}
 	
 	return $updated_cats;
@@ -439,7 +472,7 @@ static function Chmod($base_dir, $files)
 	$upload_dir_len = strlen($upload_dir);
 	
 	// chmod
-	@chmod ($upload_dir, octdec(WPFB_PERM_DIR));
+	chmod ($upload_dir, octdec(WPFB_PERM_DIR));
 	for($i = 0; $i < count($files); $i++)
 	{
 		$f = "$base_dir/".$files[$i];
@@ -500,9 +533,9 @@ static function PrintResult(&$result)
 			// first files should be deleted, then cats!
 			if(!empty($result['missing_files'])) {
 				echo '<p>' . sprintf(__('%d Files could not be found.', WPFB), count($result['missing_files'])) . ' '.
-				(WPFB_Core::GetOpt('remove_missing_files') ? 'The corresponding entries have been removed from the database.' : (' <a href="'.$clean_uri.'&amp;action=del&amp;files='.join(',',array_keys($result['missing_files'])).'" class="button" target="_parent">'.__('Remove entries from database').'</a>')).'</p>';
+				(WPFB_Core::GetOpt('remove_missing_files') ? 'The corresponding entries have been removed from the database.' : (' <a href="'.$clean_uri.'&amp;action=del&amp;files='.join(',',array_keys($result['missing_files'])).'" class="button" target="_top">'.__('Remove entries from database').'</a>')).'</p>';
 			} elseif(!empty($result['missing_folders'])) {
-				echo '<p>' . sprintf(__('%d Category Folders could not be found.', WPFB), count($result['missing_folders'])) . ' <a href="'.$clean_uri.'&amp;action=del&amp;cats='.join(',',array_keys($result['missing_folders'])).'" class="button" target="_parent">'.__('Remove entries from database').'</a></p>';
+				echo '<p>' . sprintf(__('%d Category Folders could not be found.', WPFB), count($result['missing_folders'])) . ' <a href="'.$clean_uri.'&amp;action=del&amp;cats='.join(',',array_keys($result['missing_folders'])).'" class="button" target="_top">'.__('Remove entries from database').'</a></p>';
 			}
 }
 
@@ -533,6 +566,7 @@ class WPFB_SyncData {
 	
 	var $known_filenames;
 	var $new_files;
+	var $missing_files;
 	var $thumbnails;
 	
 	var $num_files_to_add;
@@ -548,6 +582,7 @@ class WPFB_SyncData {
 			
 			$this->known_filenames = array();
 			$this->new_files = array();
+			$this->missing_files = array();
 			$this->num_files_to_add = 0;
 			$this->num_all_files = 0;
 			$this->num_files_processed = 0;

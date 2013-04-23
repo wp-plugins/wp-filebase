@@ -2,9 +2,9 @@
 
 static function GetFileSize($file)
 {
-	$size = filesize($file);
+	$fsize = filesize($file);
 	
-	return $size;
+	return $fsize;
 }
 
 static function CreateThumbnail($src_img, $max_size)
@@ -44,7 +44,7 @@ static function CreateThumbnail($src_img, $max_size)
 	$tmp_size = array();
 	if(!@file_exists($tmp_img) || @filesize($tmp_img) == 0 || !WPFB_FileUtils::IsValidImage($tmp_img, $tmp_size))
 	{
-		if($tmp_del) @unlink($tmp_img);
+		if($tmp_del && is_file($tmp_img)) @unlink($tmp_img);
 		return false;
 	}
 		
@@ -52,7 +52,7 @@ static function CreateThumbnail($src_img, $max_size)
 		require_once(ABSPATH . 'wp-includes/media.php');
 		if(!function_exists('image_make_intermediate_size'))
 		{
-			if($tmp_del) @unlink($tmp_img);
+			if($tmp_del && is_file($tmp_img)) @unlink($tmp_img);
 			wp_die('Function image_make_intermediate_size does not exist!');
 			return false;
 		}
@@ -70,7 +70,7 @@ static function CreateThumbnail($src_img, $max_size)
 			$thumb = array('file' => $new_thumb);
 	}
 	
-	if($tmp_del) @unlink($tmp_img);
+	if($tmp_del && is_file($tmp_img)) unlink($tmp_img);
 	
 	if(!$thumb ) return false;
 	

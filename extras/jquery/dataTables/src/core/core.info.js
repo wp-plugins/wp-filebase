@@ -1,5 +1,4 @@
 
-
 /**
  * Generate the node required for the info display
  *  @param {object} oSettings dataTables settings object

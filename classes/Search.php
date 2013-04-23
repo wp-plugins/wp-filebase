@@ -131,7 +131,8 @@ static function FileSearchContent(&$ref_content)
 	wpfb_loadclass('ListTpl');
 	$tpl = WPFB_ListTpl::Get(WPFB_Core::$settings->search_result_tpl);
 	if($tpl !== null) {
-		$ref_content .= $tpl->Generate(null, false, null, WPFB_Core::$settings->filelist_num);
+		$ref_content .= $tpl->Generate(null, array('page_limit' => WPFB_Core::$settings->filelist_num 
+			 ));
 	} else {
 		$files = WPFB_File::GetFiles2(self::SearchWhereSql(WPFB_Core::GetOpt('search_id3'), stripslashes($_GET['wpfb_s'])), WPFB_Core::GetOpt('hide_inaccessible'));
 		foreach($files as $file)

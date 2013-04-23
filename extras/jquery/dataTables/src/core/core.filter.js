@@ -1,5 +1,4 @@
 
-
 /**
  * Generate the node required for filtering text
  *  @returns {node} Filter control element

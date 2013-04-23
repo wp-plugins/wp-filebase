@@ -292,7 +292,7 @@ class WPFB_Item {
 	{
 		static $base_dir = '';
 		if(empty($base_dir) || $refresh)
-			$base_dir = WPFB_Core::ThumbDir() . '/';
+			$base_dir = (empty(WPFB_Core::$settings->thumbnail_path) ? WPFB_Core::UploadDir() : path_join(ABSPATH, WPFB_Core::$settings->thumbnail_path)) . '/';
 			
 		if($this->is_file) {
 			if(empty($this->file_thumbnail)) return null;			

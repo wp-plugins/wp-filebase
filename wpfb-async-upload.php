@@ -98,12 +98,26 @@ $_FILES['async-upload']['tmp_name'] = trim(substr($tmp, strlen(WPFB_Core::Upload
 $json = json_encode($_FILES['async-upload']);
 
 if($file_add_now) {
-	$result = WPFB_Admin::InsertFile(array('file_flash_upload' => $json, 'file_category' => 0), false);
+	
+	$file_data = array('file_flash_upload' => $json, 'file_category' => 0);
+	if(!empty($_REQUEST['presets'])) {
+		$presets = array();
+		parse_str(stripslashes($_REQUEST['presets']), $presets);
+		if(isset($presets['file_user_roles'])) {
+			$presets['file_user_roles'] = array_values(array_filter($presets['file_user_roles']));
+		}
+		$file_data = array_merge($file_data, $presets);
+	}
+	
+	$result = WPFB_Admin::InsertFile($file_data, false);
 	if(empty($result['error'])) {
 		$json = json_encode(array_merge((array)$result['file'], array(
 			 'file_thumbnail_url' => $result['file']->GetIconUrl(),
+			 'file_edit_url' => $result['file']->GetEditUrl(),
 			 'nonce' => wp_create_nonce(WPFB.'-updatefile'.$result['file_id'])
 		)));
+	} else {
+		wpfb_ajax_die($result['error']);
 	}
 }
 

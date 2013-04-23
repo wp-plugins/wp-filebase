@@ -42,6 +42,8 @@ static function Display()
 	
 	wpfb_loadclass('Admin', 'Output', 'TplLib', 'ListTpl');
 	
+	WPFB_Core::PrintJS();
+	
 	$_POST = stripslashes_deep($_POST);
 	$_GET = stripslashes_deep($_GET);	
 	$action = (!empty($_POST['action']) ? $_POST['action'] : (!empty($_GET['action']) ? $_GET['action'] : ''));
@@ -105,8 +107,15 @@ static function Display()
 	
 	if(!empty($_POST['reset-tpls'])) {
 		wpfb_call('Setup', 'ResetTpls');
+		
+		// also reset default templates stored in settings
+		wpfb_loadclass('Admin');
+		$settings_schema = WPFB_Admin::SettingsSchema();		
+		WPFB_Core::UpdateOption('template_file', $settings_schema['template_file']['default']);
+		WPFB_Core::UpdateOption('template_cat', $settings_schema['template_cat']['default']);
+		
+		WPFB_Admin::ParseTpls();
 	}
-			
 	?>
 	
 <script type="text/javascript">

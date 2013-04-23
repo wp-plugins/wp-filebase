@@ -90,6 +90,11 @@
 .wpfilebase-roles-checklist li {
 	margin: 0;
 	padding: 0;
+	white-space: nowrap;
+}
+
+.wpfilebase-roles-checklist input {
+	width: auto;
 }
 
 #wpfilebase-donate {
@@ -387,4 +392,106 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#fceabb', end
 	padding: 2px;
 	font-family: Georgia,"Times New Roman","Bitstream Charter",Times,serif;
 	font-size: 18px;
+}
+
+#wpfb-batch-uploader-presets {
+	float:right;
+	width: 400px;
+}
+
+#wpfb-batch-uploader-presets label {
+	
+}
+
+#wpfb-batch-uploader-presets .wpfilebase-roles-checklist {
+	height: 100px;
+}
+
+#wpfb-batch-uploader-presets table th, #wpfb-batch-uploader-presets table td {
+	padding: 1px;
+	margin: 0;
+}
+
+#batch-drag-drop-uploader {
+	padding-right: 450px;
+}
+
+#batch-drag-drop-area {
+	width: 100%;
+	height: 300px;
+	border: 3px dashed #ccc;
+	border-radius: 0px;
+	
+	background-color: #fff;
+	text-align: center;
+	text-transform: uppercase;
+	font-size: 20px;
+	color: #ccc;
+}
+
+#batch-drag-drop-area.drag-over {
+	border-color:#83b4d8;
+	background-color: #ffe;
+}
+
+
+
+#batch-uploader-interface {
+	background-color: #efefef;
+	padding: 15px;
+	padding-top: 2px;
+	border-radius: 5px;
+}
+
+.batch-uploader-file {
+	background-color: #efefef;
+	padding: 2px 15px 6px 8px;
+
+	border-radius: 5px;
+	margin-top: 20px;
+	/* height: 30px;*/
+	box-shadow: 0px 1px 2px #999;
+	line-height: 40px;
+}
+
+.batch-uploader-file span {
+	font-size: 20px;
+}
+
+.batch-uploader-file .error {
+	font-size: 12px;
+	color: #d33;
+}
+
+.batch-uploader-file img {
+	height: 34px;
+	vertical-align: middle;
+	margin-right: 10px;
+}
+
+.batch-uploader-file span {
+	vertical-align: bottom;
+}
+
+.batch-uploader-file .progress {
+	margin-top: 10px;
+	margin-right: 0px;
+}
+
+#batch-uploader-presets-more-toggle {
+	cursor: pointer;	
+	text-align: center;
+}
+
+#batch-uploader-presets-more-toggle td {
+	border-top: 2px solid #ccc;
+}
+
+#batch-uploader-presets-more-toggle td span {
+	background-color: #ccc;
+	padding: 3px;
+	border-radius: 0px 0px 3px 3px;
+	color: #666;
+	text-shadow: 0px 1px 0px #eee;
+	text-transform: uppercase;
 }

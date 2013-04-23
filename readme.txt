@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=wpfil
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, images, pdf, widget, filelist, list, thumbnails, thumbnail, attachment, attachments, category, categories, media, template, ftp, http, mp3, id3
 Requires at least: 3.1
 Tested up to: 3.5.1
-Stable tag: 0.2.9.35
+Stable tag: 0.2.9.36
 
 Adds a powerful download manager including file categories, downloads counter, widgets, sorted file lists and more to your WordPress blog.
 
@@ -112,6 +112,25 @@ Goto WP-Filebase Settings and disable Permalinks under "Download". Try to disabl
 
 
 == Changelog ==
+
+= 0.2.9.36 =
+* New Feature: Drag&Drop Batch Uploader with Upload Presets
+* New fresh looking default File & Category templates. [HTML/CSS for upgrading](http://wpfilebase.com/how-tos/file-category-template-v2/)
+* Added MP4 mime type
+* Small Icon Size can be set to 0 to display full size icons
+* Sync: missing thumbnails are removed from database
+* Sync recognizes moved files so meta data is retained and only the path will be updated
+* Updated SK translation by Peter Šuranský
+* Memory optimizations
+* Resetting settings to default will not reset the default templates anymore
+* Resetting templates to default will also reset default templates
+* New category template variable `%cat_has_icon%`
+* Fixed auto p tags in JS
+* Removed line breaks from search form HTML to prevent auto-<br>-tags
+* Fixed HTML comments in templates
+* Fixed file size bug for big files
+* Fixed URL issues when using HTTPS
+* Bulk Actions NOT included yet, planned for next update. Sorry for the delay!
 
 = 0.2.9.35 =
 * Increased stability of sync

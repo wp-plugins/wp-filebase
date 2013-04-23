@@ -1,5 +1,4 @@
 
-
 /**
  * Update the table using an Ajax call
  *  @param {object} oSettings dataTables settings object

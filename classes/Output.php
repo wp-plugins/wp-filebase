@@ -31,10 +31,41 @@ static function ProcessShortCode($args, $content = null, $tag = null)
 		
 		case 'browser':
 				$content = '';
-				self::FileBrowser($content, $id, 0); // by ref
+				self::FileBrowser($content, $id, 0 ); // by ref
 				return $content;
 	}	
 	return '';
+}
+
+static function ParseFileSorting($sort=null)
+{
+	static $fields = array();
+	if(empty($fields)) {
+		$fields = array_merge(array(
+				'file_id','file_name','file_size','file_date','file_path','file_display_name','file_hits',
+				'file_description','file_version','file_author','file_license',
+				'file_category','file_category_name','file_post_id','file_attach_order',
+				'file_added_by','file_hits','file_last_dl_time'), array_keys(WPFB_Core::GetCustomFields(true)));
+	}
+
+	if(!empty($_REQUEST['wpfb_file_sort']))
+		$sort = $_REQUEST['wpfb_file_sort'];
+	elseif(empty($sort)) $sort = WPFB_Core::$settings->filelist_sorting;
+
+	$sort = str_replace(array('&gt;','&lt;'), array('>','<'), $sort);
+
+	$desc = WPFB_Core::$settings->filelist_sorting_dir;
+	if($sort{0} == '<') {
+		$desc = false;
+		$sort = substr($sort,1);
+	} elseif($sort{0} == '>') {
+		$desc = true;
+		$sort = substr($sort,1);
+	}
+
+	if(!in_array($sort, $fields)) $sort = WPFB_Core::$settings->filelist_sorting;
+
+	return array($sort, $desc ? 'DESC' : 'ASC');
 }
 
 private static function genFileList(&$files, $tpl_tag=null)
@@ -78,7 +109,13 @@ static function FileList($args)
 
 	$cats = (empty($args['id']) || $args['id'] == -1) ? ($args['showcats'] ? WPFB_Category::GetCats() : null) : array_filter(array_map(array('WPFB_Category','GetCat'), explode(',', $args['id'])));
 	
-	return $tpl->Generate($cats, $args['showcats'], $args['sort'], $args['num'], $args['sortcats'], isset($args['pagenav']) && !((int)$args['pagenav']));
+	return $tpl->Generate($cats, array(
+			 'cat_grouping' => $args['showcats'],
+			 'cat_order' => $args['sortcats'],
+			 'file_order' => $args['sort'],
+			 'page_limit' => $args['num'],			 
+			 'hide_pagenav' => isset($args['pagenav']) && !((int)$args['pagenav']),
+	));
 }
 
 static function FileBrowser(&$content, $root_cat_id=0, $cur_cat_id=0)
@@ -105,7 +142,7 @@ static function FileBrowser(&$content, $root_cat_id=0, $cur_cat_id=0)
 			$cur_item = null;
 		
 		$el_id = "wpfb-filebrowser-$fb_id";
-		self::InitFileTreeView($el_id, $root_cat);
+		self::InitFileTreeView($el_id, $root_cat );
 		
 		// thats all, JS is loaded in Core::Header
 		$content .= '<ul id="'.$el_id.'" class="treeview">';
@@ -133,7 +170,8 @@ static function FileBrowserList(&$content, &$parents, $root_cat=null)
 	$open_cat = array_pop($parents);
 	$files_before_cats = WPFB_Core::GetOpt('file_browser_fbc');
 	
-	$files =  WPFB_File::GetFiles2(array('file_category' => $root_cat ? $root_cat->GetId() : 0), WPFB_Core::GetOpt('hide_inaccessible'), WPFB_Core::GetFileListSortSql((WPFB_Core::GetOpt('file_browser_file_sort_dir')?'>':'<').WPFB_Core::GetOpt('file_browser_file_sort_by')));
+	$files =  WPFB_File::GetFiles2(array('file_category' => $root_cat ? $root_cat->GetId() : 0),  WPFB_Core::GetOpt('hide_inaccessible'), WPFB_Core::GetFileListSortSql((WPFB_Core::GetOpt('file_browser_file_sort_dir')?'>':'<').WPFB_Core::GetOpt('file_browser_file_sort_by')));
+	
 	if($files_before_cats) {
 		foreach($files as $file)
 			$content .= '<li id="wpfb-file-'.$file->file_id.'"><span>'.$file->GenTpl2('filebrowser', false)."</span></li>\n";
@@ -151,7 +189,7 @@ static function FileBrowserList(&$content, &$parents, $root_cat=null)
 
 		if($has_children) {
 			$content .= "<ul>\n";			
-			if($open) self::FileBrowserList($content, $parents, $cat);
+			if($open) self::FileBrowserList($content, $parents, $cat );
 			else $content .= '<li><span class="placeholder">&nbsp;</span></li>'."\n";
 			$content .= "</ul>\n";
 		}			
@@ -168,6 +206,7 @@ static function FileBrowserList(&$content, &$parents, $root_cat=null)
 // used when retrieving a multi select tpl var
 static function ParseSelOpts($opt_name, $sel_tags, $uris=false)
 {
+	
 	$outarr = array();
 	$opts = explode("\n", WPFB_Core::GetOpt($opt_name));	
 	if(!is_array($sel_tags))
@@ -182,7 +221,8 @@ static function ParseSelOpts($opt_name, $sel_tags, $uris=false)
 				$o = '<a href="' . esc_attr($opt[2]) . '" target="_blank">' . $o . '</a>';
 			$outarr[] = $o;
 		}
-	}	
+	}
+
 	return implode(', ', $outarr);
 }
 
@@ -289,11 +329,12 @@ static function InitFileTreeView($id=null, $root=0)
 	if(is_object($root)) $root = $root->GetId();
 	
 	if($id != null) {
+		$ajax_data = array('action'=>'tree', 'type'=>'browser', 'base' => intval($root));
 	?>
 <script type="text/javascript">
 //<![CDATA[
 jQuery(document).ready(function(){jQuery("#<?php echo $id ?>").treeview({url: "<?php echo WPFB_PLUGIN_URI."wpfb-ajax.php" ?>",
-ajax:{data:{action:"tree",type:"browser",base:<?php echo intval($root); ?>},type:"post",complete:function(){if(typeof(wpfb_setupLinks)=='function')wpfb_setupLinks();}},
+ajax:{data:<?php echo json_encode($ajax_data); ?>,type:"post",complete:function(){if(typeof(wpfb_setupLinks)=='function')wpfb_setupLinks();}},
 animated: "medium"});});
 //]]>
 </script>
@@ -322,7 +363,7 @@ static function GeneratePage($title, $content, $prepend_to_current=false) {
 		add_filter('the_content', array(__CLASS__,'GeneratePageContentFilter'), 10);
 	} else {
 		add_filter('the_posts',array(__CLASS__,'GeneratePagePostFilter'),9,2);
-		add_filter('edit_post_link', array('WPFB_Core', 'Nothing')); // hide edit link
+		add_filter('edit_post_link', create_function('','return "";')); // hide edit link
 	}
 }
 
@@ -427,7 +468,7 @@ static function FileForm($prefix, $form_url, $vars, $secret_key=null, $extended=
 				<?php if($category == -1) { ?>
 				<div>
 				<label for="<?php echo $prefix ?>file_category"><?php _e('Category') ?></label>
-				<select name="file_category" id="<?php echo $prefix; ?>file_category"><?php wpfb_loadclass('Category'); echo WPFB_Output::CatSelTree(); ?></select>
+				<select name="file_category" id="<?php echo $prefix; ?>file_category"><?php wpfb_loadclass('Category'); echo WPFB_Output::CatSelTree(array('none_label' => __('Select'), 'check_add_perm'=>true)); ?></select>
 				</div>
 				<?php } else { ?>
 				<input type="hidden" name="file_category" value="<?php echo $category; ?>" id="<?php echo $prefix ?>file_category" />
@@ -464,6 +505,8 @@ static function GetSearchForm($action, $hidden_vars = array(), $prefix=null)
 	get_search_form();
 	echo "<!-- /WPFB searchform -->";
 	$form = ob_get_clean();
+	
+	$form = str_replace(array("\r\n", "\n"), " ", $form);
 	
 	if($searching) $wp_query->query_vars['s'] = $sb; // restore query var s
 	

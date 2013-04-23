@@ -64,7 +64,10 @@ class WPFB_File extends WPFB_Item {
 				self::$cache[$id] = new WPFB_File($results[$i]);	
 				$files[$id] = self::$cache[$id];
 			}
-		}		
+		}
+		
+		unset($results);//
+		
 		return $files;
 	}
 	
@@ -95,7 +98,7 @@ class WPFB_File extends WPFB_Item {
 		} else $where_str =& $where;
 		
 		if($check_permissions != false) {
-			if(is_string($check_permissions) && $check_permissions == 'edit') {
+			if($check_permissions === 'edit') {
 				$edit_cond = ((current_user_can('edit_others_posts') && !WPFB_Core::$settings->private_files)||current_user_can('edit_files')) ? "1=1" : ("file_added_by = ".((int)$current_user->ID));
 				$where_str = "($where_str) AND ($edit_cond)";
 			} else
@@ -148,6 +151,8 @@ class WPFB_File extends WPFB_Item {
 		} elseif(!empty($wpdb->last_error) && current_user_can('upload_files')) {
 			echo "<b>Database error</b>: ".$wpdb->last_error; // print debug only if usr can upload
 		}
+		
+		unset($results);//
 		return $files;
 	}
 	
@@ -327,7 +332,9 @@ class WPFB_File extends WPFB_Item {
 		
 			
 		if(!$bulk)
-			self::UpdateTags();			
+			self::UpdateTags();
+		
+		$this->Lock(true); // prevent Delete() from saving to DB!
 		
 		return $this->Delete();
 	}
@@ -372,7 +379,7 @@ class WPFB_File extends WPFB_Item {
 			case 'file_url_rel':		return htmlspecialchars(WPFB_Core::$settings->download_base . '/' . str_replace('\\', '/', $this->GetLocalPathRel()));
 			case 'file_post_url':		return htmlspecialchars(!($url = $this->GetPostUrl()) ? $this->GetUrl() : $url);			
 			case 'file_icon_url':		return htmlspecialchars($this->GetIconUrl());
-			case 'file_small_icon':		return '<img src="'.esc_attr($this->GetIconUrl('small')).'" style="vertical-align:middle;height:'.WPFB_Core::$settings->small_icon_size.'px;" />';
+			case 'file_small_icon':		return '<img src="'.esc_attr($this->GetIconUrl('small')).'" style="vertical-align:middle;'.((WPFB_Core::$settings->small_icon_size > 0) ? ('height:'.WPFB_Core::$settings->small_icon_size.'px;') : '').'" />';
 			case 'file_size':			return $this->GetFormattedSize();
 			case 'file_path':			return htmlspecialchars($this->GetLocalPathRel());
 			
@@ -523,8 +530,9 @@ class WPFB_File extends WPFB_Item {
 				'cache_max_age' => 10
 			));
 		else {
-			header('HTTP/1.1 301 Moved Permanently');
-			header("Cache-Control: no-cache, must-revalidate, max-age=0");
+			//header('HTTP/1.1 301 Moved Permanently');
+			header('Cache-Control: no-store, no-cache, must-revalidate');
+			header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
 			header('Location: '.$this->GetRemoteUri());
 		}
 		

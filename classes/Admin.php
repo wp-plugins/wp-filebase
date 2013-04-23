@@ -97,7 +97,7 @@ static function SettingsSchema()
 	
 	'file_browser_fbc'		=> array('default' => false, 'title' => __('Files before Categories', WPFB), 'type' => 'checkbox', 'desc' => __('Files will appear above categories in the file browser.', WPFB)),
 	
-	'small_icon_size'		=> array('default' => 32, 'title' => __('Small Icon Size'), 'desc' => __('Icon size for categories and files', WPFB), 'type' => 'number', 'class' => 'num', 'size' => 8),
+	'small_icon_size'		=> array('default' => 32, 'title' => __('Small Icon Size'), 'desc' => __('Icon size (height) for categories and files. Set to 0 to show icons in full size.', WPFB), 'type' => 'number', 'class' => 'num', 'size' => 8),
 			
 	
 	'cat_drop_down'			=> array('default' => false, 'title' => __('Category drop down list', WPFB), 'type' => 'checkbox', 'desc' => __('Use category drop down list in the file browser instead of listing like files.', WPFB)),
@@ -153,7 +153,7 @@ static function SettingsSchema()
 	'no_name_formatting'  => array('default' => false, 'title' => __('Disable Name Formatting', WPFB), 'type' => 'checkbox', 'desc' => __('This will disable automatic formatting/uppercasing file names when they are used as title (e.g. when syncing)', WPFB)),
 	
 	// file browser
-	'disable_footer_credits'  => array('default' => false, 'title' => __('Remove WP-Filebase Footer credits', WPFB), 'type' => 'checkbox', 'desc' => sprintf(__('This disables the footer credits only displayed on <a href="%s">File Browser Page</a>. Why should you keep the credits? Every backlink helps WP-Filebase to get more popular, popularity motivates the developer to continue work on the plugin.', WPFB), get_permalink(WPFB_Core::GetOpt('file_browser_post_id')).'#wpfb-credits')),
+	'disable_footer_credits'  => array('default' => true, 'title' => __('Remove WP-Filebase Footer credits', WPFB), 'type' => 'checkbox', 'desc' => sprintf(__('This disables the footer credits only displayed on <a href="%s">File Browser Page</a>. Why should you keep the credits? Every backlink helps WP-Filebase to get more popular, popularity motivates the developer to continue work on the plugin.', WPFB), get_permalink(WPFB_Core::GetOpt('file_browser_post_id')).'#wpfb-credits')),
 	'footer_credits_style'  => array('default' => 'margin:0 auto 2px auto; text-align:center; font-size:11px;', 'title' => __('Footer credits Style', WPFB), 'type' => 'text', 'class' => 'code', 'desc' => __('Set custom CSS style for WP-Filebase footer credits',WPFB),'size'=>80),
 	'late_script_loading'	=> array('default' => false, 'title' => __('Late script loading', WPFB), 'type' => 'checkbox', 'desc' => __('Scripts will be included in content, not in header. Enable if your AJAX tree view does not work properly.', WPFB)),
 	
@@ -185,17 +185,22 @@ Open Office|ooffice|http://www.openoffice.org/download/index.html
 	
 	'template_file'			=> array('default' =>
 <<<TPLFILE
-<div class="wpfilebase-attachment">
- <div class="wpfilebase-fileicon"><a href="%file_url%" title="Download %file_display_name%"><img align="middle" src="%file_icon_url%" alt="%file_display_name%" /></a></div>
- <div class="wpfilebase-rightcol">
-  <div class="wpfilebase-filetitle">
-   <a href="%file_url%" title="Download %file_display_name%">%file_display_name%</a><br />
-   %file_name%<br />
-   <!-- IF %file_version% -->%'Version:'% %file_version%<br /><!-- ENDIF -->
-   <!-- IF %file_post_id% AND %post_id% != %file_post_id% --><a href="%file_post_url%" class="wpfilebase-postlink">%'View post'%</a><!-- ENDIF -->
+<div class="wpfilebase-file-default" onclick="if('undefined' == typeof event.target.href) document.getElementById('wpfb-file-link-%uid%').click();">
+  <div class="icon"><a href="%file_url%" target="_blank" title="Download %file_display_name%"><img align="middle" src="%file_icon_url%" alt="%file_display_name%" /></a></div>
+  <div class="filetitle">
+    <a href="%file_url%" title="Download %file_display_name%" target="_blank" id="wpfb-file-link-%uid%">%file_display_name%</a>
+    <!-- IF %file_post_id% AND %post_id% != %file_post_id% --><a href="%file_post_url%" class="postlink">&raquo; %'Post'%</a><!-- ENDIF -->
+    <br />
+    %file_name%<br />
+    <!-- IF %file_version% -->%'Version:'% %file_version%<br /><!-- ENDIF -->
   </div>
-  <div class="wpfilebase-filedetails" id="wpfilebase-filedetails%uid%" style="display: none;">
-  <p>%file_description%</p>
+  <div class="info">
+    %file_size%<br />
+    %file_hits% %'Downloads'%<br />
+    <a href="#" onclick="return wpfilebase_filedetails(%uid%);">%'Details'%</a>
+  </div>
+  <div class="details" id="wpfilebase-filedetails%uid%" style="display: none;">
+  <!-- IF %file_description% --><p>%file_description%</p><!-- ENDIF -->
   <table border="0">
    <!-- IF %file_languages% --><tr><td><strong>%'Languages'%:</strong></td><td>%file_languages%</td></tr><!-- ENDIF -->
    <!-- IF %file_author% --><tr><td><strong>%'Author'%:</strong></td><td>%file_author%</td></tr><!-- ENDIF -->
@@ -204,15 +209,8 @@ Open Office|ooffice|http://www.openoffice.org/download/index.html
    <!-- IF %file_category% --><tr><td><strong>%'Category:'%</strong></td><td>%file_category%</td></tr><!-- ENDIF -->
    <!-- IF %file_license% --><tr><td><strong>%'License'%:</strong></td><td>%file_license%</td></tr><!-- ENDIF -->
    <tr><td><strong>%'Date'%:</strong></td><td>%file_date%</td></tr>
-   <!-- <tr><td><strong>%'MD5 Hash'%:</strong></td><td><small>%file_hash%</small></td></tr> -->
   </table>
   </div>
- </div>
- <div class="wpfilebase-fileinfo">
-  %file_size%<br />
-  %file_hits% %'Downloads'%<br />
-  <a href="#" onclick="return wpfilebase_filedetails(%uid%);">%'Details'%...</a>
- </div>
  <div style="clear: both;"></div>
 </div>
 TPLFILE
@@ -220,15 +218,12 @@ TPLFILE
 
 	'template_cat'			=> array('default' =>
 <<<TPLCAT
-<div class="wpfilebase-attachment-cat">
- <div class="wpfilebase-fileicon"><a href="%cat_url%" title="Goto %cat_name%"><img align="middle" src="%cat_icon_url%" alt="%cat_name%" /></a></div>
- <div class="wpfilebase-rightcol">
-  <div class="wpfilebase-filetitle">
-   <p><a href="%cat_url%" title="Goto category %cat_name%">%cat_name%</a></p>
-   %cat_num_files% <!-- IF %cat_num_files% == 1 -->file<!-- ELSE -->files<!-- ENDIF -->
-  </div>
- </div>
- <div style="clear: both;"></div>
+<div class="wpfilebase-cat-default">
+  <h3>
+    <!-- IF %cat_has_icon% || true -->%cat_small_icon%<!-- ENDIF -->
+    <a href="%cat_url%" title="Go to category %cat_name%">%cat_name%</a>
+    <span>%cat_num_files% <!-- IF %cat_num_files% == 1 -->file<!-- ELSE -->files<!-- ENDIF --></span>
+  </h3>
 </div>
 TPLCAT
 	, 'title' => __('Category Template', WPFB), 'type' => 'textarea', 'desc' => (self::TplFieldsSelect('template_cat', false, true) . '<br />' . __('The template for category lists (used in the file browser)', WPFB)), 'class' => 'code'),
@@ -263,6 +258,7 @@ static function TplVarsDesc($for_cat=false)
 	
 	'cat_icon_url'			=> __('URL of the thumbnail or icon', WPFB),
 	'cat_small_icon'		=> sprintf(__('HTML image tag for a small icon (height %d)'), 32),
+	'cat_has_icon'			=> __('Wether the category has a custom icon (boolean 0/1)'),
 
 	
 	'cat_parent_name'		=> __('Name of the parent categories (empty if none)', WPFB),
@@ -1260,22 +1256,43 @@ static function RolesCheckList($field_name, $selected_roles=array(), $display_ev
 	if(empty($selected_roles)) $selected_roles = array();
 	elseif(!is_array($selected_roles)) $selected_roles = explode('|', $selected_roles);
 	?>
-<div id="<?php echo $field_name; ?>-wrap" class="tabs-panel"><input value="" type="hidden" name="<?php echo $field_name; ?>[]" />
+<div id="<?php echo $field_name; ?>-wrap" class=""><input value="" type="hidden" name="<?php echo $field_name; ?>[]" />
 	<ul id="<?php echo $field_name; ?>-list" class="wpfilebase-roles-checklist">
 <?php
-	if($display_everyone) echo "<li id='{$field_name}_none'><label class='selectit'><input value='' type='checkbox' name='{$field_name}[]' id='in-{$field_name}_none' ".(empty($selected_roles)?"checked='checked'":"")." onchange=\"jQuery('[id^=in-$field_name-]').prop('disabled', this.checked).prop('checked', false);\" /> <i>".(is_string($display_everyone)?$display_everyone:__('Everyone',WPFB))."</i></label></li>";
+	if($display_everyone) echo "<li id='{$field_name}_none'><label class='selectit'><input value='' type='checkbox' name='{$field_name}[]' id='in-{$field_name}_none' ".(empty($selected_roles)?"checked='checked'":"")." onchange=\"jQuery('[id^=in-$field_name-]').prop('checked', false);\" /> <i>".(is_string($display_everyone)?$display_everyone:__('Everyone',WPFB))."</i></label></li>";
 	foreach ( $all_roles as $role => $details ) {
 		$name = translate_user_role($details['name']);
-		echo "<li id='$field_name-$role'><label class='selectit'><input value='$role' type='checkbox' name='{$field_name}[]' id='in-$field_name-$role' ".(in_array($role, $selected_roles)?"checked='checked'":"")." ".((empty($selected_roles)&&$display_everyone)?"disabled='disabled'":"")." /> $name</label></li>";
+		$sel = in_array($role, $selected_roles);
+		echo "<li id='$field_name-$role'><label class='selectit'><input value='$role' type='checkbox' name='{$field_name}[]' id='in-$field_name-$role' ".($sel?"checked='checked'":""). /*" ".((empty($selected_roles)&&$display_everyone)? "disabled='disabled'":"").*/ " /> $name</label></li>";
+		if($sel) unset($selected_roles[array_search($role, $selected_roles)]); // rm role from array
 	}
+	
+	// other roles/users, that were not listed
+	foreach($selected_roles as $role) {
+		$name = substr($role,0,3) == '_u_' ? (substr($role, 3).' (user)') : $role;
+		echo "<li id='$field_name-$role'><label class='selectit'><input value='$role' type='checkbox' name='{$field_name}[]' id='in-$field_name-$role' checked='checked' /> $name</label></li>";
+	}
+	
 ?>
 	</ul>
+	
+
+	
+<script type="text/javascript">
+//<![CDATA[
+jQuery(document).ready(function($){
+	jQuery('#<?php echo $field_name; ?>-list input[value!=""]').change(function() {
+		jQuery('#<?php echo "in-{$field_name}_none"; ?>').prop('checked', false);
+	});
+});
+//]]>
+</script>
 </div>
 <?php
 }
 
 static function HttpGetHeaders($url) {
-	require_once( ABSPATH . WPINC . '/http.php' );
+	require_once( ABSPATH . WPINC . "/http.php" );
 	$response = wp_remote_head($url);
 	return is_wp_error( $response ) ? null : wp_remote_retrieve_headers( $response );
 }

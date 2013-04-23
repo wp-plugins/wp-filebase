@@ -1,6 +1,5 @@
 
 
-
 /**
  * Template object for the column information object in DataTables. This object
  * is held in the settings aoColumns array and contains all the information that

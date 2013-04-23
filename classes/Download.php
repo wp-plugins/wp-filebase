@@ -31,7 +31,7 @@ static function RefererCheck()
 
 static function AddTraffic($bytes)
 {
-	$traffic = WPFB_Core::GetTraffic();
+	$traffic = wpfb_call('Misc','GetTraffic');
 	$traffic['month'] = $traffic['month'] + $bytes;
 	$traffic['today'] = $traffic['today'] + $bytes;	
 	$traffic['time'] = time();
@@ -40,7 +40,7 @@ static function AddTraffic($bytes)
 
 static function CheckTraffic($file_size)
 {
-	$traffic = WPFB_Core::GetTraffic();
+	$traffic = wpfb_call('Misc','GetTraffic');
 	
 	$limit_month = (WPFB_Core::GetOpt('traffic_month') * 1048576);
 	$limit_day = (WPFB_Core::GetOpt('traffic_day') * 1073741824);
@@ -132,6 +132,7 @@ static function GetFileType($name)
 		case 'mpga':
 		case 'mp2':
 		case 'mp3':		return 'audio/mpeg';
+		case 'mp4':		return 'video/mp4';
 		case 'aif':
 		case 'aiff':
 		case 'aifc':	return 'audio/x-aiff';

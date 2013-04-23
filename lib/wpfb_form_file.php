@@ -67,6 +67,11 @@ if(!$in_widget) {
 	} else {
 		echo "<h2>".$title;
 		?><a style="font-style:normal;" href="<?php echo add_query_arg('exform', ($exform ? '0' : '1')).'#'.$action; ?>" class="add-new-h2"><?php _e($exform ? 'Simple Form' : 'Extended Form', WPFB) ?></a><?php
+		
+		if(!$update) {
+			echo '<a href="'.admin_url('admin.php?page=wpfilebase_manage&amp;action=batch-upload').'" class="add-new-h2">'.__('Batch Upload',WPFB).'</a>';
+		}
+		
 		echo "</h2>";
 	}
 }

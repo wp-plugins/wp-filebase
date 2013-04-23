@@ -24,9 +24,16 @@ static function Display()
 	$option_fields = WPFB_Admin::SettingsSchema();
 	
 	if(isset($post['reset']))
-	{		
+	{	
+		// keep templates
+		$file_tpl = WPFB_Core::$settings->template_file;
+		$cat_tpl = WPFB_Core::$settings->template_cat;
 		wpfb_loadclass('Setup');
 		WPFB_Setup::ResetOptions();
+		
+		WPFB_Core::UpdateOption('template_file', $file_tpl);
+		WPFB_Core::UpdateOption('template_cat', $cat_tpl);		
+		
 		$messages += WPFB_Admin::SettingsUpdated($options, get_option(WPFB_OPT_NAME));
 		$messages[] = __('Settings reseted.', WPFB);		
 		$options = get_option(WPFB_OPT_NAME);
@@ -108,7 +115,7 @@ static function Display()
 		
 		
 		$fb_sub_pages = get_pages(array('child_of' => $options['file_browser_post_id']));
-		if(count($fb_sub_pages))
+		if($options['file_browser_post_id'] > 0 && count($fb_sub_pages))
 		{
 			$messages[] = sprintf(__('Warning: The Filebrowser page <b>%s</b> has at least one subpage <b>%s</b>. This will cause unexpected behavior, since all requests to the subpages are redirected to the File Browser Page. Please choose a Page that does not have any subpages for File Browser.',WPFB),
 						get_the_title($post['file_browser_post_id']), get_the_title($fb_sub_pages[0]->ID));
@@ -321,7 +328,7 @@ jQuery(document).ready( function() {
 	<input type="hidden" name="page_options" value="<?php echo $page_option_list; ?>" />
 	<p class="submit">
 	<input type="submit" name="submit" value="<?php _e('Save Changes') ?>" class="button-primary" />
-	<input type="submit" name="reset" value="<?php _e('Restore Default Settings', WPFB) ?>" onclick="return confirm('<?php _e('All settings (including default file and category template) will be set to default values. Continue?', WPFB); ?>')" class="button delete" style="float: right;" />
+	<input type="submit" name="reset" value="<?php _e('Restore Default Settings', WPFB) ?>" onclick="return confirm('<?php _e('All settings (except default file and category template) will be set to default values. Continue?', WPFB); ?>')" class="button delete" style="float: right;" />
 	</p>
 </form>
 </div>	<!-- wrap -->	

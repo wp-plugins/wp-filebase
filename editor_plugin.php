@@ -102,7 +102,7 @@ case 'change-order':
 <title><?php echo WPFB_PLUGIN_NAME ?></title>
 
 <?php
-do_action('admin_enqueue_scripts', 'media-upload-popup');
+//do_action('admin_enqueue_scripts', 'media-upload-popup'); // this caused fatal errors with other plugins
 do_action('admin_print_styles-media-upload-popup');
 do_action('admin_print_styles');
 do_action('admin_print_scripts-media-upload-popup');
@@ -210,6 +210,7 @@ function insBrowserTag()
 	var root = parseInt(jQuery('#browser-root').val());
 	if(root > 0)
 		<?php echo WPFB_Core::GetOpt('use_path_tags') ? 'tag.path = getCatPath(root);' : 'tag.id = root;'; ?>
+				
 		
 	return insertTag(tag);
 }
@@ -219,7 +220,7 @@ function insBrowserTag()
 </script>
 
 </head>
-<body id="media-upload">
+<body id="media-upload" class="wp-core-ui">
 
 <div id="media-upload-header">
 <?php if(!$manage_attachments) {?>
@@ -319,6 +320,7 @@ if($action != 'editfile' && (!empty($post_attachments) || $manage_attachments)) 
 	<p><?php _e('Select the categories containing the files you would like to list.',WPFB); ?></p>
 	<p><input type="checkbox" id="list-all-files" name="list-all-files" value="1" onchange="incAllCatsChanged(this.checked)"/> <label for="list-all-files"><?php _e('Include all Categories',WPFB); ?></label></p>
 	<ul id="catbrowser" class="filetree"></ul>
+
 </div>
 <form id="listtplselect">
 	<h2><?php _e('Select Template', WPFB) ?></h2>
@@ -369,7 +371,8 @@ if($action != 'editfile' && (!empty($post_attachments) || $manage_attachments)) 
 	<input type="checkbox" id="list-pagenav" name="list-pagenav" value="1" checked="checked" />
 	<label for="list-pagenav"><?php _e('Display Page Navigation',WPFB); ?></label>
 	</p>	
-	<p><a class="button" style="float: right;" href="javascript:void(0)" onclick="return insListTag()"><?php echo _e('Insert') ?></a></p>
+	<p><a class="button-primary" style="float: right;" href="javascript:void(0)" onclick="return insListTag()"><?php echo _e('Insert') ?></a><br />
+	 </p>
 </form>
 
 
@@ -377,6 +380,7 @@ if($action != 'editfile' && (!empty($post_attachments) || $manage_attachments)) 
 	<p><?php _e('Select the root category of the tree view file browser:',WPFB); ?><br />	
 	<select name="browser-root" id="browser-root"><?php echo WPFB_Output::CatSelTree(array('none_label' => __('All'))); ?></select>
 	</p>
+	
 	
 	<p><a class="button" style="float: right;" href="javascript:void(0)" onclick="return insBrowserTag()"><?php echo _e('Insert') ?></a></p>
 </form>

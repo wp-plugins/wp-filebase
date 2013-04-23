@@ -45,7 +45,7 @@ static function AddOptions()
 	
  
 }
-static function AddTpls($old_ver) {	
+static function AddTpls($old_ver=null) {	
 	$def_tpls_file = array(
 		'filebrowser' => '%file_small_icon% <a href="%file_url%" title="Download %file_display_name%">%file_display_name%</a> (%file_size%)',
 		'download-button' => '<style type="text/css" media="screen">
@@ -415,7 +415,7 @@ static function SetupDBTables($old_ver=null)
 	if(!!$wpdb->get_var("SHOW COLUMNS FROM `$tbl_files` LIKE 'file_required_level'")) {		
 		$files = $wpdb->get_results("SELECT file_id,file_required_level FROM $tbl_files WHERE file_required_level <> 0");
 		foreach ( (array) $files as $file ) {
-			$wpdb->query("UPDATE `$tbl_files` SET `file_user_roles` = '|".WPFB_Core::UserLevel2Role($file->file_required_level - 1)."' WHERE `file_id` = $file->file_id");
+			$wpdb->query("UPDATE `$tbl_files` SET `file_user_roles` = '|".WPFB_Setup::UserLevel2Role($file->file_required_level - 1)."' WHERE `file_id` = $file->file_id");
 		}
 		$wpdb->query("ALTER TABLE `$tbl_files` DROP `file_required_level`");
 	}
@@ -423,7 +423,7 @@ static function SetupDBTables($old_ver=null)
 	if(!!$wpdb->get_var("SHOW COLUMNS FROM `$tbl_cats` LIKE 'cat_required_level'")) {		
 		$cats = $wpdb->get_results("SELECT cat_id,cat_required_level FROM $tbl_cats WHERE cat_required_level <> 0");
 		foreach ( (array) $cats as $cat ) {
-			$wpdb->query("UPDATE `$tbl_cats` SET `cat_user_roles` = '|".WPFB_Core::UserLevel2Role($cat->cat_required_level - 1)."' WHERE `cat_id` = $cat->cat_id");
+			$wpdb->query("UPDATE `$tbl_cats` SET `cat_user_roles` = '|".WPFB_Setup::UserLevel2Role($cat->cat_required_level - 1)."' WHERE `cat_id` = $cat->cat_id");
 		}
 		$wpdb->query("ALTER TABLE `$tbl_cats` DROP `cat_required_level`");
 	}
@@ -435,6 +435,16 @@ static function SetupDBTables($old_ver=null)
 		$wpdb->query("UPDATE `$tbl_cats` SET `cat_user_roles` = CONCAT('|', `cat_user_roles`) WHERE LEFT(`cat_user_roles`, 1) <> '|'");
 	}
 	*/
+}
+
+static function UserLevel2Role($level)
+{
+	if($level >= 8) return 'administrator';
+	if($level >= 5)	return 'editor';
+	if($level >= 2)	return 'author';
+	if($level >= 1)	return 'contributor';
+	if($level >= 0)	return 'subscriber';
+	return null;
 }
 
 static function DropDBTables()
