@@ -399,7 +399,7 @@ class WPFB_File extends WPFB_Item {
 			case 'file_user_can_access': return $this->CurUserCanAccess();
 			
 			case 'file_description':	return nl2br($this->file_description);
-			case 'file_tags':			return str_replace(',',', ',trim($this->file_tags,','));
+			case 'file_tags':			return esc_html(str_replace(',',', ',trim($this->file_tags,',')));
 			
 			case 'file_date':
 			case 'file_last_dl_time':	return htmlspecialchars($this->GetFormattedDate($name));
@@ -418,7 +418,7 @@ class WPFB_File extends WPFB_Item {
     	if(strpos($name, 'file_info/') === 0)
 		{
 			$path = explode('/',substr($name, 10));
-			return htmlspecialchars($this->getInfoValue($path));
+			return esc_html($this->getInfoValue($path));
 		} elseif(strpos($name, 'file_custom') === 0) // dont esc custom
 			return isset($this->$name) ? $this->$name : '';
 		
@@ -431,7 +431,7 @@ class WPFB_File extends WPFB_Item {
 			return $str;
 		}
 		
-		return isset($this->$name) ? htmlspecialchars($this->$name) : '';
+		return isset($this->$name) ? esc_html($this->$name) : '';
     }
 	
 	function DownloadDenied($msg_id) {
@@ -518,6 +518,9 @@ class WPFB_File extends WPFB_Item {
 			if(empty($this->file_last_dl_ip) || $this->file_last_dl_ip != $downloader_ip || ((time() - $last_dl_time) > 86400))
 				$wpdb->query("UPDATE " . $wpdb->wpfilebase_files . " SET file_hits = file_hits + 1, file_last_dl_ip = '" . $downloader_ip . "', file_last_dl_time = '" . current_time('mysql') . "' WHERE file_id = " . (int)$this->file_id);
 		}
+		
+		// external hooks
+		do_action( 'wpfilebase_file_downloaded', $this->file_id );
 		
 		// download or redirect
 		$bw = 'bitrate_' . ($logged_in?'registered':'unregistered');

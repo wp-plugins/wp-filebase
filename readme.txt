@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=wpfil
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, images, pdf, widget, filelist, list, thumbnails, thumbnail, attachment, attachments, category, categories, media, template, ftp, http, mp3, id3
 Requires at least: 3.1
 Tested up to: 3.5.1
-Stable tag: 0.2.9.36
+Stable tag: 0.2.9.37
 
 Adds a powerful download manager including file categories, downloads counter, widgets, sorted file lists and more to your WordPress blog.
 
@@ -112,6 +112,17 @@ Goto WP-Filebase Settings and disable Permalinks under "Download". Try to disabl
 
 
 == Changelog ==
+
+= 0.2.9.37 =
+* Fixed Batch Uploader
+* Further memory optimizations
+* Updated DataTables to 1.9.4
+* Fixed monthly/daily traffic limit
+* Fixed download range header handling (thanks to mrogaski)
+* Minified DataTables init JS to prevent auto <p>
+* Added `wpfilebase_file_downloaded` hook for download logging
+* Fixed HTML escaping for some file template vars
+
 
 = 0.2.9.36 =
 * New Feature: Drag&Drop Batch Uploader with Upload Presets
@@ -653,6 +664,9 @@ If you want to translate WP-Filebase in your language, open `wp-filebase/languag
 
 == Plugin Developers ==
 WP-Filebase currently offers the action `wpfilebase_sync`. This will run a fast filebase sync that adds new files.
+
+The hook `wpfilebase_file_downloaded` with file_id as parameter can be used for download logging.
+
 
 == WP-Filebase Pro ==
 [WP-Filebase Pro](http://wpfilebase.com/) is the commercial version of WP-Filebase with an extended range of functions. It supports secondary categories, extended permissions, embedded upload forms. Furthermore it can generate PDF thumbnails, sync with Dropbox or FTP and includes an improved file sync algorithm.

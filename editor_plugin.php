@@ -28,7 +28,7 @@ if(!function_exists('get_current_screen')) {
 
 auth_redirect(); 
 
-wpfb_loadclass('Core', 'File', 'Category', 'AdminLite', 'Admin', 'ListTpl', 'Output');
+wpfb_loadclass('Core', 'File', 'Category', 'AdminLite', 'Admin', 'ListTpl', 'Output', 'Models');
 
 wp_enqueue_script( 'common' );
 wp_enqueue_script( 'jquery-color' ); 
@@ -337,7 +337,7 @@ if($action != 'editfile' && (!empty($post_attachments) || $manage_attachments)) 
 	<label for="list-sort-by"><?php _e("Sort by:") ?></label>
 	<select name="list-sort-by" id="list-sort-by" style="width:100%">
 		<option value=""><?php _e('Default'); echo ' ('.WPFB_Core::GetOpt('filelist_sorting').')'; ?></option>
-		<?php $opts = WPFB_Admin::FileSortFields();
+		<?php $opts = WPFB_Models::FileSortFields();
 		foreach($opts as $tag => $name) echo '<option value="'.$tag.'">'.$tag.' - '.$name.'</option>'; ?>
 	</select>	
 	<input type="radio" checked="checked" name="list-sort-order" id="list-sort-order-asc" value="asc" />
@@ -359,7 +359,7 @@ if($action != 'editfile' && (!empty($post_attachments) || $manage_attachments)) 
 	<label for="list-cat-sort-by"><?php _e("Category order",WPFB) ?>:</label>
 	<select name="list-cat-sort-by" id="list-cat-sort-by" style="width:100%">
 		<option value=""><?php _e('None (order of IDs in shortcode)', WPFB); ?></option>
-		<?php $opts = WPFB_Admin::CatSortFields();
+		<?php $opts = WPFB_Models::CatSortFields();
 		foreach($opts as $tag => $name) echo '<option value="'.$tag.'">'.$tag.' - '.$name.'</option>'; ?>
 	</select>	
 	<input type="radio" checked="checked" name="list-cat-sort-order" id="list-cat-sort-order-asc" value="asc" />

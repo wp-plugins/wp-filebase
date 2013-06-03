@@ -42,8 +42,8 @@ static function CheckTraffic($file_size)
 {
 	$traffic = wpfb_call('Misc','GetTraffic');
 	
-	$limit_month = (WPFB_Core::GetOpt('traffic_month') * 1048576);
-	$limit_day = (WPFB_Core::GetOpt('traffic_day') * 1073741824);
+	$limit_month = (WPFB_Core::GetOpt('traffic_month') * 1073741824); //GiB
+	$limit_day = (WPFB_Core::GetOpt('traffic_day') * 1048576); // MiB
 	
 	return ( ($limit_month == 0 || ($traffic['month'] + $file_size) < $limit_month) && ($limit_day == 0 || ($traffic['today'] + $file_size) < $limit_day) );
 }
@@ -416,24 +416,27 @@ static function SendFile($file_path, $args=array())
 		wp_die(__('Could not read file!', WPFB));
 		
 	$begin = 0;
-	$end = $size;
+	$end = $size-1;
 
 	$http_range = isset($_SERVER['HTTP_RANGE']) ? $_SERVER['HTTP_RANGE'] : '';
 	if(!empty($http_range) && strpos($http_range, 'bytes=') !== false && strpos($http_range, ',') === false) // multi-range not supported (yet)!
 	{
-		$range = explode('-', trim(substr($http_range, 6)));
-		$begin = 0 + trim($range[0]);
-		if(!empty($range[1]))
-			$end = 0 + trim($range[1]);
+		$range = array_map('trim',explode('-', trim(substr($http_range, 6))));
+		if(is_numeric($range[0])) {
+			$begin = 0 + $range[0];
+			if(is_numeric($range[1])) $end = 0 + $range[1];
+		} else {
+			$begin = $size - $range[1]; // format "-x": last x bytes
+		}
 	} else
 		$http_range = '';
 	
-	if($begin > 0 || $end < $size)
+	if($begin > 0 || $end < ($size-1))
 		header('HTTP/1.0 206 Partial Content');
 	else
 		header('HTTP/1.0 200 OK');
 		
-	$length = ($end-$begin);
+	$length = ($end-$begin+1);
 	WPFB_Download::AddTraffic($length);
 	
 	
@@ -447,7 +450,7 @@ static function SendFile($file_path, $args=array())
 	}
 	header("Content-Length: " . $length);
 	if(!empty($http_range))
-		header("Content-Range: bytes " . $begin . "-" . ($end-1) . "/" . $size);
+		header("Content-Range: bytes $begin-$end/$size");
 	
 	// clean up things that are not needed for download
 	@session_write_close(); // disable blocking of multiple downloads at the same time
@@ -483,9 +486,9 @@ static function SendFile($file_path, $args=array())
 
 		$cur = $begin;
 		
-		while(!@feof($fh) && $cur < $end && @connection_status() == 0)
+		while(!@feof($fh) && $cur <= $end && @connection_status() == 0)
 		{		
-			$nbytes = min($buffer_size, $end-$cur);
+			$nbytes = min($buffer_size, $end-$cur+1);
 			$ts = microtime(true);
 
 			print @fread($fh, $nbytes);

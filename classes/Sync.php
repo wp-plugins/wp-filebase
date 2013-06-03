@@ -458,7 +458,7 @@ static function SyncCats(&$cats = null)
 		}
 		
 		if(is_dir($cat->GetLocalPath()))
-			chmod ($cat->GetLocalPath(), octdec(WPFB_PERM_DIR));
+			@chmod ($cat->GetLocalPath(), octdec(WPFB_PERM_DIR));
 	}
 	
 	return $updated_cats;
@@ -472,7 +472,7 @@ static function Chmod($base_dir, $files)
 	$upload_dir_len = strlen($upload_dir);
 	
 	// chmod
-	chmod ($upload_dir, octdec(WPFB_PERM_DIR));
+	@chmod ($upload_dir, octdec(WPFB_PERM_DIR));
 	for($i = 0; $i < count($files); $i++)
 	{
 		$f = "$base_dir/".$files[$i];
@@ -542,6 +542,7 @@ static function PrintResult(&$result)
 static function PrintDebugTrace($tag="") {
 	if(!empty($_GET['debug']))
 	{
+		wpfb_loadclass('Output');
 		$ms = self::GetMemStats();
 		echo "<!-- [$tag] (MEM: ". WPFB_Output::FormatFilesize($ms['used'])." / $ms[limit]) BACKTRACE:\n";
 		echo esc_html(print_r(wp_debug_backtrace_summary(), true));

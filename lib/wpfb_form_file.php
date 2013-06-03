@@ -356,13 +356,13 @@ function WPFB_addTag(tag)
 		
 	</tr>
 	<?php }
-	$custom_fields = WPFB_Core::GetCustomFields();
+	$custom_fields = WPFB_Core::GetCustomFields(false, $custom_defaults);
 	foreach($custom_fields as $ct => $cn) {
 		$hid = 'file_custom_'.esc_attr($ct);
 	?>
 	<tr class="form-field">
 		<th scope="row" valign="top"><label for="<?php echo $hid; ?>"><?php echo esc_html($cn) ?></label></th>
-		<td colspan="3"><textarea name="<?php echo $hid; ?>" id="<?php echo $hid; ?>" rows="2" cols="50" style="width: 97%;"><?php echo empty($file->$hid) ? '' : esc_html($file->$hid); ?></textarea></td>
+		<td colspan="3"><textarea name="<?php echo $hid; ?>" id="<?php echo $hid; ?>" rows="2" cols="50" style="width: 97%;"><?php echo empty($file->$hid) ? $custom_defaults[$ct] : esc_html($file->$hid); ?></textarea></td>
 	</tr> <?php
 	} 
 	if(!empty($custom_fields)) { ?>

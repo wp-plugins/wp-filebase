@@ -255,7 +255,7 @@ static function ShortCode($atts, $content=null, $tag=null) {
 		'num' => 0,
 		'pagenav' => 1,
 		'linktext' => null,
-	
+			
 	), $atts), $content, $tag);
 }
 
@@ -329,7 +329,7 @@ static function PrintJS() {
 	$context_menu = current_user_can('upload_files') && self::GetOpt('file_context_menu') && !defined('WPFB_EDITOR_PLUGIN') && !is_admin();
 	
 	$conf = array(
-		'ql'=>1, // querylinks with jQuery
+		'ql'=>!is_admin(), // querylinks with jQuery
 		'hl'=> (int)self::GetOpt('hide_links'), // hide links
 		'pl'=>(self::GetOpt('disable_permalinks') ? 0 : (int)!!get_option('permalink_structure')), // permlinks
 		'hu'=> trailingslashit(home_url()),// home url
@@ -405,13 +405,15 @@ static function Cron() {
 
 static function GetMaxUlSize() {	return wpfb_call('Misc','ParseIniFileSize', ini_get('upload_max_filesize')); }
 
-public static function GetCustomFields($full_field_names=false) {
+public static function GetCustomFields($full_field_names=false, &$default_values=null) {
 	$custom_fields = isset(WPFB_Core::$settings->custom_fields)?explode("\n",WPFB_Core::$settings->custom_fields):array();
 	$arr = array();
+	$default_values = array();
 	if(empty($custom_fields[0])) return array();
 	foreach($custom_fields as $cf) {
 		$cfa = explode("|", $cf);
-		$arr[$full_field_names?('file_custom_'.trim($cfa[1])):trim($cfa[1])] = $cfa[0];
+		$arr[$k = $full_field_names?('file_custom_'.trim($cfa[1])):trim($cfa[1])] = $cfa[0];
+		$default_values[$k] = empty($cfa[2]) ? '' : $cfa[2];
 	}
 	return $arr;
 }

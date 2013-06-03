@@ -259,7 +259,8 @@ static function TplsTable($type, $exclude=array(), $include=array()) {
 	<tr id="tpl-<?php echo "$type-$tpl_tag" ?>" class="iedit" valign="top">
 		<th scope="row" class="check-column"><input type="checkbox" name="tpl[]" value="<?php echo esc_attr($tpl_tag) ?>" /></th>
 		<td class="column-title">
-			<strong><a class="row-title" href="<?php echo $edit_link ?>" title="<?php printf(__('Edit &#8220;%s&#8221;'), $tpl_tag) ?>"><?php echo self::TplTitle($tpl_tag); ?></a></strong>
+			<strong><a class="row-title" href="<?php echo $edit_link ?>" title="<?php printf(__('Edit &#8220;%s&#8221;'), $tpl_tag) ?>"><?php echo self::TplTitle($tpl_tag); ?></a></strong><br />
+			<code>tag=<?php echo $tpl_tag; ?></code>
 			<div class="row-actions"><span class='edit'><a href="<?php echo $edit_link ?>" title="<?php _e('Edit this item') ?>"><?php _e('Edit') ?></a></span>
 			<?php if(!in_array($tpl_tag, self::$protected_tags)){ ?><span class='trash'>| <a class='submitdelete' title='<?php _e('Delete this item permanently') ?>' href='<?php echo add_query_arg(array('action'=>'del','type'=>$type,'tpl'=>$tpl_tag)).'#'.$type ?>'><?php _e('Delete') ?></a></span><?php } ?>
 			</div>
@@ -344,7 +345,7 @@ static function TplForm($type, $tpl_tag=null)
 	<p>
 		<?php _e('Template Code:', WPFB) ?><br />
 		<textarea id="<?php echo $code_id ?>" cols="70" rows="<?php echo (max(2, count(explode("\n",$tpl_code)))+3); ?>" wrap="off" name="tplcode" class="codepress html wpfilebase-tpledit" onkeyup="WPFB_PreviewTpl(this, '<?php echo $type ?>')" onchange="WPFB_PreviewTpl(this, '<?php echo $type ?>')"><?php echo htmlspecialchars($tpl_code) ?></textarea><br />
-		<?php echo WPFB_Admin::TplFieldsSelect($code_id, false, $cat) ?>
+		<?php wpfb_loadclass('Models'); echo WPFB_Models::TplFieldsSelect($code_id, false, $cat) ?>
 	</p>
 	<?php } ?>
 			

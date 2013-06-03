@@ -31,7 +31,7 @@ static function ProcessShortCode($args, $content = null, $tag = null)
 		
 		case 'browser':
 				$content = '';
-				self::FileBrowser($content, $id, 0 ); // by ref
+				self::FileBrowser($content, $id, 0  ); // by ref
 				return $content;
 	}	
 	return '';
@@ -118,7 +118,7 @@ static function FileList($args)
 	));
 }
 
-static function FileBrowser(&$content, $root_cat_id=0, $cur_cat_id=0)
+static function FileBrowser(&$content, $root_cat_id=0, $cur_cat_id=0 )
 {
 	static $fb_id = 0;
 	$fb_id++;
@@ -153,24 +153,29 @@ static function FileBrowser(&$content, $root_cat_id=0, $cur_cat_id=0)
 			do { array_push($parents, $p); } while(!is_null($p = $p->GetParent()) && !$p->Equals($root_cat));
 		}
 		
-		self::FileBrowserList($content, $parents, $root_cat);
+		self::FileBrowserList($content, $root_cat, array(
+			 'open_cats' => $parents
+			  			 		));
 			
 		$content .= '</ul><div style="clear:both;"></div>';
 	}
 }
 
-static function FileBrowserList(&$content, &$parents, $root_cat=null)
+// args[open_cats] private
+private static function FileBrowserList(&$content, $root_cat=null, $args=array())
 {
 	if(!is_null($root_cat) && !$root_cat->CurUserCanAccess()) {
 		$content .= '<li>'.WPFB_Core::GetOpt('cat_inaccessible_msg').'</li>';
 		return;
 	}
+	
+	$root_id = empty($root_cat) ? 0 : $root_cat->cat_id;
 		
-	$cats = WPFB_Category::GetFileBrowserCats(is_null($root_cat) ? 0 : $root_cat->cat_id);
-	$open_cat = array_pop($parents);
+	$cats = WPFB_Category::GetFileBrowserCats($root_id);
+	$open_cat = empty($args['open_cats']) ? null : array_pop($args['open_cats']);
 	$files_before_cats = WPFB_Core::GetOpt('file_browser_fbc');
 	
-	$files =  WPFB_File::GetFiles2(array('file_category' => $root_cat ? $root_cat->GetId() : 0),  WPFB_Core::GetOpt('hide_inaccessible'), WPFB_Core::GetFileListSortSql((WPFB_Core::GetOpt('file_browser_file_sort_dir')?'>':'<').WPFB_Core::GetOpt('file_browser_file_sort_by')));
+	$files =  WPFB_File::GetFiles2(array('file_category' => $root_id),  WPFB_Core::GetOpt('hide_inaccessible'), WPFB_Core::GetFileListSortSql((WPFB_Core::GetOpt('file_browser_file_sort_dir')?'>':'<').WPFB_Core::GetOpt('file_browser_file_sort_by')));
 	
 	if($files_before_cats) {
 		foreach($files as $file)
@@ -181,15 +186,15 @@ static function FileBrowserList(&$content, &$parents, $root_cat=null)
 		if(!$cat->CurUserCanAccess(true)) continue;
 		
 		$liclass = '';
-		if($has_children = $cat->HasChildren()) $liclass .= 'hasChildren';
-		if($open = $cat->Equals($open_cat)) $liclass .= ' open';
+		if( ($has_children = $cat->HasChildren()) ) $liclass .= 'hasChildren';
+		if( ($open = $cat->Equals($open_cat) ) ) $liclass .= ' open';
 		
 		$content .= '<li id="wpfb-cat-'.$cat->cat_id.'" class="'.$liclass.'">';
 		$content .= '<span>'.$cat->GenTpl2('filebrowser', false).'</span>';
 
 		if($has_children) {
 			$content .= "<ul>\n";			
-			if($open) self::FileBrowserList($content, $parents, $cat );
+			if($open) self::FileBrowserList($content, $cat, $args);
 			else $content .= '<li><span class="placeholder">&nbsp;</span></li>'."\n";
 			$content .= "</ul>\n";
 		}			
@@ -302,6 +307,8 @@ static function CatSelTree($args=null, $root_cat_id = 0, $depth = 0)
 			)
 				$out .= self::CatSelTree(null, $c->cat_id, 0);	
 		}
+		// TODO
+		//$out .= '<option value="0" style="font-style:italic;" onchoose="alert(\'asdf\');">'.__('+ Add New Category').'</option>';
 	} else {
 		$cat = &WPFB_Category::GetCat($root_cat_id);	
 		$out .= '<option value="' . $root_cat_id . '"' . (($root_cat_id == $s_sel) ? ' selected="selected"' : '') . '>' . str_repeat('&nbsp;&nbsp; ', $depth) . esc_html($cat->cat_name).($s_count?' ('.$cat->cat_num_files.')':'').'</option>';

@@ -488,7 +488,8 @@ class WPFB_Item {
 					}
 				} else {
 					if(!@is_dir($new_path)) wp_mkdir_p($new_path);
-					if(!@WPFB_Admin::MoveDir($old_path, $new_path))
+					wpfb_loadclass('FileUtils');
+					if(!@WPFB_FileUtils::MoveDir($old_path, $new_path))
 						return array( 'error' => sprintf('Could not move folder %s to %s', $old_path, $new_path));
 				}
 			} else {
