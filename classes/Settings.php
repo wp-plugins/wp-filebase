@@ -1,5 +1,9 @@
 <?php class WPFB_Settings {
-	
+
+private static function cleanPath($path) {
+	return str_replace('//','/',str_replace('\\', '/', $path));
+}
+
 static function Schema()
 {
 	wpfb_loadclass('Models');
@@ -22,6 +26,15 @@ static function Schema()
 	$list_tpls = array_keys(wpfb_call('ListTpl','GetAll'));
 	$list_tpls = empty($list_tpls) ? array() : array_combine($list_tpls, $list_tpls);
 	
+	
+	
+	require_once(ABSPATH . 'wp-admin/includes/file.php');
+	
+	$folder_icon_files = array_map(array(__CLASS__,'cleanPath'), array_merge(list_files(WPFB_PLUGIN_ROOT.'images/folder-icons'), list_files(WP_CONTENT_DIR.'/images/foldericons')));
+	sort($folder_icon_files);
+	$folder_icons = array();
+	foreach($folder_icon_files as $fif)
+		$folder_icons[] = array('path' => str_replace(self::cleanPath(WP_CONTENT_DIR),'',$fif),'url' => str_replace(self::cleanPath(WP_CONTENT_DIR),WP_CONTENT_URL,$fif));
 	
 	return
 	(
@@ -83,6 +96,8 @@ static function Schema()
 	'file_browser_fbc'		=> array('default' => false, 'title' => __('Files before Categories', WPFB), 'type' => 'checkbox', 'desc' => __('Files will appear above categories in the file browser.', WPFB)),
 
 		
+			'folder_icon' => array('default' => '/plugins/wp-filebase-pro/images/folder-icons/folder_orange48.png', 'title' => __('Folder Icon', WPFB), 'type' => 'icon', 'icons' => $folder_icons, 'desc' => sprintf(__('Choose the default category icon and file browser icon. You can put custom icons in <code>%s</code>.', WPFB),'wp-content/images/foldericons')),
+			 
 	'small_icon_size'		=> array('default' => 32, 'title' => __('Small Icon Size'), 'desc' => __('Icon size (height) for categories and files. Set to 0 to show icons in full size.', WPFB), 'type' => 'number', 'class' => 'num', 'size' => 8),
 			
 	
@@ -137,6 +152,10 @@ static function Schema()
 	'search_id3' =>  array('default' => true, 'title' => __('Search ID3 Tags', WPFB), 'type' => 'checkbox', 'desc' => __('Search in file meta data, like ID3 for MP3 files, EXIF for JPEG... (this option does not increase significantly server load since all data is cached in a MySQL table)', WPFB)),
 	'use_path_tags' => array('default' => false, 'title' => __('Use path instead of ID in Shortcode', WPFB), 'type' => 'checkbox', 'desc' => __('Files and Categories are identified by paths and not by their IDs in the generated Shortcodes', WPFB)),
 	'no_name_formatting'  => array('default' => false, 'title' => __('Disable Name Formatting', WPFB), 'type' => 'checkbox', 'desc' => __('This will disable automatic formatting/uppercasing file names when they are used as title (e.g. when syncing)', WPFB)),
+		 
+		 
+	'fake_md5' => array('default' => false, 'title' => __('Fake MD5 Hashes', WPFB), 'type' => 'checkbox', 'desc' => __('This dramatically speeds up sync, since no real MD5 checksum of the files is calculated but only a hash of modification time and file size.', WPFB)),
+
 	
 	// file browser
 	'disable_footer_credits'  => array('default' => true, 'title' => __('Remove WP-Filebase Footer credits', WPFB), 'type' => 'checkbox', 'desc' => sprintf(__('This disables the footer credits only displayed on <a href="%s">File Browser Page</a>. Why should you keep the credits? Every backlink helps WP-Filebase to get more popular, popularity motivates the developer to continue work on the plugin.', WPFB), get_permalink(WPFB_Core::GetOpt('file_browser_post_id')).'#wpfb-credits')),
@@ -149,9 +168,9 @@ static function Schema()
 	'default_cat' => array('default' => 0, 'title' => __('Default Category', WPFB), 'desc' => __('Preset Category in the file form', WPFB), 'type' => 'cat'),
 		
 	'languages'				=> array('default' => "English|en\nDeutsch|de", 'title' => __('Languages'), 'type' => 'textarea', 'desc' => &$multiple_entries_desc),
-	'platforms'				=> array('default' => "Windows 95|win95\n*Windows 98|win98\n*Windows 2000|win2k\n*Windows XP|winxp\n*Windows Vista|vista\n*Windows 7|win7\nLinux|linux\nMac OS X|mac", 'title' => __('Platforms', WPFB), 'type' => 'textarea', 'desc' => &$multiple_entries_desc, 'nowrap' => true),	
+	'platforms'				=> array('default' => "Windows 7|win7\n*Windows 8|win8\nLinux|linux\nMac OS X|mac", 'title' => __('Platforms', WPFB), 'type' => 'textarea', 'desc' => &$multiple_entries_desc, 'nowrap' => true),	
 	'licenses'				=> array('default' =>
-"*Freeware|free\nShareware|share\nGNU General Public License|gpl|http://www.gnu.org/copyleft/gpl.html\nGNU Lesser General Public License|lgpl\nGNU Affero General Public License|agpl\nCC Attribution-NonCommercial-ShareAlike|ccbyncsa|http://creativecommons.org/licenses/by-nc-sa/3.0/", 'title' => __('Licenses', WPFB), 'type' => 'textarea', 'desc' => &$multiple_entries_desc, 'nowrap' => true),
+"*Freeware|free\nShareware|share\nGNU General Public License|gpl|http://www.gnu.org/copyleft/gpl.html\nCC Attribution-NonCommercial-ShareAlike|ccbyncsa|http://creativecommons.org/licenses/by-nc-sa/3.0/", 'title' => __('Licenses', WPFB), 'type' => 'textarea', 'desc' => &$multiple_entries_desc, 'nowrap' => true),
 	'requirements'			=> array('default' =>
 "PDF Reader|pdfread|http://www.foxitsoftware.com/pdf/reader/addons.php
 Java|java|http://www.java.com/download/
@@ -163,7 +182,7 @@ Open Office|ooffice|http://www.openoffice.org/download/index.html
 	'default_direct_linking'	=> array('default' => 1, 'title' => __('Default File Direct Linking'), 'type' => 'select', 'desc' => __('', WPFB), 'options' => array(1 => __('Allow direct linking', WPFB), 0 => __('Redirect to post', WPFB) )),	 
 		 
 	'custom_fields'			=> array('default' => "Custom Field 1|cf1\nCustom Field 2|cf2", 'title' => __('Custom Fields'), 'type' => 'textarea', 'desc' => 
-	__('With custom fields you can add even more file properties.',WPFB).' '.$multiple_entries_desc),
+	__('With custom fields you can add even more file properties.',WPFB).' '.  sprintf(__('Append another %s to set the default value.',WPFB),'|<i>Default Value</i>'.' '.$multiple_entries_desc)),
 	
 	
 	

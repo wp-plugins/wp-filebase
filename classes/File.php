@@ -40,6 +40,7 @@ class WPFB_File extends WPFB_Item {
 	var $file_last_dl_ip;
 	var $file_last_dl_time;
 	
+	
 	//var $file_edited_time;
 	
 	//var $file_meta;
@@ -78,6 +79,9 @@ class WPFB_File extends WPFB_Item {
 	
 	static function GetSqlCatWhereStr($cat_id)
 	{
+		if(is_array($cat_id))
+			return implode("OR", array_map(array(__CLASS__,__FUNCTION__), $cat_id));
+		
 		$cat_id = (int)$cat_id;
 		return " (`file_category` = $cat_id) ";
 	}
@@ -93,7 +97,7 @@ class WPFB_File extends WPFB_Item {
 			foreach($where as $field => $value) {
 				if($where_str != '') $where_str .= "AND ";
 				if(is_numeric($value)) $where_str .= "$field = $value ";
-				else $where_str .= "$field = '".$wpdb->escape($value)."' ";
+				else $where_str .= "$field = '".esc_sql($value)."' ";
 			}
 		} else $where_str =& $where;
 		
@@ -528,7 +532,7 @@ class WPFB_File extends WPFB_Item {
 			WPFB_Download::SendFile($this->GetLocalPath(), array(
 				'bandwidth' => WPFB_Core::$settings->$bw,
 				'etag' => $this->file_hash,
-				'md5_hash' => $this->file_hash,
+				'md5_hash' => WPFB_Core::$settings->fake_md5 ? null : $this->file_hash, // only send real md5
 				'force_download' => $this->file_force_download,
 				'cache_max_age' => 10
 			));

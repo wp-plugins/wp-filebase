@@ -1314,7 +1314,7 @@ msgstr ""
 "Ograničiti pristup kategoriji biranjem jedne ili više korisničkih uloga."
 
 msgid ""
-"This will recursivle update permissions of all existing child categories and "
+"This will recursivly update permissions of all existing child categories and "
 "files. Note that permissions of new files in this category are inherited "
 "automatically, without having checked this checkbox."
 msgstr ""

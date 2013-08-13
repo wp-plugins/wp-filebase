@@ -29,7 +29,7 @@ private static function getSearchTerms($s)
 		
 	if ( !empty($s) )
 	{
-		$s = $wpdb->escape(stripslashes($s));
+		$s = esc_sql(stripslashes($s));
 		if ($sentence)
 			$search_terms = array($s);
 		else {

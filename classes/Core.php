@@ -172,13 +172,13 @@ static function DownloadRedirect()
 	if(!empty($file) && is_object($file) && !empty($file->is_file)) {
 		$file->Download();		
 		exit;
-	} else {
+	} /* else { // don't set coockies anymore
 		// no download, a normal request: set site visited coockie to disable referer check
 		if(empty($_COOKIE[WPFB_OPT_NAME])) {
 			@setcookie(WPFB_OPT_NAME, '1');
 			$_COOKIE[WPFB_OPT_NAME] = '1';
 		}
-	}
+	} */
 }
 
 static function Ext2TypeFilter($arr) {
@@ -187,7 +187,7 @@ static function Ext2TypeFilter($arr) {
 	return $arr;
 }
 
-function SearchExcerptFilter($content)
+static function SearchExcerptFilter($content)
 {
 	global $id;
 	
@@ -202,7 +202,7 @@ function SearchExcerptFilter($content)
 	return $content;
 }
 
-function ContentFilter($content)
+static function ContentFilter($content)
 {
 	global $id, $wpfb_fb, $post;
 	
@@ -303,7 +303,7 @@ static function GetFileListSortSql($sort=null, $attach_order=false)
 	global $wpdb;
 	wpfb_loadclass('Output');
 	list($sort, $sortdir) = WPFB_Output::ParseFileSorting($sort, $attach_order);	
-	$sort = $wpdb->escape($sort);
+	$sort = esc_sql($sort);
 	return $attach_order ? "`file_attach_order` ASC, `$sort` $sortdir" : "`$sort` $sortdir";
 }
 

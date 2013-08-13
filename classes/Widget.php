@@ -181,7 +181,7 @@ class WPFB_CatListWidget extends WP_Widget {
 		// load all categories
 		WPFB_Category::GetCats();
 	
-		$cats = WPFB_Category::GetCats(($tree ? 'WHERE cat_parent = '.(empty($instance['root-cat'])?0:(int)$instance['root-cat']) : '') . 'ORDER BY '.$instance['sort-by'].' '.($instance['sort-asc']?'ASC':'DESC') /* . $options['catlist_order_by'] . ($options['catlist_asc'] ? ' ASC' : ' DESC') /*. ' LIMIT ' . (int)$options['catlist_limit']*/);
+		$cats = WPFB_Category::GetCats(($tree ? 'WHERE cat_parent = '.(empty($instance['root-cat'])?0:(int)$instance['root-cat']) : '') . ' ORDER BY '.$instance['sort-by'].' '.($instance['sort-asc']?'ASC':'DESC') /* . $options['catlist_order_by'] . ($options['catlist_asc'] ? ' ASC' : ' DESC') /*. ' LIMIT ' . (int)$options['catlist_limit']*/);
 	
 		echo '<ul>';
 		foreach($cats as $cat){
@@ -230,12 +230,17 @@ class WPFB_FileListWidget extends WP_Widget {
         $title = apply_filters('widget_title', $instance['title']);		
 		echo $before_widget, $before_title . (empty($title) ? __('Files',WPFB) : $title) . $after_title;
 	
-	
-		// load all categories
-		//WPFB_Category::GetCats();
+		
+		// special handling for empty cats
+		if(!empty($instance['cat']) && !is_null($cat = WPFB_Category::GetCat($instance['cat'])) && $cat->cat_num_files == 0)
+		{
+			$instance['cat'] = array();
+			foreach($cat->GetChildCats() as $c)
+				$instance['cat'][] = $c->cat_id;
+		}
 		
 		$files = WPFB_File::GetFiles2(
-			!empty($instance['cat']) ?  array('file_category'=>(int)$instance['cat']) : null,
+			empty($instance['cat']) ? null : WPFB_File::GetSqlCatWhereStr($instance['cat']),
 			WPFB_Core::GetOpt('hide_inaccessible'),
 			array($instance['sort-by'] => ($instance['sort-asc'] ? 'ASC' : 'DESC')),
 		 	(int)$instance['limit']

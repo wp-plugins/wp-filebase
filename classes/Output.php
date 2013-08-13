@@ -84,7 +84,7 @@ static function PostAttachments($check_attached = false, $tpl_tag=null)
 	wpfb_loadclass('File', 'Category');	
 	$pid = WPFB_Core::GetPostId();	
 	
-	if($pid==0 || ($check_attached && !empty($attached[$pid])) || count($files = &WPFB_File::GetAttachedFiles($pid)) == 0)
+	if($pid==0 || ($check_attached && !empty($attached[$pid])) || count($files = WPFB_File::GetAttachedFiles($pid)) == 0)
 		return '';
 	$attached[$pid] = true;
 	
@@ -301,7 +301,7 @@ static function CatSelTree($args=null, $root_cat_id = 0, $depth = 0)
 	if($root_cat_id <= 0)
 	{
 		$out .= '<option value="0"'.((0==$s_sel)?' selected="selected"':'').' style="font-style:italic;">' .(empty($s_nol) ? __('None'/*def*/) : $s_nol) . ($s_count?' ('.WPFB_File::GetNumFiles(0).')':'').'</option>';
-		$cats = &WPFB_Category::GetCats();
+		$cats = WPFB_Category::GetCats();
 		foreach($cats as $c) {
 			if($c->cat_parent <= 0 && $c->cat_id != $s_ex && $c->CurUserCanAccess()
 			)
@@ -310,7 +310,7 @@ static function CatSelTree($args=null, $root_cat_id = 0, $depth = 0)
 		// TODO
 		//$out .= '<option value="0" style="font-style:italic;" onchoose="alert(\'asdf\');">'.__('+ Add New Category').'</option>';
 	} else {
-		$cat = &WPFB_Category::GetCat($root_cat_id);	
+		$cat = WPFB_Category::GetCat($root_cat_id);	
 		$out .= '<option value="' . $root_cat_id . '"' . (($root_cat_id == $s_sel) ? ' selected="selected"' : '') . '>' . str_repeat('&nbsp;&nbsp; ', $depth) . esc_html($cat->cat_name).($s_count?' ('.$cat->cat_num_files.')':'').'</option>';
 
 		if(isset($cat->cat_childs)) {
