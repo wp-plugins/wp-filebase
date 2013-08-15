@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=wpfil
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, images, pdf, widget, filelist, list, thumbnails, thumbnail, attachment, attachments, category, categories, media, template, ftp, http, mp3, id3
 Requires at least: 3.1
 Tested up to: 3.6
-Stable tag: 0.3.0.01
+Stable tag: 0.3.0.02
 
 Adds a powerful download manager including file categories, downloads counter, widgets, sorted file lists and more to your WordPress blog.
 
@@ -114,6 +114,11 @@ Goto WP-Filebase Settings and disable Permalinks under "Download". Try to disabl
 
 
 == Changelog ==
+
+= 0.3.0.02 =
+* Fixed batch uploader
+* Fixed fake MD5 issue when downloading
+* Fixed file browser icon
 
 = 0.3.0.01 =
 * New File List Table in Dashboard

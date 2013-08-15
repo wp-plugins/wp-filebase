@@ -96,7 +96,7 @@ static function Schema()
 	'file_browser_fbc'		=> array('default' => false, 'title' => __('Files before Categories', WPFB), 'type' => 'checkbox', 'desc' => __('Files will appear above categories in the file browser.', WPFB)),
 
 		
-			'folder_icon' => array('default' => '/plugins/wp-filebase-pro/images/folder-icons/folder_orange48.png', 'title' => __('Folder Icon', WPFB), 'type' => 'icon', 'icons' => $folder_icons, 'desc' => sprintf(__('Choose the default category icon and file browser icon. You can put custom icons in <code>%s</code>.', WPFB),'wp-content/images/foldericons')),
+			'folder_icon' => array('default' => '/plugins/wp-filebase/images/folder-icons/folder_orange48.png', 'title' => __('Folder Icon', WPFB), 'type' => 'icon', 'icons' => $folder_icons, 'desc' => sprintf(__('Choose the default category icon and file browser icon. You can put custom icons in <code>%s</code>.', WPFB),'wp-content/images/foldericons')),
 			 
 	'small_icon_size'		=> array('default' => 32, 'title' => __('Small Icon Size'), 'desc' => __('Icon size (height) for categories and files. Set to 0 to show icons in full size.', WPFB), 'type' => 'number', 'class' => 'num', 'size' => 8),
 			

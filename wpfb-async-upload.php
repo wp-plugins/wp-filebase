@@ -16,7 +16,7 @@ register_shutdown_function('wpfb_on_shutdown');
 define('TMP_FILE_MAX_AGE', 3600*3);
 
 $frontend_upload = !empty($_REQUEST['frontend_upload']) && $_REQUEST['frontend_upload'] !== "false";
-$file_add_now = !$frontend_upload && !empty($_REQUEST['file_add_now']) && $_REQUEST['file_add_now'] !== "false";
+
 
 ob_start();
 define('WP_ADMIN', !$frontend_upload);
@@ -25,6 +25,10 @@ if ( defined('ABSPATH') )
 	require_once(ABSPATH . 'wp-load.php');
 else
 	require_once(dirname(__FILE__).'/../../../wp-load.php');
+
+// global vars like this have to be set after wp-load.php, because they sometimes get unset?!
+$frontend_upload = !empty($_REQUEST['frontend_upload']) && $_REQUEST['frontend_upload'] !== "false";
+$file_add_now = !$frontend_upload && !empty($_REQUEST['file_add_now']) && $_REQUEST['file_add_now'] !== "false";
 
 error_reporting(0);
 
