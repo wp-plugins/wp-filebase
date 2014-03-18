@@ -28,6 +28,16 @@ else
 
 error_reporting(0);
 
+// check if WP-Filebase is active
+/*
+require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+$wpfb_rpath = basename(untrailingslashit(dirname(__FILE__))).'/wp-filebase.php';
+if(!is_plugin_active($wpfb_rpath))
+	wp_die("WP-Filebase ($wpfb_rpath) not active.<!-- FATAL ERROR: WP-Filebase DISABLED -->");
+ * 
+ */
+
+
 if(defined('WP_ADMIN') && WP_ADMIN) {
 	require_once(ABSPATH.'wp-admin/admin.php');
 } else {
@@ -40,8 +50,9 @@ if(defined('WP_ADMIN') && WP_ADMIN) {
 }
 
 
-if(SUPPRESS_LOADING_OUTPUT)
-	@ob_end_clean();
+if(SUPPRESS_LOADING_OUTPUT) {
+	while(@ob_end_clean()){} // destroy all ob buffers
+}
 
 
 if(defined('WP_INSTALLING') && WP_INSTALLING) {
@@ -61,6 +72,3 @@ if(defined('DOING_AJAX') && DOING_AJAX) {
 	error_reporting(0);
 	add_filter('wp_die_ajax_handler', create_function('$v','return "wpfb_ajax_die";'));
 }
-
-if(!in_array(basename(untrailingslashit(dirname(__FILE__))).'/wp-filebase.php',get_option('active_plugins')))
-	wp_die('WP-Filebase not active.<!-- FATAL ERROR: WP-Filebase DISABLED -->');

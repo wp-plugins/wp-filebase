@@ -24,10 +24,13 @@ define('WP_INSTALLING', true);
 
 require_once(dirname(dirname(dirname(dirname(__FILE__)))).'/wp-load.php');
 
+/*
+require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 // check if WP-Filebase is active
-if(!in_array(basename(untrailingslashit(dirname(__FILE__))).'/wp-filebase.php',get_option('active_plugins')))
-	wp_die('WP-Filebase not active.<!-- FATAL ERROR: WP-Filebase DISABLED -->');
-
+$wpfb_rpath = basename(untrailingslashit(dirname(__FILE__))).'/wp-filebase.php';
+if(!is_plugin_active($wpfb_rpath))
+	wp_die("WP-Filebase not active. ($wpfb_rpath not in [".implode(',',get_option('active_plugins'))."]) <!-- FATAL ERROR: WP-Filebase DISABLED -->");
+*/
 
 require_once(ABSPATH . 'wp-admin/includes/admin.php');
 
