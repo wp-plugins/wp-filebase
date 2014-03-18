@@ -349,7 +349,7 @@ static function InitFileTreeView($id=null, $root=0)
 <script type="text/javascript">
 //<![CDATA[
 function wpfb_initfb<?php echo $jss ?>() {	jQuery("#<?php echo $id ?>").treeview({url: "<?php echo WPFB_PLUGIN_URI."wpfb-ajax.php" ?>",
-ajax:{data:<?php echo json_encode($ajax_data); ?>,type:"post",complete:function(){if(typeof(wpfb_setupLinks)=='function')wpfb_setupLinks();}},
+ajax:{data:<?php echo json_encode($ajax_data); ?>,type:"post",error:function(x,status,error){alert(error);},complete:function(x,status){if(typeof(wpfb_setupLinks)=='function')wpfb_setupLinks();}},
 animated: "medium"});
 }
 jQuery(document).ready(function(){

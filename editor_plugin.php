@@ -23,17 +23,19 @@ if ( ! isset( $_GET['inline'] ) )
 define('WP_INSTALLING', true);
 
 require_once(dirname(dirname(dirname(dirname(__FILE__)))).'/wp-load.php');
+
+// check if WP-Filebase is active
+if(!in_array(basename(untrailingslashit(dirname(__FILE__))).'/wp-filebase.php',get_option('active_plugins')))
+	wp_die('WP-Filebase not active.<!-- FATAL ERROR: WP-Filebase DISABLED -->');
+
+
 require_once(ABSPATH . 'wp-admin/includes/admin.php');
 
 // load wpfilebase only!
 require_once('wp-filebase.php');
 
-if(!function_exists('get_current_screen')) {
-	function get_current_screen() { return null; }
-}
-if(!function_exists('add_meta_box')) {
-	function add_meta_box() { return null; }
-}
+if(!function_exists('get_current_screen')) {	function get_current_screen() { return null; } }
+if(!function_exists('add_meta_box')) {	function add_meta_box() { return null; } }
 
 auth_redirect(); 
 

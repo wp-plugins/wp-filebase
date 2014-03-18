@@ -1,6 +1,7 @@
 <?php
 
 define('SUPPRESS_LOADING_OUTPUT', empty($_REQUEST['noob']));
+define('NGG_DISABLE_RESOURCE_MANAGER', true); // NexGen Gallery: ne resource manager
 
 error_reporting(0);
 
@@ -39,7 +40,7 @@ if(defined('WP_ADMIN') && WP_ADMIN) {
 }
 
 
-if(SUPPRESS_LOADING_OUTPUT && ob_get_level() > 1)
+if(SUPPRESS_LOADING_OUTPUT)
 	@ob_end_clean();
 
 
@@ -61,3 +62,5 @@ if(defined('DOING_AJAX') && DOING_AJAX) {
 	add_filter('wp_die_ajax_handler', create_function('$v','return "wpfb_ajax_die";'));
 }
 
+if(!in_array(basename(untrailingslashit(dirname(__FILE__))).'/wp-filebase.php',get_option('active_plugins')))
+	wp_die('WP-Filebase not active.<!-- FATAL ERROR: WP-Filebase DISABLED -->');

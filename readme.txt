@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=wpfil
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, images, pdf, widget, filelist, list, thumbnails, thumbnail, attachment, attachments, category, categories, media, template, ftp, http, mp3, id3
 Requires at least: 3.1
 Tested up to: 3.8.1
-Stable tag: 0.3.0.03
+Stable tag: 0.3.0.04
 
 Adds a powerful download manager including file categories, downloads counter, widgets, sorted file lists and more to your WordPress blog.
 
@@ -116,6 +116,10 @@ Goto WP-Filebase Settings and disable Permalinks under "Download". Try to disabl
 
 
 == Changelog ==
+
+= 0.3.0.04 =
+* Fixed a conflict with NexGEN Gallery Plugin by disabling its resource manager output buffer
+* Improved security: direct access of plugin files is blocked if plugin is disabled
 
 = 0.3.0.03 =
 * Enhanced Search Functions: added dash (-) operator to exclude words, added wildcard (*)
