@@ -3,8 +3,8 @@ Contributors: fabifott
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=wpfilebase%40fabi%2eme&item_name=WP-Filebase&no_shipping=0&no_note=1&tax=0&currency_code=USD&lc=US&bn=PP%2dDonationsBF&charset=UTF%2d8
 Tags: filebase, filemanager, file, files, manager, upload, download, downloads, downloadmanager, images, pdf, widget, filelist, list, thumbnails, thumbnail, attachment, attachments, category, categories, media, template, ftp, http, mp3, id3
 Requires at least: 3.1
-Tested up to: 3.8.1
-Stable tag: 0.3.0.05
+Tested up to: 3.9
+Stable tag: 0.3.0.06
 
 Adds a powerful download manager including file categories, downloads counter, widgets, sorted file lists and more to your WordPress blog.
 
@@ -116,6 +116,17 @@ Goto WP-Filebase Settings and disable Permalinks under "Download". Try to disabl
 
 
 == Changelog ==
+
+= 0.3.0.06 =
+* New Feature: File URL: Prepend asterisk (*) to linktext to open in new tab
+* Chinese translation by [Darlexlin](http://darlexlin.cn/)
+* Added Google Universal Analytics compatibility
+* New batch uploader field: File Display Name
+* New File Browser code
+* Fix: Suppressing deprecation errors on AJAX requests
+* Fixed output suppression during Ajax requests
+* Fixed: keep thumbnail during file update
+* Fixed permission control for roles with names shorter than 4 (or mysql ft_min_word_len)
 
 = 0.3.0.05 =
 * Reverted 'direct access block' since this is not working for multi-site in some cases

@@ -13,7 +13,7 @@ static function Display()
 	$action = (!empty($_POST['action']) ? $_POST['action'] : (!empty($_GET['action']) ? $_GET['action'] : ''));
 	$clean_uri = remove_query_arg(array('message', 'action', 'file_id', 'cat_id', 'deltpl', 'hash_sync', 'doit', 'ids', 'files', 'cats', 'batch_sync' /* , 's'*/)); // keep search keyword	
 	
-	
+
 	// switch simple/extended form
 	if(isset($_GET['exform'])) {
 		$exform = (!empty($_GET['exform']) && $_GET['exform'] == 1);
@@ -78,13 +78,13 @@ static function Display()
 				
 				if(!empty($error_msg)) echo '<div class="error default-password-nag"><p>'.$error_msg.'</p></div>';				
 				
-					if(WPFB_Core::GetOpt('tag_conv_req')) {
+					if(WPFB_Core::$settings->tag_conv_req) {
 					echo '<div class="updated"><p><a href="'.add_query_arg('action', 'convert-tags').'">';
 					_e('WP-Filebase content tags must be converted',WPFB);
 					echo '</a></p></div><div style="clear:both;"></div>';
 				}
 				
-				if(!get_post(WPFB_Core::GetOpt('file_browser_post_id'))) {
+				if(!get_post(WPFB_Core::$settings->file_browser_post_id)) {
 					echo '<div class="updated"><p>';
 					printf(__('File Browser post or page not set! Some features like search will not work. <a href="%s">Click here to set the File Browser Post ID.</a>',WPFB), esc_attr(admin_url('admin.php?page=wpfilebase_sets#'.sanitize_title(__('File Browser',WPFB)))));
 					echo '</p></div><div style="clear:both;"></div>';
@@ -129,8 +129,8 @@ static function Display()
 			<table class="wpfb-stats-table">
 			<?php
 				$traffic_stats = wpfb_call('Misc','GetTraffic');					
-				$limit_day = (WPFB_Core::GetOpt('traffic_day') * 1048576);
-				$limit_month = (WPFB_Core::GetOpt('traffic_month') * 1073741824);
+				$limit_day = (WPFB_Core::$settings->traffic_day * 1048576);
+				$limit_month = (WPFB_Core::$settings->traffic_month * 1073741824);
 			?>
 			<tr>
 				<td><?php
@@ -188,7 +188,7 @@ static function Display()
 <?php
 
 $cron_sync_desc = '';
-if(WPFB_Core::GetOpt('cron_sync')) {
+if(WPFB_Core::$settings->cron_sync) {
 	$cron_sync_desc .= __('Automatic sync is enabled. Cronjob scheduled hourly.');
 	$last_sync_time	= intval(get_option(WPFB_OPT_NAME.'_cron_sync_time'));
 	$cron_sync_desc .=  ($last_sync_time > 0) ? (" (".sprintf( __('Last cron sync on %1$s at %2$s.',WPFB), date_i18n( get_option( 'date_format'), $last_sync_time ), date_i18n( get_option( 'time_format'), $last_sync_time ) ).")") : '';
@@ -227,7 +227,7 @@ jQuery('#wpfb-tools li').mouseenter(function(e) {
 
 
 				
-<?php if(WPFB_Core::GetOpt('tag_conv_req')) { ?><p><a href="<?php echo add_query_arg('action', 'convert-tags') ?>" class="button"><?php _e('Convert old Tags',WPFB)?></a> &nbsp; <?php printf(__('Convert tags from versions earlier than %s.',WPFB), '0.2.0') ?></p> <?php } ?>
+<?php if(WPFB_Core::$settings->tag_conv_req) { ?><p><a href="<?php echo add_query_arg('action', 'convert-tags') ?>" class="button"><?php _e('Convert old Tags',WPFB)?></a> &nbsp; <?php printf(__('Convert tags from versions earlier than %s.',WPFB), '0.2.0') ?></p> <?php } ?>
 <!--  <p><a href="<?php echo add_query_arg('action', 'add-urls') ?>" class="button"><?php _e('Add multiple URLs',WPFB)?></a> &nbsp; <?php _e('Add multiple remote files at once.', WPFB); ?></p>
 -->
 </div>
@@ -356,6 +356,7 @@ jQuery('#wpfb-tools li').mouseenter(function(e) {
 		printf(__('Done. %d Files affected.'), $n);
 		echo "</p>";
 		break;
+		
 		
 	} // switch	
 	?>
